@@ -1,6 +1,6 @@
 # 07 — Performance and the React Compiler
 
-> **Status:** 🔴 planned · **Published:** 0/0 · **Last verified:** —
+> **Status:** 🔴 planned · **Published:** 0/3 · **Last verified:** —
 
 Making React render less: when `memo`, `useMemo`, and `useCallback` help, what the React Compiler automates, and how to find out why something rendered.
 
@@ -16,15 +16,18 @@ After this chapter you can:
 
 Coverage checklist: each concept points to the questions covering it; `→ —` marks a gap.
 
-- Memoization: `memo` and its comparison, `useMemo`, `useCallback`, unstable props that defeat `memo`, moving state down and lifting content up → —
-- React Compiler: automatic memoization, the Rules of React it relies on, bail-outs, `"use no memo"`, lint rules → —
-- Profiling: React DevTools Profiler, `<Profiler>` and `onRender`, Performance Tracks in browser DevTools → —
+- Memoization: `memo` and its comparison, `useMemo`, `useCallback`, unstable props that defeat `memo`, moving state down and lifting content up → 010
+- React Compiler: automatic memoization, the Rules of React it relies on, bail-outs, `"use no memo"`, lint rules → 020
+- Profiling: React DevTools Profiler, `<Profiler>` and `onRender`, Performance Tracks in browser DevTools → 030
 
 ## Questions
 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
+| 010 | [When do `memo`, `useMemo`, and `useCallback` actually help?](010-memoization.md) | medium | 🔴 planned |
+| 020 | [What does the React Compiler do, and what does it require of your code?](020-react-compiler.md) | medium | 🔴 planned |
+| 030 | [How do you find out why a component rendered?](030-profiling.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
 ## Sources
