@@ -1,6 +1,6 @@
 # 01 — The rendering model
 
-> **Status:** 🔴 planned · **Published:** 0/0 · **Last verified:** —
+> **Status:** 🔴 planned · **Published:** 0/5 · **Last verified:** —
 
 What a component is to React: a function from props and state to elements, what JSX compiles to, the render and commit phases, why rendering must be pure, and how hooks attach state to a component.
 
@@ -18,17 +18,22 @@ After this chapter you can:
 
 Coverage checklist: each concept points to the questions covering it; `→ —` marks a gap.
 
-- JSX: the automatic runtime (`jsx()` from `react/jsx-runtime`), `createElement`, elements as plain immutable objects, `$$typeof` → —
-- Render and commit: triggering a render, rendering, committing to the DOM, browser paint → —
-- Purity: idempotent rendering, side effects belong in handlers and effects, Strict Mode double rendering → —
-- Rules of Hooks: call order, hooks stored per component in order, why no conditions or loops → —
-- When a component re-renders: own state, parent render, context; props changing is not the trigger → —
+- JSX: the automatic runtime (`jsx()` from `react/jsx-runtime`), `createElement`, elements as plain immutable objects, `$$typeof` → 010
+- Render and commit: triggering a render, rendering, committing to the DOM, browser paint → 020
+- Purity: idempotent rendering, side effects belong in handlers and effects, Strict Mode double rendering → 030
+- Rules of Hooks: call order, hooks stored per component in order, why no conditions or loops → 040
+- When a component re-renders: own state, parent render, context; props changing is not the trigger → 050
 
 ## Questions
 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
+| 010 | [What does JSX compile to, and what is a React element?](010-jsx-and-elements.md) | medium | 🔴 planned |
+| 020 | [What happens between a state update and the screen changing?](020-render-and-commit.md) | medium | 🔴 planned |
+| 030 | [Why must rendering be pure, and how does Strict Mode catch impure components?](030-purity-and-strict-mode.md) | medium | 🔴 planned |
+| 040 | [Why can't hooks be called conditionally?](040-rules-of-hooks.md) | medium | 🔴 planned |
+| 050 | [When does a React component re-render?](050-when-components-rerender.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
 ## Sources

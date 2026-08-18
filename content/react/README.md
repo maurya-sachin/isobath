@@ -1,7 +1,7 @@
 # React
 
 > **Track:** Frontend
-> **Status:** 🔴 planned · **Published:** 0/0 · **Last verified:** —
+> **Status:** 🔴 planned · **Published:** 0/5 · **Last verified:** —
 
 React's rendering model, from components and hooks down to reconciliation, concurrent rendering, and Server Components.
 It's the most-asked frontend framework in interviews, and the hard questions are about *when* and *why* React renders.
