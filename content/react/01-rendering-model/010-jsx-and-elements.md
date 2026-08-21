@@ -24,6 +24,7 @@ sources:
   - https://react.dev/blog/2024/12/05/react-19#ref-as-a-prop
   - https://github.com/facebook/react/blob/v19.3.1/packages/react/src/jsx/ReactJSXElement.js
   - https://github.com/facebook/react/blob/v19.3.1/packages/shared/ReactSymbols.js
+  - https://github.com/facebook/react/pull/4832
 tldr: >
   JSX compiles to function calls. With the automatic runtime the compiler imports `jsx`/`jsxs`
   from `react/jsx-runtime` and emits `jsx(type, props, key)`, with children inside `props`.
