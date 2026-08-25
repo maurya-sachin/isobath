@@ -28,7 +28,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | # | Question | Difficulty | Status |
 |---|---|---|---|
 | 010 | [When should you use a ref instead of state?](010-refs-vs-state.md) | medium | 🟡 draft |
-| 020 | [How do ref callbacks work, and what changed with `ref` as a prop?](020-ref-callbacks-and-ref-prop.md) | medium | 🔴 planned |
+| 020 | [How do ref callbacks work, and what changed with `ref` as a prop?](020-ref-callbacks-and-ref-prop.md) | medium | 🟡 draft |
 | 030 | [How do you expose a limited imperative API with `useImperativeHandle`?](030-imperative-handle.md) | medium | 🔴 planned |
 | 040 | [What can a Fragment ref do that a DOM ref can't?](040-fragment-refs.md) | hard | 🔴 planned |
 <!-- generated:questions:end -->
