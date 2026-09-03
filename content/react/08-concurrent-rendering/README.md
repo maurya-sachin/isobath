@@ -34,7 +34,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 010 | [What is Fiber, and why did React rewrite its reconciler?](010-fiber.md) | hard | 🟡 draft |
 | 020 | [What does concurrent rendering mean in React?](020-interruptible-rendering.md) | hard | 🟡 draft |
 | 030 | [What does `useTransition` change for the user?](030-transitions.md) | medium | 🟡 draft |
-| 040 | [How is `useDeferredValue` different from debouncing?](040-deferred-value.md) | medium | 🔴 planned |
+| 040 | [How is `useDeferredValue` different from debouncing?](040-deferred-value.md) | medium | 🟡 draft |
 | 050 | [How does React's scheduler yield to the browser?](050-scheduler.md) | hard | 🔴 planned |
 | 060 | [How does `<ViewTransition>` animate React updates?](060-view-transition.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
