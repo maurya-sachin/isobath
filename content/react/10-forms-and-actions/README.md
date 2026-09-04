@@ -28,7 +28,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | # | Question | Difficulty | Status |
 |---|---|---|---|
 | 010 | [What is the difference between controlled and uncontrolled inputs?](010-controlled-vs-uncontrolled.md) | medium | 🟡 draft |
-| 020 | [What are Actions, and how does `<form action>` differ from `onSubmit`?](020-actions.md) | medium | 🔴 planned |
+| 020 | [What are Actions, and how does `<form action>` differ from `onSubmit`?](020-actions.md) | medium | 🟡 draft |
 | 030 | [How does `useActionState` manage a form's result and pending state?](030-use-action-state.md) | medium | 🔴 planned |
 | 040 | [How does `useOptimistic` show a result before the server confirms it?](040-use-optimistic.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
