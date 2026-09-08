@@ -164,7 +164,7 @@ startTransition(async () => {
 Chrome 156 and Firefox 159, development and production, times rounded to 10 ms (one Chrome run logged 210 ms). The wrapped update waited for the whole Action, so the user never saw the new page without the finished state.
 
 - **Controlled inputs.** React restores a controlled input's DOM value to its current state after each change event. A listener on `document` already saw `""` after typing `a`; the value came back only with the commit.
-- **Errors.** An error thrown in the callback, or a rejected promise from an async one, is rethrown when the component renders, so the nearest error boundary shows it.
+- **Errors.** An error thrown in `useTransition`'s callback, or a rejected promise from an async one, is rethrown when the component renders, so the nearest error boundary shows it.
 - **Out of order.** Actions in a Transition don't guarantee execution order, so a slow earlier response can overwrite a newer one. The docs point to `useActionState` and `<form>` actions, which handle ordering.
 
 ### Real-world scenario
