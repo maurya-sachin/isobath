@@ -25,7 +25,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [How do server rendering and hydration work in React?](010-ssr-and-hydration.md) | hard | 🔴 planned |
+| 010 | [How do server rendering and hydration work in React?](010-ssr-and-hydration.md) | hard | 🟡 draft |
 | 020 | [What causes hydration mismatches, and how do you fix them?](020-hydration-mismatches.md) | medium | 🔴 planned |
 | 030 | [How do streaming and selective hydration use Suspense?](030-streaming-and-selective-hydration.md) | hard | 🔴 planned |
 <!-- generated:questions:end -->
