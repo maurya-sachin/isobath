@@ -49,7 +49,7 @@ tldr: >
 
 ## Answer
 
-**Action** is React 19's name for a function run inside a Transition, usually async. Because it's a Transition, React knows when it starts and ends: `isPending` stays `true` until it finishes and its state updates commit, a thrown error reaches the nearest error boundary, and `useOptimistic` and `useActionState` can build on it.
+**Action** is React 19's name for a function run inside a Transition, usually async. Because it's a Transition, React knows when it starts and ends: `isPending` stays `true` until it finishes and its state updates commit, a thrown error reaches the nearest error boundary (with `useTransition` or a form action; the standalone `startTransition` reports it as uncaught), and `useOptimistic` and `useActionState` can build on it.
 
 **`<form action={fn}>`** turns a form submission into an Action. On submit, React:
 
