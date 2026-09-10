@@ -2407,3 +2407,324 @@
   front: "A `Score` component calls `useCounter('home')` and `useCounter('away')`. Clicking home twice logs what?"
   back: "`home 0`, `away 0`, then `home 1`, `away 0`, then `home 2`, `away 0` (no Strict Mode). Updating `home` re-renders `Score`, which re-runs both calls; `away` is unchanged."
   question: react/context-and-composition/custom-hooks
+# 07 Performance
+- id: memo-skip-condition
+  front: "When does `memo(Component)` skip a re-render?"
+  back: "When the parent re-renders and every prop is the same as last time: same keys, each value `Object.is`-equal."
+  question: react/performance/memoization
+- id: memo-are-props-equal
+  front: "What does the second argument of `memo`, `arePropsEqual(oldProps, newProps)`, do?"
+  back: "It replaces the default prop comparison."
+  question: react/performance/memoization
+- id: memo-blocks-only-parent-renders
+  front: "Which re-renders can `memo` not block?"
+  back: "Anything not caused by the parent. The component's own state updates and changes to contexts it reads still re-render it, because `memo` compares props only."
+  question: react/performance/memoization
+- id: use-memo-semantics
+  front: "What does `useMemo(calculate, deps)` return?"
+  back: "The cached result until one of `deps` changes, then it calls `calculate` again."
+  question: react/performance/memoization
+- id: use-callback-semantics
+  front: "What does `useCallback(fn, deps)` do, and does it ever call `fn`?"
+  back: "It returns the cached function until a dependency changes. It never calls `fn`. It is `useMemo(() => fn, deps)` with less typing."
+  question: react/performance/memoization
+- id: memo-three-helpful-cases
+  front: "Which three cases do the docs say justify `memo`, `useMemo` or `useCallback`?"
+  back: "A slow-to-render component re-rendering with the same props (`memo`); a value passed to a `memo` component or used as a hook dependency (stable identity); a noticeably slow calculation with rarely changing inputs (`useMemo`)."
+  question: react/performance/memoization
+- id: use-memo-slow-threshold
+  front: "What threshold do the docs suggest for a calculation worth `useMemo`, and in which build should you measure?"
+  back: "Around 1 ms, measured in a production build. Development builds and Strict Mode are slower, and Strict Mode renders twice."
+  question: react/performance/memoization
+- id: memo-fresh-props-defeat
+  front: "Why does `memo` fail when the parent passes an inline `{}`, `() => {}` or JSX `children`?"
+  back: "Each is a new object every render, so the `Object.is` comparison fails and the child re-renders anyway. The comparison cost is wasted."
+  question: react/performance/memoization
+- id: memo-children-is-a-prop
+  front: "Why does a `memo` component with `<b>!</b>` as `children` still re-render with its parent?"
+  back: "`children` is a prop, and the element is created anew on every parent render. Memoize the element with `useMemo`, or restructure so the parent of the component doesn't re-render."
+  question: react/performance/memoization
+- id: memo-restructure-before-memoizing
+  front: "What two restructurings should you try before reaching for `memo`?"
+  back: "Move state down into the component that uses it, so its updates skip the slow sibling. Or have the wrapper take the slow part as `children`: those elements come from its parent and are skipped."
+  question: react/performance/memoization
+- id: memo-optimization-not-correctness
+  front: "May correctness depend on `memo`, `useMemo` or `useCallback`?"
+  back: "No. They are optimizations, and React may drop a cache. If correctness depends on keeping a value, use state or a ref."
+  question: react/performance/memoization
+- id: use-memo-cache-discarded
+  front: "In which situations does React throw away a `useMemo` cache, per the docs?"
+  back: "In development and in production, if the component suspends during the initial mount. In development it also drops caches when you edit the file."
+  question: react/performance/memoization
+- id: memo-stale-custom-comparator
+  front: "What goes wrong with a custom `arePropsEqual` that skips function props, or one that always returns `true`?"
+  back: "The component never re-renders, so its handlers keep the first render's closure and log stale values. A custom comparison must compare every prop, functions included."
+  question: react/performance/memoization
+- id: memo-deep-compare-cost
+  front: "What is the risk of a custom `arePropsEqual` that deep-compares unbounded data?"
+  back: "The comparison can cost more than the render it avoids."
+  question: react/performance/memoization
+- id: memo-unstable-dependency
+  front: "What happens if a `useMemo` or `useCallback` dependency is itself rebuilt every render, such as an `options` object literal?"
+  back: "The cache misses every render, so the memoization does nothing."
+  question: react/performance/memoization
+- id: memo-mutation-silent
+  front: "What happens when a memoized child receives an array the parent mutated in place?"
+  back: "The reference is unchanged, so the child skips rendering and shows old data. Mutation defeats memoization silently."
+  question: react/performance/memoization
+- id: use-memo-missing-dependency
+  front: "What happens with `useMemo(() => filter(items, query), [items])` when `query` changes?"
+  back: "It keeps returning the result for the first `query`. Dependencies are compared, not read. The `exhaustive-deps` lint rule reports the missing dependency."
+  question: react/performance/memoization
+- id: memo-impl-shallow-equal
+  front: "In React 19.3.1, how does `shallowEqual` compare props, and does it look inside values?"
+  back: "Returns `true` if the objects are `Object.is`-equal. Otherwise it needs the same number of own keys and `Object.is` on every value. It never looks inside a value."
+  question: react/performance/memoization
+- id: memo-impl-bailout
+  front: "In 19.3.1, what does `updateMemoComponent` check before bailing out of a `memo` component?"
+  back: "That the component has no pending update of its own and no changed context. Then it compares props with `arePropsEqual` or `shallowEqual`, and checks the `ref` is unchanged. Equal means React reuses the previous output."
+  question: react/performance/memoization
+- id: memo-impl-hook-slot
+  front: "In React 19.3.1, what do `useMemo` and `useCallback` store in the hook slot?"
+  back: "Both store `[value, deps]`. Next render, `areHookInputsEqual` compares dependencies pairwise with `Object.is`. With no dependency array the deps are `null`, so the value is recomputed every render."
+  question: react/performance/memoization
+- id: use-memo-strict-mode-twice
+  front: "In Strict Mode, how often does a `useMemo` calculation run on mount, and in production?"
+  back: "Twice in Strict Mode (development): both calls happen during the first component call, and the second component call reuses the result. Production ran it once."
+  question: react/performance/memoization
+- id: memo-demo-log-result
+  front: "Four `Chart` components under `memo`: one with stable props, one with an inline `style`, one with an inline handler, one with `children`. Which re-render when the parent's state changes?"
+  back: "All but the stable one. Same logs in Chrome 156 and Firefox 159, development and production, React 19.3.1, no Strict Mode."
+  question: react/performance/memoization
+- id: memo-list-3000-rows
+  front: "Re-rendering 3,000 `Row` components per update, unmemoized versus wrapped in `memo`, in a production build?"
+  back: "Chrome 156: 0.59–0.60 ms versus 0.010–0.012 ms. Firefox 159: 1.28–1.29 ms versus 0.01–0.03 ms. Measured with `flushSync`, 5 page loads, 100 updates each."
+  question: react/performance/memoization
+- id: memo-fix-order
+  front: "For a keystroke re-rendering a large unrelated list, in what order should you try fixes?"
+  back: "Move the state down into its own component, then lift the content up as `children`, then `memo` the list with stable props. The first two need no comparison and can't be broken by a later new prop."
+  question: react/performance/memoization
+- id: memo-compiler-relationship
+  front: "How does the React Compiler change manual memoization?"
+  back: "It inserts memoization for you, caching values and JSX inside each component, so unchanged children receive the same elements and are skipped. It removes the manual dependency arrays."
+  question: react/performance/memoization
+- id: memo-tradeoff
+  front: "What does memoization cost, and when is it pure cost?"
+  back: "A comparison per render, memory for cached values, and dependency arrays that can go stale. It is pure cost for cheap subtrees or for props that change every time."
+  question: react/performance/memoization
+- id: compiler-package-and-release
+  front: "What is the React Compiler's package, and since when is it stable?"
+  back: "`babel-plugin-react-compiler`, stable since 1.0 in October 2025. It runs at build time."
+  question: react/performance/react-compiler
+- id: compiler-what-it-does
+  front: "What does the React Compiler do to each component and hook?"
+  back: "It works out which values depend on which props, state and context, and rewrites the function so each value, callback and JSX element is cached and recomputed only when its inputs change."
+  question: react/performance/react-compiler
+- id: compiler-skips-children
+  front: "How does the compiler make React skip an unchanged child, without adding `memo`?"
+  back: "The parent returns the same element object for the child, the same bailout `children` gets. It targets updates, not the first render, and can memoize where hooks can't, such as after an early return."
+  question: react/performance/react-compiler
+- id: compiler-requires-rules-of-react
+  front: "Why does the compiler require the Rules of React?"
+  back: "Caching is only safe for code that gives the same result anyway: pure render (no `Date.now()`, `Math.random()`, `ref.current`, outside reassignment) and no mutation of props, state, hook arguments or JSX values."
+  question: react/performance/react-compiler
+- id: compiler-default-infer
+  front: "In the default mode, which functions does the compiler compile?"
+  back: "Functions named like components (PascalCase, returning JSX or calling hooks) or hooks (`use…`, calling hooks). A lowercase `renderRow` returning JSX is not compiled by default."
+  question: react/performance/react-compiler
+- id: compiler-bailout-silent
+  front: "What does the compiler do on a violation it detects, and does the build say so?"
+  back: "It bails out of that one function and leaves it as written; the rest of the file is still compiled. By default the bail-out is silent: the build passes and prints nothing."
+  question: react/performance/react-compiler
+- id: compiler-undetected-violation
+  front: "What happens with a Rules of React violation the compiler can't detect?"
+  back: "It is compiled, and behaviour can change. For example, `items.push('x')` on a prop was compiled with no lint rule firing."
+  question: react/performance/react-compiler
+- id: compiler-lint-plugin
+  front: "Where do you see the problems the compiler's analysis finds, and does that need the compiler enabled?"
+  back: "In the lint rules of `eslint-plugin-react-hooks` 7 (`refs`, `purity`, `globals`, `set-state-in-render`, and more). The 1.0 post notes they don't need the compiler."
+  question: react/performance/react-compiler
+- id: compiler-escape-hatches
+  front: "What are the compiler's escape hatches?"
+  back: "`\"use no memo\"` opts one function out; `compilationMode: 'annotation'` compiles only functions marked `\"use memo\"`. `useMemo` and `useCallback` stay for precise control, such as a stable effect dependency."
+  question: react/performance/react-compiler
+- id: compiler-date-now-compiled
+  front: "In `babel-plugin-react-compiler` 1.0.0, what happened to `<p>{Date.now()}</p>` in render?"
+  back: "It was compiled, and the timestamp froze behind a sentinel check; uncompiled it changed. This disagrees with the installation guide's claim that a lint error means the compiler skips the component. The `purity` lint rule warns."
+  question: react/performance/react-compiler
+- id: compiler-compiled-not-correct
+  front: "Does \"compiled without errors\" mean the compiled component is correct?"
+  back: "No. The compiler skips only what it detects; `Date.now()` in JSX was compiled and frozen."
+  question: react/performance/react-compiler
+- id: compiler-memoization-for-correctness
+  front: "Why can code that relies on memoization for correctness break under the compiler?"
+  back: "The docs list it as the main way the compiler breaks apps, and a compiler upgrade can change what is memoized. Pin an exact version."
+  question: react/performance/react-compiler
+- id: compiler-keep-existing-memo
+  front: "Should you delete existing `useMemo` and `useCallback` when adopting the compiler?"
+  back: "Leave them, or test carefully, since removing them can change the output. For new code the docs recommend relying on the compiler, using `useMemo`/`useCallback` where needed for precise control."
+  question: react/performance/react-compiler
+- id: compiler-does-not-do
+  front: "What does the compiler not do?"
+  back: "It doesn't optimize helpers outside components and hooks, share cached results between components, or split a coarse context."
+  question: react/performance/react-compiler
+- id: compiler-memo-needed
+  front: "What do the docs say about `React.memo` once the compiler is enabled?"
+  back: "\"When you enable React Compiler, you typically don't need React.memo anymore.\""
+  question: react/performance/react-compiler
+- id: compiler-verify-compiled
+  front: "How do you check that a component was compiled?"
+  back: "Its build output calls `_c(n)` and has cache checks. A `logger` reports a `CompileSuccess` or `CompileError` event per function. The docs mention a \"Memo ✨\" badge in React DevTools (not checked there)."
+  question: react/performance/react-compiler
+- id: compiler-older-react-target
+  front: "How do you use the compiler with React 17 or 18?"
+  back: "Set `target: '18'` (or `'17'`) and add `react-compiler-runtime` as a runtime dependency. With that target the output imports `c` from `react-compiler-runtime` instead of React 19's `react/compiler-runtime`."
+  question: react/performance/react-compiler
+- id: compiler-panic-threshold
+  front: "What does `panicThreshold` change, and what do the docs say about production?"
+  back: "What a detected violation does. Default `'none'` skips the function and continues; `'critical_errors'` and `'all_errors'` fail the build. Production builds should always use `'none'`."
+  question: react/performance/react-compiler
+- id: compiler-memo-cache-hook
+  front: "What is `_c(n)` in compiled output, in React 19.3.1?"
+  back: "React 19's `useMemoCache(n)`, an implementation detail: an array of `n` slots kept on the component's fiber, filled with `Symbol.for(\"react.memo_cache_sentinel\")` on mount."
+  question: react/performance/react-compiler
+- id: compiler-scope-blocks
+  front: "How does the compiled output recompute a cached value?"
+  back: "Each scope becomes one `if` block that recomputes when any reactive input differs by `!==`, otherwise reads the cache. Values with no reactive inputs are checked against a sentinel, so they are created once."
+  question: react/performance/react-compiler
+- id: compiler-plugin-order-hoisting
+  front: "Where must the plugin run in the Babel pipeline, and what happens to functions that capture nothing?"
+  back: "It must run first. Functions that capture nothing are hoisted out of the component as `_temp`."
+  question: react/performance/react-compiler
+- id: compiler-existing-use-memo
+  front: "What does the compiler do with existing `useMemo` calls?"
+  back: "Compiles them into ordinary cache slots after checking that the dependencies it infers match those written. If they don't, it skips the function: \"Existing memoization could not be preserved\"."
+  question: react/performance/react-compiler
+- id: compiler-modes
+  front: "With `compilationMode`, which functions compile in `'infer'`, `'annotation'` and `'all'`: a plain component, a lowercase `renderRow` returning JSX, and `total()` marked `\"use memo\"`?"
+  back: "Component: `'infer'` and `'all'` yes, `'annotation'` no. `renderRow`: only `'all'`. `total()` with `\"use memo\"`: all three. A component with `\"use no memo\"` is never compiled."
+  question: react/performance/react-compiler
+- id: compiler-violations-skipped
+  front: "In compiler 1.0.0, which render violations were skipped, with the matching lint rule?"
+  back: "`ref.current++` (`refs`), reassigning a module variable (`globals`), `setN(n + 1)` (`set-state-in-render`), `useState` inside `if` (`rules-of-hooks`), and a `useMemo` it can't preserve (`exhaustive-deps`)."
+  question: react/performance/react-compiler
+- id: compiler-seeing-skips
+  front: "How can you see which functions the compiler skipped under `panicThreshold: 'none'`?"
+  back: "Use a `logger`: it receives `CompileError` events with a `reason`, category and location, and `CompileSkip` for `\"use no memo\"`."
+  question: react/performance/react-compiler
+- id: compiler-adoption-steps
+  front: "How should you adopt the compiler in an existing app?"
+  back: "Install `eslint-plugin-react-hooks` 7 first and fix what it reports; enable the compiler in stages (`'annotation'`, `\"use memo\"`, or `\"use no memo\"`); keep existing memoization; pin an exact version if test coverage is thin."
+  question: react/performance/react-compiler
+- id: compiler-debug-misbehaving
+  front: "A compiled component misbehaves. How do you find out whether the compiler is the cause?"
+  back: "Add `\"use no memo\"`. If the bug disappears, look for a Rules of React violation, often code that relied on memoization; then remove the directive."
+  question: react/performance/react-compiler
+- id: compiler-tradeoffs
+  front: "What does the compiler cost?"
+  back: "A Babel step in the build, larger output, a cache per component, and compiled code that's harder to step through. It makes the Rules of React load-bearing: breaking them can now freeze a value."
+  question: react/performance/react-compiler
+- id: compiler-hook-not-cached-exercise
+  front: "`useTotal(items)` calls no hooks and does a `reduce`. Does it run again when the parent re-renders with the same `items`, under the compiler?"
+  back: "Yes, every render: with no hook calls it isn't compiled in `'infer'` mode, and the compiler didn't cache the call in the component. Renamed `getTotal`, the call was cached on `items` (Chrome 156 and Firefox 159, both builds)."
+  question: react/performance/react-compiler
+- id: profiling-three-tools
+  front: "What are the three tools for finding slow React renders?"
+  back: "The React DevTools Profiler extension, React Performance Tracks (React 19.2) in the browser's Performance panel, and `<Profiler id onRender>` for collecting timings in code."
+  question: react/performance/profiling
+- id: profiling-devtools-profiler
+  front: "What does the React DevTools Profiler show for each commit?"
+  back: "A flame chart and ranked chart of the components that rendered and their durations. A setting records why each rendered (which props, state or hooks changed); another highlights components on screen as they render."
+  question: react/performance/profiling
+- id: profiling-performance-tracks
+  front: "What do React 19.2 Performance Tracks add to the browser's Performance panel?"
+  back: "A Scheduler ⚛ track (each update's priority, with Render, Commit and effects phases) and a Components ⚛ flame graph, next to the browser's main-thread data."
+  question: react/performance/profiling
+- id: profiling-tracks-dev-details
+  front: "What extra does a Performance Tracks entry show in development?"
+  back: "Clicking a render shows its changed props, and an update shows which component's `setState` scheduled it."
+  question: react/performance/profiling
+- id: profiling-on-render-signature
+  front: "What arguments does `<Profiler onRender>` receive?"
+  back: "`onRender(id, phase, actualDuration, baseDuration, startTime, commitTime)`, called after each commit. Use it for tests, dashboards and before/after comparisons."
+  question: react/performance/profiling
+- id: profiling-three-render-causes
+  front: "What are the three causes of a component rendering, and what does a new object each render look like in the profiler?"
+  back: "Its own state, its parent rendering, or a context it reads. A new object each render shows up as a changed prop. \"Parent rendered, props deeply equal\" is what `memo` or the compiler fixes."
+  question: react/performance/profiling
+- id: profiling-builds
+  front: "In which builds do the Profiler tools work, and which build should supply durations?"
+  back: "Development and the profiling build (`react-dom/profiling`), not plain production. Development is slower and Strict Mode renders twice, so use it for which and why; use the profiling build for how long."
+  question: react/performance/profiling
+- id: profiling-on-render-in-production
+  front: "What happens to `<Profiler onRender>` in a normal production build?"
+  back: "It is never called, silently. Confirmed on React 19.3.1."
+  question: react/performance/profiling
+- id: profiling-ask-why-first
+  front: "Why ask why a component rendered before speeding it up?"
+  back: "Often the fix is to stop the render, not to make it cheaper."
+  question: react/performance/profiling
+- id: profiling-wrapper-overhead
+  front: "What do the docs note about many `<Profiler>` wrappers?"
+  back: "Each one adds CPU and memory overhead, so don't leave many in the tree."
+  question: react/performance/profiling
+- id: profiling-production-build
+  front: "How do you profile a production build?"
+  back: "Import `createRoot` from `react-dom/profiling` instead of `react-dom/client`, or alias it in the bundler. Then `onRender` fires and the Scheduler track appears; the Components track lists only components inside a `<Profiler>`."
+  question: react/performance/profiling
+- id: profiling-nested-update
+  front: "What does the `\"nested-update\"` phase of `onRender` mean?"
+  back: "The commit was for an update scheduled synchronously during the previous commit. `setWidth` in `useLayoutEffect` produced it; the same call in `useEffect` reported `\"update\"`."
+  question: react/performance/profiling
+- id: profiling-actual-vs-base
+  front: "What are `actualDuration` and `baseDuration`?"
+  back: "`actualDuration` is the time spent rendering the subtree in this commit. `baseDuration` estimates re-rendering all of it, from each component's most recent render time. A gap between them is memoization working."
+  question: react/performance/profiling
+- id: profiling-headless
+  front: "Which profiling tools worked in headless tests?"
+  back: "`<Profiler>` and Performance Tracks: the example ran in headless browsers and the tracks were read from a recorded Chrome trace. The DevTools extension's Profiler and render highlighting are interactive and weren't run."
+  question: react/performance/profiling
+- id: profiling-demo-durations
+  front: "In the `Slow` / `MemoSlow` demo (5 ms of work), what durations did a click report on the profiling and development builds?"
+  back: "Chrome 156: `actualDuration` 5.0–5.3 ms, `baseDuration` 10.2–11.0 ms. Firefox 159 reported whole milliseconds, 5–6 and 10–11. Only `Slow` rendered; `MemoSlow` was skipped. 6 page loads each, React 19.3.1."
+  question: react/performance/profiling
+- id: profiling-phase-logs
+  front: "A `<Profiler>` around `App` and a `Measure` component calling `setWidth(1)` in `useLayoutEffect`: what phases are logged on mount and on a click?"
+  back: "Mount: `mount`, then `nested-update`. Click: `update`."
+  question: react/performance/profiling
+- id: profiling-impl-timing
+  front: "In React 19.3.1, how is `onRender`'s phase decided and how are the durations computed?"
+  back: "After commit: `\"mount\"` if the `<Profiler>` is new, `\"update\"` otherwise, `\"nested-update\"` if the previous commit left a synchronous update pending. `actualDuration` sums fibers that rendered; skipped fibers keep their previous self-duration for `baseDuration`. Implementation detail."
+  question: react/performance/profiling
+- id: profiling-tracks-api
+  front: "How does React write Performance Tracks, in 19.3.1?"
+  back: "Through Chrome DevTools' extensibility API: `console.timeStamp` with a track name, or `performance.measure` with a `detail.devtools` object when an entry carries properties. The trace here was recorded in Chrome."
+  question: react/performance/profiling
+- id: profiling-tracks-by-build
+  front: "Which tracks appeared in the Chrome trace for development, profiling with and without `<Profiler>`, and production builds?"
+  back: "Development: Scheduler and Components. Profiling with `<Profiler>`: both. Profiling without `<Profiler>`: Scheduler only. Production: neither."
+  question: react/performance/profiling
+- id: profiling-scheduler-subtracks
+  front: "What subtracks did the Scheduler ⚛ track have in the trace?"
+  back: "Blocking, Transition, Suspense and Idle, with entries such as Event: click, Update, Render and Commit."
+  question: react/performance/profiling
+- id: profiling-changed-props-real
+  front: "In the trace of a click with a changed `text` prop, what does the entry for `Label` list?"
+  back: "Changed Props: `- text 0`, `+ text 1`. A real change. The `Update` entry names `App` with method `setState()` as the cause."
+  question: react/performance/profiling
+- id: profiling-changed-props-deep-equal
+  front: "What does the trace say for a component given a new `style={{ color: 'teal' }}` object each render?"
+  back: "Changed Props: `style`, \"Referentially unequal but deeply equal objects. Consider memoization.\" (development build, Chrome 156). Hoist it, `useMemo` it, or let the compiler cache it."
+  question: react/performance/profiling
+- id: profiling-no-changed-props
+  front: "What does a component with no props that rendered only because its parent did show in the trace?"
+  back: "It renders with no changed props listed."
+  question: react/performance/profiling
+- id: profiling-deep-equal-warning
+  front: "What does the 19.3.1 source flag about deeply equal props?"
+  back: "Once per page load, a component without an update of its own whose props were all deeply equal and whose render took over 100 ms: \"This component received deeply equal props. It might benefit from useMemo or the React Compiler in its owner.\""
+  question: react/performance/profiling
+- id: profiling-tool-tradeoffs
+  front: "What are the trade-offs of the DevTools Profiler, Performance Tracks and `<Profiler>`?"
+  back: "DevTools Profiler: quickest why per commit, interactive only. Tracks: React's work next to the main thread; changed props in development only; Chrome-recorded here. `<Profiler>`: programmatic and aggregable, but durations, not reasons."
+  question: react/performance/profiling
