@@ -1,0 +1,429 @@
+# 01 Rendering model
+- id: jsx-is-syntax-not-react
+  front: "Is JSX a React feature? What turns it into runnable code?"
+  back: "No, it is syntax. A compiler (Babel, esbuild, SWC, TypeScript) turns every tag into a function call before the code runs."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-automatic-runtime-output
+  front: "What does the automatic runtime compile `<Greeting key=\"g1\" name=\"Ada\" />` to, and since which React version is it required?"
+  back: "`jsx(Greeting, { name: \"Ada\" }, \"g1\")`, with `jsx` imported from `react/jsx-runtime` by the compiler. The automatic runtime is required since React 19."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-type-host-vs-component
+  front: "In `jsx(type, props, key)`, what is `type` for a host tag versus a capitalised tag?"
+  back: "A string for host tags (`\"h1\"`), the component itself for capitalised tags. That is why `<greeting />` means a DOM tag called `greeting`."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-children-in-props
+  front: "Where do JSX children go in the compiled `jsx` call?"
+  back: "Inside `props`, as `props.children`."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-jsxs-purpose
+  front: "What is `jsxs` for in the automatic runtime?"
+  back: "It is used for several static children. It tells React the children array is fixed, so React skips the missing-`key` warning."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-key-separate-argument
+  front: "How does `key` travel in the compiled `jsx` call, and does it reach `props`?"
+  back: "It is a separate third argument and never reaches `props`. Reading `props.key` gives `undefined`, and development builds warn that `key` is not a prop."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-dev-runtime
+  front: "What do development builds call instead of `jsx`, and what does it add?"
+  back: "`jsxDEV` from `react/jsx-dev-runtime`. It adds the source location and a few checks."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-classic-transform
+  front: "What did the classic JSX transform compile to, and does that function still exist?"
+  back: "`React.createElement(type, props, ...children)`. `createElement` still exists for code written without JSX."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-element-shape
+  front: "What is a React element, and which fields does it have?"
+  back: "A plain object describing what to render: `$$typeof`, `type`, `key` (a string or `null`) and `props`."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-typeof-symbol
+  front: "What is `$$typeof` in React 19, and why can injected JSON not pose as an element?"
+  back: "`Symbol.for('react.transitional.element')`. React renders only objects carrying this tag, and a JSON payload cannot contain a symbol."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-creating-element-does-nothing
+  front: "What happens when you create an element such as `<Greeting />`?"
+  back: "Only an object is created. The component is not called and no DOM exists yet. React calls the component later, during rendering, when it reaches that element in the tree."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-elements-frozen-in-dev
+  front: "Are elements immutable? How does that differ between development and production builds?"
+  back: "They are immutable snapshots. Development builds shallowly freeze each element and its `props`; production builds skip the freeze for speed, so mutation goes unnoticed there. To change the UI, render again and return new elements."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-element-ref-react-19
+  front: "Why does React 19.3.1 warn when you read `element.ref` in development?"
+  back: "`ref` is now an ordinary prop, read as `element.props.ref`. In development `element.ref` is a getter that logs a warning; production builds still set a plain `ref` field."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-transitional-symbol-reason
+  front: "Why did React 19 change the element symbol from `react.element` to `react.transitional.element`?"
+  back: "React 19 changed what an element carries (`ref` moved into `props`). The new tag lets React reject elements made by an older copy of React; `react-dom/client` 19.3.1 throws \"A React Element from an older version of React was rendered.\""
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-handmade-element
+  front: "Can you build an element by hand, and should you?"
+  back: "Yes, any object with the right `$$typeof`, `type`, `key` and `props` renders, because elements are plain data. Do not: the shape is an implementation detail, and `jsx` or `createElement` are the supported APIs."
+  question: react/rendering-model/jsx-and-elements
+- id: jsx-spread-key
+  front: "Given `const props = { key: 'a', id: 1 }`, what are `element.key` and `element.props` for `<div {...props} />`?"
+  back: "`element.key` is `\"a\"` and `element.props` is `{ id: 1 }`. At runtime `jsx` moves `key` out of the config object, and development builds warn that keys must be passed directly to JSX."
+  question: react/rendering-model/jsx-and-elements
+
+- id: rc-three-steps
+  front: "Into which steps does React split an update, and whose job is painting?"
+  back: "Trigger, render and commit. Painting is the browser's job afterwards."
+  question: react/rendering-model/render-and-commit
+- id: rc-trigger-queues
+  front: "What does calling `setCount` do right away?"
+  back: "It does not change `count` or the DOM. It queues an update on the component and asks React to schedule a render, so code after it in the handler still sees the old state and old DOM."
+  question: react/rendering-model/render-and-commit
+- id: rc-render-meaning
+  front: "What does \"render\" mean in React?"
+  back: "Calling your components to get elements, not drawing pixels. React compares the elements with the previous render's output to work out which DOM changes are needed; nothing is applied yet."
+  question: react/rendering-model/render-and-commit
+- id: rc-render-must-be-pure
+  front: "Why must the render phase be free of side effects?"
+  back: "React can repeat it (Strict Mode), pause it, or throw the result away (concurrent rendering) without the user seeing anything."
+  question: react/rendering-model/render-and-commit
+- id: rc-commit-synchronous
+  front: "What is special about the commit phase?"
+  back: "React applies the minimal DOM operations in one synchronous pass that cannot be interrupted, so the page never shows half an update. Commit never yields."
+  question: react/rendering-model/render-and-commit
+- id: rc-commit-leaves-unchanged
+  front: "Why does an `<input>` keep its typed text when its parent re-renders?"
+  back: "Commit leaves unchanged nodes alone; only attributes, text and nodes whose output differed are changed."
+  question: react/rendering-model/render-and-commit
+- id: rc-layout-effects-timing
+  front: "What does React do after the DOM is applied in commit, and what can `useLayoutEffect` read?"
+  back: "It attaches refs and runs `useLayoutEffect` callbacks, which can read the new layout. `useLayoutEffect`, and any updates it schedules, complete before the browser paints."
+  question: react/rendering-model/render-and-commit
+- id: rc-paint-timing
+  front: "When does the browser paint relative to React's work?"
+  back: "Once React's JavaScript and the microtasks after it finish, the browser runs its rendering update: style, layout, paint. Everything up to layout effects finishes inside one task, so the next frame shows the committed DOM."
+  question: react/rendering-model/render-and-commit
+- id: rc-useeffect-vs-paint
+  front: "Does `useEffect` always run after paint?"
+  back: "No. It usually runs after paint, but after a discrete input such as a click React may run it before, and in practice does. Work that must wait for paint, such as an `alert()`, goes in a `setTimeout`."
+  question: react/rendering-model/render-and-commit
+- id: rc-same-output-no-dom-change
+  front: "What does a render that produces the same output commit?"
+  back: "No DOM changes at all. Effects still run if their dependencies changed."
+  question: react/rendering-model/render-and-commit
+- id: rc-event-order
+  front: "After a real click in the Counter example, in what order do handler, render, layout effect, `useEffect`, microtask and animation frame run?"
+  back: "Handler (DOM still shows the old value), render, layout effect (DOM shows the new value), effect, microtask, animation frame. Same in Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/rendering-model/render-and-commit
+- id: rc-render-before-handler-microtask
+  front: "Why did the render run before the handler's own microtask in the click example?"
+  back: "`setCount` had already queued React's scheduling microtask. That is an implementation detail."
+  question: react/rendering-model/render-and-commit
+- id: rc-flushsync
+  front: "How do you make the DOM update before the next line of a handler, and what does it cost?"
+  back: "Wrap the update in `flushSync(() => setCount(c => c + 1))` from `react-dom`. React renders and commits inside the call; in the test both effects had also run before it returned. It is a last resort: it defeats batching and can hurt performance."
+  question: react/rendering-model/render-and-commit
+- id: rc-interruptible-render
+  front: "Can the render phase be interrupted?"
+  back: "Yes, for non-urgent updates such as transitions: React can yield to the browser between components and restart with newer state. Urgent updates like typing and clicks render synchronously."
+  question: react/rendering-model/render-and-commit
+- id: rc-rerender-not-recreate-dom
+  front: "Does a re-render recreate the DOM?"
+  back: "No. On the initial render React creates and appends DOM nodes; on later renders it changes only the attributes, text and nodes whose output differed."
+  question: react/rendering-model/render-and-commit
+- id: rc-trigger-internals
+  front: "In React 19.3.1, what does `setState` do internally to schedule a render?"
+  back: "It adds an update to the component's fiber, marks a lane (a priority) on it and its ancestors, and calls `ensureRootIsScheduled`, which queues one microtask per batch. This is implementation detail; the documented contract is only that updates are queued and batched."
+  question: react/rendering-model/render-and-commit
+- id: rc-lanes-scheduling
+  front: "In the scheduling microtask, how are sync-lane work and default or transition lane work handled?"
+  back: "Sync-lane work (from discrete events like `click` and `keydown`) is rendered and committed right there. Default and transition lanes are handed to React's Scheduler as separate tasks."
+  question: react/rendering-model/render-and-commit
+- id: rc-render-walk
+  front: "How does the render phase treat fibers with and without pending work?"
+  back: "Fibers with no pending work and no changed inputs are reused; components with pending updates are called and their returned elements reconciled against existing child fibers. The result is a work-in-progress tree with flags for the DOM operations and effects the commit needs."
+  question: react/rendering-model/render-and-commit
+- id: rc-commit-passes
+  front: "What are the three passes of `commitRoot`?"
+  back: "Before mutation (reads the DOM before it changes, e.g. `getSnapshotBeforeUpdate`), mutation (inserts, updates, removes DOM nodes, detaches old refs, runs layout effect cleanups), and layout (attaches refs, runs `useLayoutEffect` setups, `componentDidMount`, `componentDidUpdate`)."
+  question: react/rendering-model/render-and-commit
+- id: rc-root-current-swap
+  front: "When does React make the work-in-progress tree the current one?"
+  back: "After the mutation pass and before the layout pass (`root.current = finishedWork`)."
+  question: react/rendering-model/render-and-commit
+- id: rc-passive-effects-flush
+  front: "When are passive effects (`useEffect`) flushed in React 19.3.1?"
+  back: "They run last. The source flushes them synchronously at the end of a commit that included the sync lane, \"so that the result is immediately observable\"; otherwise they wait until after paint. React 18 introduced that rule for discrete events."
+  question: react/rendering-model/render-and-commit
+- id: rc-flushsync-effects-run
+  front: "In Chrome 156 and Firefox 159 development, what had run when `flushSync` returned in the Counter example?"
+  back: "The whole render and commit, effects included: render, layout effect and effect logs all came before the line after `flushSync`."
+  question: react/rendering-model/render-and-commit
+- id: rc-timeout-update-order
+  front: "A `setState` in a `setTimeout` callback: does it render before the next animation frame?"
+  back: "It uses the default lane and renders in a Scheduler task. Chrome 156 rendered it before the next animation frame and Firefox 159 after it, so do not depend on either."
+  question: react/rendering-model/render-and-commit
+- id: rc-layout-effect-sets-state
+  front: "What happens when a layout effect sets state?"
+  back: "The update is processed synchronously before paint, so a measured-then-corrected position never flashes. That is the documented use of `useLayoutEffect`, at the cost of blocking paint."
+  question: react/rendering-model/render-and-commit
+- id: rc-scroll-new-item
+  front: "Why does `setItems(next)` followed by `listRef.current.lastChild.scrollIntoView()` scroll to the old last item?"
+  back: "The new `<li>` does not exist until commit. Wrap the update in `flushSync`, or move the scroll into an effect that runs after the commit."
+  question: react/rendering-model/render-and-commit
+- id: rc-default-subtree-rerender
+  front: "By default, what does an update re-render, and what are the opt-outs?"
+  back: "The whole subtree below the component that changed. `memo` and the React Compiler are the opt-outs, not the commit phase."
+  question: react/rendering-model/render-and-commit
+
+- id: pure-render-contract
+  front: "What must a component do during render, as far as React is concerned?"
+  back: "Be a pure calculation: given the same props, state and context it must return the same elements, and it must not change anything that existed before the call (module variables, props, state objects, the DOM, a network request)."
+  question: react/rendering-model/purity-and-strict-mode
+- id: pure-why-needed
+  front: "Why does React need render to be pure?"
+  back: "React does not promise one call per update. It may render and discard the result (interrupted transition, Suspense retry), render twice (Strict Mode), skip the component (`memo`, React Compiler), or render on the server. Each is safe only if calling the component has no effect beyond its return value."
+  question: react/rendering-model/purity-and-strict-mode
+- id: pure-local-mutation-ok
+  front: "Is mutation allowed during render?"
+  back: "Local mutation is fine: building a new array and pushing into it during render changes nothing anyone else can see. Lazy initialisation (a `useState` initializer) is fine too."
+  question: react/rendering-model/purity-and-strict-mode
+- id: pure-side-effects-where
+  front: "Where do side effects belong if not in render?"
+  back: "In event handlers, or in effects as a last resort; they run outside rendering."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-double-invoked
+  front: "What does Strict Mode call twice in development builds?"
+  back: "The component body (not event handlers); functions passed to `useState`, `useReducer` and `useMemo`, and reducer and updater functions; and some class methods such as `constructor`, `render` and `shouldComponentUpdate`."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-which-result-kept
+  front: "How does double invocation reveal impurity, and which result does React keep?"
+  back: "A pure function returns the same thing twice, so nothing changes; an impure one shows the difference (an item pushed twice, a counter that skips numbers). React keeps one result and ignores the other."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-extra-effect-cycle
+  front: "What other checks does Strict Mode add, and what do they test?"
+  back: "An extra effect setup and cleanup cycle, and an extra ref callback setup and cleanup on mount. Those test cleanup, not purity."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-dev-only
+  front: "Does Strict Mode double-invocation happen in production builds?"
+  back: "No. It is development only."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-limits
+  front: "What kind of impurity does double rendering catch, and what slips through?"
+  back: "Only impurity that changes the result between two back-to-back calls. An in-place `sort()` of a props array returns the same order twice, so it passes, yet still mutates the parent's data."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-counter-id-example
+  front: "A component computes `field-${nextId++}` from a module variable. What do ids look like in a development build of React 19.3.1 with Strict Mode, versus production?"
+  back: "Development: `field-1, field-3` then `field-5, field-7`, because each body ran twice. Production: `field-0, field-1` then `field-2, field-3`. The ids drift on every render either way, and a server render would differ from the client; Strict Mode just makes it visible on the first render."
+  question: react/rendering-model/purity-and-strict-mode
+- id: pure-useid-fix
+  front: "How do you replace a module-counter id so it is pure?"
+  back: "Use `useId`, which derives the id from the component's position in the tree and gives the same id each time."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-dont-remove-to-silence
+  front: "Is removing `<StrictMode>` or adding a \"has run\" flag a fix for double logs?"
+  back: "No. It hides the bug; production can still call the component more than once."
+  question: react/rendering-model/purity-and-strict-mode
+- id: pure-no-props-mutation
+  front: "How do you avoid mutating props during render, such as `items.push(extra)` on an array from props?"
+  back: "Copy first, or compute a new array."
+  question: react/rendering-model/purity-and-strict-mode
+- id: pure-unstable-reads
+  front: "Where should values that change between calls, like `Math.random()` or `new Date()`, be read?"
+  back: "Not in render. Move them into an effect, a handler or a lazy initializer."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-console-log
+  front: "Does `console.log` in a component print twice in Strict Mode in React 19.3.1?"
+  back: "Yes, both calls printed in Chrome and Firefox. With React DevTools installed the second log is dimmed, and a DevTools setting can hide it. Legacy: React 17 suppressed console logs during the second call."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-usememo-not-four
+  front: "Does Strict Mode run the `useMemo` calculation four times on mount?"
+  back: "No. In React 19.3.1 the `useState` initializer and the `useMemo` calculation each ran twice during the first body call, and the second body call reused their results, as the React 19 upgrade guide describes."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-handlers-not-doubled
+  front: "Are event handlers double-invoked in Strict Mode?"
+  back: "No. They do not run during rendering, so they need not be pure; that is where side effects belong. Only the component body and functions React calls while rendering are doubled."
+  question: react/rendering-model/purity-and-strict-mode
+- id: strict-call-order
+  front: "In a development build, in what order do two sibling components `Item a` and `Item b` push their names under Strict Mode?"
+  back: "`a a b b`. Each component body is called twice in a row before React moves to the next component. A production build gives `a b`."
+  question: react/rendering-model/purity-and-strict-mode
+
+- id: hooks-order-slots
+  front: "How does React know which state variable a `useState` call refers to?"
+  back: "By order. React keeps a list of hook slots per component instance and hands them out one by one as hooks are called; the first `useState` gets slot 1, the next hook slot 2, every render."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-rule-top-level
+  front: "What does \"call hooks only at the top level\" exclude?"
+  back: "Conditions, loops, nested functions, `try`/`catch`/`finally`, and anything after an early `return`."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-rule-react-functions
+  front: "Where may hooks be called from?"
+  back: "Only React functions: components and custom hooks (functions named `use…`). Never plain functions, class components, event handlers or effects."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-shift-same-count
+  front: "What happens when a condition skips a hook but the number and types of hooks stay the same?"
+  back: "It is silent: every later hook shifts one slot, so a variable shows another variable's state, with no error or warning in either build."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-shift-different-count
+  front: "What errors does React throw when the hook count changes between renders?"
+  back: "\"Rendered more hooks than during the previous render.\" or \"Rendered fewer hooks than expected. This may be caused by an accidental early return statement.\" When hook kinds at a position differ, development builds also log \"React has detected a change in the order of Hooks\"."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-fix-structural
+  front: "How do you fix a conditionally needed hook?"
+  back: "Call the hook unconditionally and put the condition inside it (in the effect body or the value you use), or move the conditional part into a child component that renders conditionally, so it gets its own slots."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-lint-rule
+  front: "Which lint rule enforces the Rules of Hooks, and which hook is exempt?"
+  back: "`react-hooks/rules-of-hooks` in `eslint-plugin-react-hooks`. `use` is the exception: it can be called in conditions and loops."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-minified-errors
+  front: "What do production builds throw instead of the hook-count messages in React 19.3.1?"
+  back: "Minified React error #310 for \"more hooks\" and #300 for \"fewer hooks\"; #311 replaces \"Should have a queue…\" for a `useState`/`useRef` kind swap."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-early-return-pitfall
+  front: "Why is `if (!user) return null;` above a `useEffect` a bug even though it works at first?"
+  back: "It works until the condition flips, then the hook count changes and React throws."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-custom-hook-conditional
+  front: "Is calling a custom hook conditionally allowed?"
+  back: "No. It is the same violation: all the hooks inside it shift."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-use-exception
+  front: "Why does `use` get an exception from the Rules of Hooks?"
+  back: "It does not take a slot in the hook list; it reads a promise or context passed to it directly, so its position does not matter. It cannot go inside `try`/`catch`, and React 19.3 added a warning for some incorrect conditional uses."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-outside-component
+  front: "What happens in React 19.3.1 if you call `useState` outside a component?"
+  back: "There is no dispatcher. Development builds log \"Invalid hook call. Hooks can only be called inside of the body of a function component.\" and then a `TypeError` is thrown; production builds throw only the `TypeError`."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-fixed-length-loop
+  front: "Why not call a hook in a loop of fixed length?"
+  back: "The order would be stable, but the lint rule rejects it and a later change to the length breaks it. Render one child component per item instead; each gets its own hook list."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-impl-linked-list
+  front: "The docs describe hooks as an array plus an index. How does React 19.3.1 implement it?"
+  back: "As a linked list (an implementation detail): the fiber's `memoizedState` points to the first `Hook` object, and each holds `memoizedState`, `baseState`, `baseQueue`, `queue` and `next`."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-impl-mount-update
+  front: "How do mount and update differ for hooks in React 19.3.1?"
+  back: "Mount: `mountWorkInProgressHook` creates a new `Hook` for each call and appends it. Update: `updateWorkInProgressHook` walks the previous list in step with the calls, so the nth call clones the nth hook. Nothing checks which hook created the slot; only position counts."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-impl-wrong-kind
+  front: "What error appears when a `useState` call lands on a slot created by `useRef`?"
+  back: "It finds no update queue and throws \"Should have a queue. You are likely calling Hooks conditionally, which is not allowed.\" (production: error #311), after a development warning."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-dev-order-warning
+  front: "How do development builds produce the \"change in the order of Hooks\" warning?"
+  back: "They record the name of every hook called and compare it with the last render, printing a two-column table of previous and next hook names."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-queue-belongs-to-slot
+  front: "After a hook-order shift, which variable does a state setter update?"
+  back: "The same slot. Each update queue belongs to the hook object, not to the variable name, so the setter keeps updating that slot even when a different variable now reads it."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-zero-then-one
+  front: "What happens when a component has 0 hooks on one render and 1 on the next?"
+  back: "No error: a fiber with no hooks yet takes the mount path. A component whose early `return` comes before every hook therefore does not crash, so the bug ships; the lint rule still reports it."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-lint-message-version
+  front: "What does the lint rule report for a `useMemo` after an early return, and with which tool versions was it measured?"
+  back: "\"React Hook \"useMemo\" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?\" From `eslint-plugin-react-hooks` 7.1.1 with ESLint 10.13."
+  question: react/rendering-model/rules-of-hooks
+- id: hooks-tradeoff
+  front: "What do order-based hooks buy, and what do they cost?"
+  back: "A terse API: no keys to invent, and custom hooks compose without name clashes because two calls take different slots. The price is a static rule the language cannot enforce, so it falls to the linter. When modes need different state, render different components or reset one with a `key`."
+  question: react/rendering-model/rules-of-hooks
+
+- id: rerender-three-reasons
+  front: "What are the three reasons a component re-renders after the first render?"
+  back: "Its own state changed, its parent re-rendered, or a context it reads changed. External stores read through `useSyncExternalStore` work like state."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-state-object-is
+  front: "How does React decide whether a state setter call re-renders?"
+  back: "It compares the new value with `Object.is`. If it is the same, React skips the component and its children, though it may still call the component once before bailing out."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-parent-recursive
+  front: "When a component renders, which child components render, and does React compare props by default?"
+  back: "Every component in the JSX it returns renders too, whether or not their props changed. Each call creates a new props object, and by default React does not compare props."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-context-value
+  front: "When does a context change re-render consumers?"
+  back: "When the provider's `value` changes by `Object.is`, every component that reads that context with `useContext` or `use` re-renders, even if everything between them skipped rendering."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-props-backwards
+  front: "Why is \"it re-renders because its props changed\" backwards?"
+  back: "Props come from the parent's render, so they can only change when the parent renders, and that render alone is enough. Mutating an object passed as a prop triggers nothing."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-same-element-skip
+  front: "How can a component skip rendering without `memo`?"
+  back: "React skips a component whose element is the same object as last time. Elements received as `children` were created by the parent, so if only the component's own state changed they are unchanged. Moving state down, or passing parts of the tree as `children`, limits re-renders."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-memo-compiler
+  front: "How can you skip rendering when props are shallowly equal?"
+  back: "Wrap the child in `memo`; the React Compiler does the equivalent automatically."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-key-change
+  front: "What does a changed `key` do?"
+  back: "React unmounts and mounts a new instance instead of re-rendering."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-example-click-sequence
+  front: "In the theme example, what renders on the first, second and third click of \"dark\"?"
+  back: "First: `ThemeProvider`, `Footer` (identical props, but its parent rendered), and `ThemedLabel` (through context alone); `Sidebar` is skipped. Second: only `ThemeProvider`. Third: nothing. Same in Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-memo-fresh-props
+  front: "Why does `memo` fail when you pass a fresh object, array or arrow function each render?"
+  back: "`Object.is` sees a new reference every time."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-mutate-same-ref
+  front: "Why does `todos.push(x); setTodos(todos)` not render?"
+  back: "`todos` is the same array object, so `Object.is` says nothing changed and React drops the update. Use `setTodos([...todos, 'eggs'])`."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-lift-state-pitfall
+  front: "What is the cost of lifting state to the top of the tree \"just in case\"?"
+  back: "Every update then re-renders everything below it."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-strict-counting
+  front: "Why count renders outside Strict Mode?"
+  back: "Development builds call each component twice per render in Strict Mode. Strict Mode does not add re-renders, so the trigger rules are the same; count in production or outside `<StrictMode>`."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-context-passthrough
+  front: "Does a component re-render if it only passes a context's provider down?"
+  back: "No. Only components that read the context re-render because of it; `Sidebar` between provider and `ThemedLabel` was skipped."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-eager-bailout
+  front: "Why did the second same-value \"dark\" click still call `ThemeProvider` in React 19.3.1?"
+  back: "`setState` compares eagerly only when neither copy of the component's fiber has pending work. Right after the first update one still did, so React rendered `ThemeProvider`, found the state unchanged, and skipped its children. By the third click the eager comparison applied and nothing was scheduled."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-not-dom-change
+  front: "Does a re-render mean the DOM changed?"
+  back: "No. Re-rendering means React called the component. The commit then applies only the differences, often none."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-fiber-lanes
+  front: "How does React 19.3.1 know which subtrees contain pending work?"
+  back: "A state update marks a lane on the component's fiber and a `childLanes` marker on every ancestor (implementation detail, `ReactFiberBeginWork.js` and `ReactFiberHooks.js`)."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-props-reference-check
+  front: "How does React 19.3.1 compare props for a fiber, and what is the result after a parent renders?"
+  back: "By reference: `oldProps !== newProps`. A parent that rendered created new elements with new props objects, so the check fails and the child renders. A fiber whose element was not recreated keeps the same props object."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-bailout-childlanes
+  front: "On a bailout with same props, no pending update and no changed context, what does React do with the subtree?"
+  back: "It does not call the component. If no descendant has pending work (`childLanes`), it skips the entire subtree; otherwise it reuses this fiber and keeps walking to the descendants that do."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-context-marks-consumers
+  front: "How do context consumers render inside a bailed-out subtree?"
+  back: "When a provider's value changes, React finds the fibers that depend on that context and marks updates on them."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-dispatch-eager
+  front: "How does `dispatchSetState` handle a same-value update?"
+  back: "When the fiber's queue is empty it computes the next state immediately and, if `Object.is` says unchanged, drops the update without scheduling. When the queue is not empty, React must render the component to find out, then bails out on its children."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-updater-returns-prev
+  front: "Does an updater function that returns the previous state bail out?"
+  back: "Yes, the same way. `setTodos((t) => t)` logged nothing on two clicks."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-context-object-value
+  front: "Why does `<Theme value={{ theme, toggle }}>` re-render every consumer?"
+  back: "It creates a new object every time the provider renders, so consumers re-render even if `theme` did not change. Memoize the value or split the context."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-search-box-scenario
+  front: "How do you stop each keystroke re-rendering header, results and footer when `query` lives in the top-level component?"
+  back: "Move `query` into a `<SearchBox>` component, or have the layout take the slow parts as `children`. Reach for `memo` when the structure cannot change."
+  question: react/rendering-model/when-components-rerender
+- id: rerender-tradeoff
+  front: "Why does React re-render children by default, and what does it cost?"
+  back: "It is simple and correct: React never has to know whether a child depends on something the parent did not pass as a prop. The cost is CPU time for components whose output did not change; the optimisation is left to `memo`, `useMemo`, composition or the React Compiler, which memoizes automatically when code follows the Rules of React."
+  question: react/rendering-model/when-components-rerender
