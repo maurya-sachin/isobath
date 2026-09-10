@@ -1296,3 +1296,360 @@
   front: "Which values does an Effect Event see inside a layout effect?"
   back: "The latest committed render's. In the test, a layout effect and an effect both saw the current render's props through it."
   question: react/effects/effect-events
+# 04 Refs
+- id: ref-vs-state-rule
+  front: "What is the rule for choosing between a ref and state?"
+  back: "If the value affects the rendered output, it is state. If only event handlers and effects need it, it is a ref."
+  question: react/refs/refs-vs-state
+- id: ref-vs-state-survive-rerenders
+  front: "What do refs and state have in common across re-renders?"
+  back: "Both survive re-renders, and each mounted component instance has its own. They differ in what happens when the value changes."
+  question: react/refs/refs-vs-state
+- id: state-is-snapshot-after-set
+  front: "After calling `setCount`, does the `count` your handler can see change?"
+  back: "No. State is a snapshot. `setCount` queues a render, and the next call of the component receives the new value."
+  question: react/refs/refs-vs-state
+- id: use-ref-returns-same-object
+  front: "What does `useRef(initial)` return on the first render and on later renders?"
+  back: "`{ current: initial }` on the first render, and the same object on every render after."
+  question: react/refs/refs-vs-state
+- id: ref-assignment-no-rerender
+  front: "What happens when you assign `ref.current`?"
+  back: "It takes effect immediately. React is not told, and nothing re-renders."
+  question: react/refs/refs-vs-state
+- id: typical-ref-uses
+  front: "Name the typical things to keep in a ref."
+  back: "Timeout and interval ids, DOM nodes, instances React does not manage (a map widget, a `WebSocket`, an `AbortController`), and flags a callback checks later without needing a re-render."
+  question: react/refs/refs-vs-state
+- id: ref-read-render-impure
+  front: "Why is reading `ref.current` during render a bug?"
+  back: "A component must be a pure function of props, state and context, and `ref.current` is none of those. React does not re-render when it changes, so JSX built from it shows whatever it held the last time something else caused a render."
+  question: react/refs/refs-vs-state
+- id: ref-write-render-strict-mode
+  front: "Why is writing a ref during render worse than reading it?"
+  back: "Strict Mode runs the body twice in development, and a render React discards still leaves its write behind."
+  question: react/refs/refs-vs-state
+- id: react-hooks-refs-lint
+  front: "Which lint reports reading or writing refs during render, and what is it built on?"
+  back: "`react-hooks/refs`, built on the React Compiler. `eslint-plugin-react-hooks` 7.1.1 reports it as \"Cannot access refs during render\"."
+  question: react/refs/refs-vs-state
+- id: ref-lazy-init-exception
+  front: "What is the one documented exception to not touching a ref during render?"
+  back: "Lazy initialisation: `if (ref.current === null) ref.current = new Player()`. It runs once per instance and always gives the same result, so render stays predictable."
+  question: react/refs/refs-vs-state
+- id: use-ref-arg-ignored-after-mount
+  front: "Why does `useRef(new Player())` waste work even though only the first value is kept?"
+  back: "The argument is ignored after mount, but `new Player()` is still evaluated on every render and thrown away. Lazy initialisation avoids that."
+  question: react/refs/refs-vs-state
+- id: ref-escape-hatch
+  front: "What does it suggest if much of a component's logic flows through refs?"
+  back: "Refs are an escape hatch. That data probably belongs in state."
+  question: react/refs/refs-vs-state
+- id: ref-let-variable-timer-bug
+  front: "Why does keeping a timer id in a plain `let` inside the component break `clearTimeout`?"
+  back: "Every render creates a fresh variable, so a later render's `clearTimeout` gets `null`. In the debounce exercise nothing was cleared and every keystroke logged its search."
+  question: react/refs/refs-vs-state
+- id: ref-has-run-flag-strict-mode
+  front: "Why is a \"has run\" ref to stop Strict Mode's second effect run a pitfall?"
+  back: "It hides a missing cleanup instead of fixing it."
+  question: react/refs/refs-vs-state
+- id: ref-latest-value-use-effect-event
+  front: "What replaces writing `latestRef.current = value` in the body to read the latest value in an effect?"
+  back: "`useEffectEvent`. Writing the ref in the body is a render-time write; `useEffectEvent` covers the latest-props case without the ref."
+  question: react/refs/refs-vs-state
+- id: use-ref-as-use-state-docs
+  front: "How do the React docs describe `useRef` conceptually, and how does React 19.3.1 actually implement it?"
+  back: "Docs: `useState({ current: initialValue })` with the setter unused. React 19.3.1 implements it as its own hook that stores the object on mount and returns that stored object on every update."
+  question: react/refs/refs-vs-state
+- id: dom-ref-null-first-render
+  front: "What does a DOM ref hold during the first render, and when does React set it?"
+  back: "`null`, because the node does not exist until the commit. React sets `current` in the commit, before layout effects run, and back to `null` when the node is removed. Read it in handlers and effects."
+  question: react/refs/refs-vs-state
+- id: ref-per-instance-not-shared
+  front: "Is a ref shared between instances of a component?"
+  back: "No. Each mounted instance gets its own object, and a remount (for example a new `key`) creates a new one. A module-level variable is the shared one, and it survives unmounts too."
+  question: react/refs/refs-vs-state
+- id: ref-closures-see-latest
+  front: "Why can every closure from every render see the latest `current`?"
+  back: "On update `useRef` returns the stored object and ignores its argument, so every closure holds the same object. There is no per-render snapshot, which suits a timeout callback but makes a ref unreliable as render input. This is an implementation detail of `ReactFiberHooks.js`."
+  question: react/refs/refs-vs-state
+- id: ref-render-counter-strict-mode
+  front: "In React 19.3.1, what did a render counter kept in a ref (`renders.current += 1`) show under Strict Mode versus production?"
+  back: "Development in `<StrictMode>` showed `2` after mount and added 2 per update; production showed `1` and added 1 (Chrome 156 and Firefox 159). Both Strict Mode calls received the same ref object, and the write ran twice."
+  question: react/refs/refs-vs-state
+- id: ref-strict-mode-docs-vs-observed
+  front: "What do the `useRef` docs say about Strict Mode's double render, and what did React 19.3.1 do?"
+  back: "The `useRef` reference says each ref is created twice and one discarded. In 19.3.1 both calls received the same ref object. Either way the render-time write ran twice."
+  question: react/refs/refs-vs-state
+- id: ref-write-discarded-render
+  front: "Besides Strict Mode, how can a render-time ref write persist from a render nobody saw?"
+  back: "Production can call a component without committing: a transition interrupted by a more urgent update, or a render that suspends. The write stays in the ref even though no user saw that render."
+  question: react/refs/refs-vs-state
+- id: ref-holds-render-data-mutation
+  front: "If a ref holds an object that state or props also use for rendering, is mutating it fine?"
+  back: "No. You may mutate `current` freely, but mutating an object that also feeds rendering is still mutating render data. Copy it, or keep it in state."
+  question: react/refs/refs-vs-state
+- id: ref-reset-on-remount
+  front: "When does a ref reset?"
+  back: "The object belongs to the mounted instance. Changing the component's `key` or moving it to another place in the tree creates a new instance and a new ref."
+  question: react/refs/refs-vs-state
+- id: use-previous-ref-problems
+  front: "What are the two problems with a `usePrevious` hook built on a ref?"
+  back: "It reads the ref during render, and it returns the value from the previous render, not the previous different value. An unrelated re-render (a theme change) makes \"previous\" equal the current price."
+  question: react/refs/refs-vs-state
+- id: previous-value-state-pattern
+  front: "What pattern from the `useState` reference replaces a ref-based `usePrevious`?"
+  back: "Store the previous value in state and compare during render: `if (price !== prevPrice)` then `setPrevPrice` and set the trend. It updates only when the price actually changes, so the trend stays \"up\" after a theme re-render."
+  question: react/refs/refs-vs-state
+- id: ref-module-variable-tradeoff
+  front: "When is a module-level variable the right choice instead of a ref?"
+  back: "For a true singleton. It is shared by every instance and outlives them, which is wrong for per-component data."
+  question: react/refs/refs-vs-state
+- id: ref-derived-values-neither
+  front: "Do derived values need a ref or state?"
+  back: "Neither. Compute them during render from props and state."
+  question: react/refs/refs-vs-state
+- id: ref-render-text-stale
+  front: "What goes wrong when you render `{ref.current}` and expect the screen to follow?"
+  back: "It changes only when something else re-renders, and then shows whatever the ref holds at that moment."
+  question: react/refs/refs-vs-state
+- id: callback-ref-what-and-when
+  front: "What is a ref callback and when does React call it with the node?"
+  back: "A function passed as `ref`, such as `<input ref={(node) => …} />`. React calls it during the commit, after the node is in the DOM and before layout effects run."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-detach-cleanup
+  front: "What does React do on detach if the ref callback returned a function (React 19+)?"
+  back: "It calls that cleanup instead of calling the callback again with `null`."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-detach-null
+  front: "What does React do on detach if the ref callback returned no function, and what do the docs say about it?"
+  back: "It calls the callback again with `null`. The docs say this fallback \"will be removed in a future version\"."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-detach-triggers
+  front: "When does a ref callback detach?"
+  back: "When the node is removed, or when the callback changes."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-inline-identity
+  front: "Why does an inline arrow ref callback detach and reattach on every commit?"
+  back: "React compares the `ref` value between renders, and an inline arrow is a new function each render. It detaches the old one and attaches the new one even for the same node."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-cleanup-no-prevent
+  front: "Does returning a cleanup stop an inline ref callback from reattaching every render?"
+  back: "No. It only replaces the `null` call. A stable function (outside the component, or wrapped in `useCallback`) runs only on mount and unmount."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-detach-before-attach
+  front: "In a commit with several ref callbacks changing, what order do detaches and attaches run in (React 19.3.1)?"
+  back: "Every detach ran before any attach: React detaches while it mutates the DOM and attaches afterwards (production, and development without Strict Mode)."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-list-map
+  front: "How do you hold refs to a list of items with ref callbacks?"
+  back: "Hooks cannot run per item, so give each item a callback that stores its node in a `Map` keyed by id and deletes it in the cleanup."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-index-array-bug
+  front: "Why is storing nodes by index in a ref array (`nodesByIndex.current[i] = node`) fragile?"
+  back: "After removing `a` from `[c, a, b]` to `[c, b]` it held `c`, `b`, `null` with length 3: all three old callbacks were called with `null`, then only two new ones wrote. A `Map` keyed by item with a `delete` cleanup held exactly `c` and `b`."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: ref-as-prop-react-19
+  front: "What changed in React 19 about `ref` on function components?"
+  back: "A function component receives `ref` in its props like any other prop and passes it to the element it exposes: `function MyInput({ ref }) { return <input ref={ref} />; }`. `forwardRef` is not needed."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: forward-ref-deprecation
+  front: "What do the React 19 post and React 19.3.1 say about `forwardRef`?"
+  back: "The post says new components \"will no longer need `forwardRef`\" and that \"In future versions we will deprecate and remove `forwardRef`.\" It still works in 19.3.1 without a warning."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: ref-prop-ignored-null
+  front: "What happens to a parent's ref if the child component ignores its `ref` prop?"
+  back: "`ref.current` stays `null`. The component must pass `ref` on to the element."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: class-component-ref-unchanged
+  front: "How do refs on class components differ from the React 19 function-component behaviour?"
+  back: "Class components are unchanged: `ref` points to the instance and is not in `this.props`. Reading `this.props.ref` gives `undefined`."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: element-ref-warns
+  front: "What happens when you read `element.ref` on a React 19 element?"
+  back: "It warns in development, since `ref` lives in `element.props`."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-strict-mode-extra
+  front: "What does Strict Mode add for ref callbacks in development?"
+  back: "One extra setup and cleanup on mount."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-typescript-implicit-return
+  front: "What does TypeScript do with implicit returns from ref callbacks in React 19?"
+  back: "They are type errors, which catches accidents like `ref={(el) => (saved = el)}`."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-side-effect-inline
+  front: "What goes wrong with `ref={(node) => node?.focus()}` inline?"
+  back: "It runs on every re-render. In the test, focus jumped back to that input after the user had moved to another one."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-null-teardown-with-cleanup
+  front: "Why is keeping `if (node === null)` teardown code and also returning a cleanup a mistake?"
+  back: "Once a function is returned, React never calls the callback with `null`, so the null branch is dead code."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-vs-effect
+  front: "Why use a ref callback instead of a ref object plus `useEffect`?"
+  back: "The callback runs exactly when that node attaches and detaches, including a conditionally rendered child the effect knows nothing about. An effect runs when its dependencies change, possibly before the node exists or long after it was replaced."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: ref-object-not-reattached
+  front: "Is a ref object detached and reattached on every render?"
+  back: "No. `useRef` returns the same object each render, so React sees no change. Only a different `ref` value, such as a new callback, triggers detach and attach."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: callback-ref-non-function-return
+  front: "What does React 19.3.1 do when a ref callback returns something that is not a function?"
+  back: "It ignores it as a cleanup and falls back to calling the callback with `null` on detach."
+  question: react/refs/ref-callbacks-and-ref-prop
+- id: imperative-handle-why
+  front: "Why not pass a parent's `ref` straight to your `<input>`?"
+  back: "The parent gets the whole DOM node. It can restyle it, read its value, or move it, and every caller now depends on your markup."
+  question: react/refs/imperative-handle
+- id: imperative-handle-signature
+  front: "What are the parameters of `useImperativeHandle`?"
+  back: "`useImperativeHandle(ref, createHandle, dependencies?)`: the parent's `ref`, a no-argument function returning the handle, and an optional dependency array."
+  question: react/refs/imperative-handle
+- id: imperative-handle-private-node
+  front: "Where does the child keep the DOM node when using `useImperativeHandle`?"
+  back: "In its own private `useRef` attached to the `<input>`. The parent never sees it; it receives the handle object instead."
+  question: react/refs/imperative-handle
+- id: imperative-handle-ref-prop
+  front: "How does the child receive `ref` for `useImperativeHandle` in React 19 versus earlier?"
+  back: "Since React 19 it is an ordinary prop. Earlier versions needed `forwardRef`."
+  question: react/refs/imperative-handle
+- id: imperative-handle-dependencies
+  front: "When does React call `createHandle` again?"
+  back: "When a dependency changes (by `Object.is`), or on every render if you omit the array. Methods close over the render that created them, so list every value they read."
+  question: react/refs/imperative-handle
+- id: imperative-handle-timing
+  front: "When does React set the imperative handle on `ref.current`?"
+  back: "It treats the handle like a layout effect: during the commit, after the child's own DOM refs are attached and before the parent's layout effects run."
+  question: react/refs/imperative-handle
+- id: imperative-handle-unmount
+  front: "What happens to the handle on unmount?"
+  back: "React sets the ref back to `null`, or runs the cleanup a ref callback returned."
+  question: react/refs/imperative-handle
+- id: imperative-handle-when-to-use
+  front: "When should you use `useImperativeHandle`?"
+  back: "Only for imperative actions that props cannot express: focusing, scrolling, selecting text, starting an animation, calling a third-party widget's method."
+  question: react/refs/imperative-handle
+- id: imperative-handle-modal-misuse
+  front: "What is the React docs' example of misusing `useImperativeHandle`?"
+  back: "A `Modal` exposing `{ open, close }`. Take an `isOpen` prop instead."
+  question: react/refs/imperative-handle
+- id: imperative-handle-expose-minimal
+  front: "Why expose only `focus` if the parent only needs to focus a field?"
+  back: "It keeps the component free to change its markup later."
+  question: react/refs/imperative-handle
+- id: imperative-handle-parent-sees-handle
+  front: "In the `SearchField` example, what could the parent do with the handle?"
+  back: "Call `focus()` and `clear()`. `searchRef.current` was not an `HTMLElement` and `value` was `undefined`, so it could not read `value` or touch the node (React 19.3.1, Chrome 156 and Firefox 159)."
+  question: react/refs/imperative-handle
+- id: imperative-handle-stale-empty-deps
+  front: "What goes wrong with `useImperativeHandle(ref, () => ({ read: () => count }), [])`?"
+  back: "The handle is created once, so `read` closes over the first render's `count`. It kept returning `0` after the count became `1`. `react-hooks/exhaustive-deps` warns about the missing `count`; `[count]` rebuilds the handle."
+  question: react/refs/imperative-handle
+- id: imperative-handle-updater-fine
+  front: "Why does `increment: () => setCount((c) => c + 1)` still work with `[]` dependencies?"
+  back: "The updater function does not read `count` from the closure."
+  question: react/refs/imperative-handle
+- id: imperative-handle-omit-deps
+  front: "What happens with a parent ref callback when you omit the dependency array?"
+  back: "A new handle is created on every render, and the parent ref callback runs with `null`, then the new handle, on each commit."
+  question: react/refs/imperative-handle
+- id: imperative-handle-state-as-methods
+  front: "Why is exposing `open()`, `close()` or `setValue()` as handle methods a pitfall?"
+  back: "Those are state transitions, which is data flow. Pass props and let the child render from them."
+  question: react/refs/imperative-handle
+- id: imperative-handle-call-in-render
+  front: "Why can you not call a handle method during the parent's render?"
+  back: "On the first render `ref.current` is still `null`. Call it from handlers and effects."
+  question: react/refs/imperative-handle
+- id: imperative-handle-return-node
+  front: "How can the parent get the DOM node while the child keeps its own ref?"
+  back: "`useImperativeHandle(ref, () => inputRef.current, [])`. The child's `<input>` ref is attached before the handle is created, so no manual ref merging is needed."
+  question: react/refs/imperative-handle
+- id: imperative-handle-inline-callback-rerun
+  front: "Why did `createHandle` run on every render even with `[]` when the parent passed an inline ref callback?"
+  back: "In React 19.3.1 the hook appends `ref` to your dependencies (an implementation detail), so a new callback identity re-runs it. Use a ref object or a stable callback."
+  question: react/refs/imperative-handle
+- id: imperative-handle-ref-callback-cleanup
+  front: "Does a ref callback cleanup work with an imperative handle?"
+  back: "Yes. The React 19 post lists `useImperativeHandle` among the places ref cleanups work: React calls the callback with the handle and, on detach, runs the returned cleanup instead of calling it with `null`."
+  question: react/refs/imperative-handle
+- id: fragment-ref-problem
+  front: "What two cases make a single DOM ref awkward, which Fragment refs solve?"
+  back: "A component rendering siblings with no common parent, and a child component (often from a library) that does not pass `ref` on. A wrapper `<div>` can break flex, grid or table layout."
+  question: react/refs/fragment-refs
+- id: fragment-ref-syntax
+  front: "How do you put a ref on a Fragment, and why not use `<>`?"
+  back: "Pass it to an explicit `<Fragment ref={ref}>`. The `<>` shorthand takes no props."
+  question: react/refs/fragment-refs
+- id: fragment-ref-stable-version
+  front: "Since which React version are Fragment refs stable?"
+  back: "React 19.3, announced in the React 19.3 post."
+  question: react/refs/fragment-refs
+- id: fragment-instance-what
+  front: "What does a Fragment ref hold, and which nodes does it work on?"
+  back: "A `FragmentInstance`, attached in the commit like any ref. It works on the Fragment's first-level DOM children: the nearest host nodes, found by looking through components."
+  question: react/refs/fragment-refs
+- id: fragment-instance-not-node
+  front: "Is a `FragmentInstance` a DOM node?"
+  back: "No. It is neither a `Node` nor an `EventTarget` (`instance instanceof Node` is `false`). There is no `style`, `classList`, `querySelector` or `contains`, and it cannot be passed where a node is expected."
+  question: react/refs/fragment-refs
+- id: fragment-instance-events
+  front: "What do `addEventListener` and `removeEventListener` do on a `FragmentInstance`?"
+  back: "They act on every first-level child. Children rendered later get the stored listeners, and removed children lose them."
+  question: react/refs/fragment-refs
+- id: fragment-instance-dispatch-event
+  front: "What does `dispatchEvent` on a `FragmentInstance` do?"
+  back: "It dispatches \"on the Fragment\", running the Fragment's listeners, and the event can bubble to its DOM parent."
+  question: react/refs/fragment-refs
+- id: fragment-instance-dispatch-internals
+  front: "How does React 19.3.1 implement `FragmentInstance.dispatchEvent` without a node?"
+  back: "It temporarily appends an empty text node to the parent, adds the Fragment's listeners to it, dispatches there, then removes it. This is an implementation detail; the documented behaviour is that the listeners run and the event may bubble."
+  question: react/refs/fragment-refs
+- id: fragment-instance-focus
+  front: "How do `focus()`, `focusLast()` and `blur()` work on a `FragmentInstance`?"
+  back: "`focus()` and `focusLast()` search nested descendants depth-first for something focusable; `blur()` only acts if focus is inside."
+  question: react/refs/fragment-refs
+- id: fragment-instance-observers
+  front: "What do `observeUsing` and `unobserveUsing` do?"
+  back: "They attach or detach an `IntersectionObserver` or `ResizeObserver` for each first-level child, following children added later."
+  question: react/refs/fragment-refs
+- id: fragment-instance-geometry
+  front: "Which geometry and position methods does a `FragmentInstance` have?"
+  back: "`getClientRects()` (one flat array), `getRootNode()`, `compareDocumentPosition()`, and `scrollIntoView(alignToTop)`."
+  question: react/refs/fragment-refs
+- id: fragment-reactfragments-set
+  front: "What is `reactFragments` on a first-level child?"
+  back: "A set naming the Fragment instances that own it, so one shared observer can route entries."
+  question: react/refs/fragment-refs
+- id: fragment-listeners-first-level-only
+  front: "Why did listening for `focus` on a Fragment ref not catch a nested `<input>`?"
+  back: "Listeners sit on first-level children only and `focus` does not bubble. In the test `focus` on a nested input never reached them; `focusin` did."
+  question: react/refs/fragment-refs
+- id: fragment-scroll-into-view-options
+  front: "What happens if you pass an options object to `FragmentInstance.scrollIntoView`?"
+  back: "React 19.3.1 throws \"FragmentInstance.scrollIntoView() does not support scrollIntoViewOptions\". Pass `true` or `false`."
+  question: react/refs/fragment-refs
+- id: fragment-observe-text-only
+  front: "What happens when `observeUsing` is called on a Fragment holding only text?"
+  back: "Observers cannot watch text nodes; development builds log an error saying so."
+  question: react/refs/fragment-refs
+- id: fragment-children-targets
+  front: "With `<A />` rendering `<div id=\"B\"><button id=\"C\" /></div>`, then `<D />`, which nodes are targets?"
+  back: "A, B and D: the first host nodes under the Fragment, looking through components. C is not a target."
+  question: react/refs/fragment-refs
+- id: fragment-get-client-rects-text
+  front: "What did `getClientRects()` include for a bare text child in 19.3.1?"
+  back: "A rectangle for the text child too."
+  question: react/refs/fragment-refs
+- id: fragment-compare-position-empty
+  front: "What does `compareDocumentPosition` return for an empty Fragment?"
+  back: "The usual flags plus `DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC` (32). An empty Fragment before a `<span>` returned `36` (following 4 plus 32). A Fragment with children returned `2` for a node before it and `4` for one after."
+  question: react/refs/fragment-refs
+- id: fragment-once-listener
+  front: "Does `{ once: true }` on a Fragment ref listener fire once per child?"
+  back: "No. In 19.3.1 the first event on any child removed the listener from the whole group; clicking two buttons in turn called it once."
+  question: react/refs/fragment-refs
+- id: fragment-listener-later-child
+  front: "In the `ClickGroup` example, did a card rendered after the effect ran get the click listener?"
+  back: "Yes. Card `c` did not exist when the effect ran, yet it got the listener, and no wrapper element was added (React 19.3.1, development and production, Chrome 156 and Firefox 159)."
+  question: react/refs/fragment-refs
