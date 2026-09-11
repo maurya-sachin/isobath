@@ -2728,3 +2728,528 @@
   front: "What are the trade-offs of the DevTools Profiler, Performance Tracks and `<Profiler>`?"
   back: "DevTools Profiler: quickest why per commit, interactive only. Tracks: React's work next to the main thread; changed props in development only; Chrome-recorded here. `<Profiler>`: programmatic and aggregable, but durations, not reasons."
   question: react/performance/profiling
+# 08 Concurrent rendering
+- id: fiber-what-it-is
+  front: "What is Fiber, and what does each fiber represent?"
+  back: "React's reconciler since React 16. Every component instance and host element (`<li>`, a text node) gets a fiber: a plain object that is one unit of work."
+  question: react/concurrent-rendering/fiber
+- id: fiber-tree-links
+  front: "Which three fiber fields link it to the rest of the tree?"
+  back: "`return` (parent), `child` (first child) and `sibling` (next sibling)."
+  question: react/concurrent-rendering/fiber
+- id: fiber-identity-fields
+  front: "Which fiber fields say what it is?"
+  back: "`tag`, `type`, `key` and `stateNode` (the DOM node or class instance)."
+  question: react/concurrent-rendering/fiber
+- id: fiber-work-fields
+  front: "Which fiber fields hold inputs and results, and pending work?"
+  back: "Inputs and results: `pendingProps`, `memoizedProps`, `memoizedState`, `updateQueue`. Pending work: `lanes` and `childLanes` (priorities of queued updates) and `flags` (what the commit must do)."
+  question: react/concurrent-rendering/fiber
+- id: fiber-stack-reconciler-problem
+  front: "Why couldn't the React 15 stack reconciler pause?"
+  back: "It rendered by recursion, so the work lived on the JavaScript call stack and ran until the stack unwound. A large update blocked input and animation frames, and couldn't be paused, prioritized or abandoned."
+  question: react/concurrent-rendering/fiber
+- id: fiber-virtual-stack-frames
+  front: "How does Fiber replace the call stack?"
+  back: "It reimplements the stack as linked heap objects, \"virtual stack frames\" in Andrew Clark's 2016 notes. A loop walks one fiber per step, so React can check the clock, yield, resume, restart with newer state or drop the work."
+  question: react/concurrent-rendering/fiber
+- id: fiber-two-trees
+  front: "What are the current and work-in-progress trees?"
+  back: "Current matches the screen. Work-in-progress is built for the next render by reusing each fiber's `alternate`. The commit makes the finished tree current by swapping one pointer, so an abandoned render leaves the screen untouched."
+  question: react/concurrent-rendering/fiber
+- id: fiber-not-the-feature
+  front: "Is Fiber the same as concurrent rendering?"
+  back: "No. Every React since 16 uses Fiber, but React 16 shipped with asynchronous rendering off; React 18's concurrent features were the first stable APIs to use pausing. Most updates still render without pausing."
+  question: react/concurrent-rendering/fiber
+- id: fiber-not-multithreaded
+  front: "Did Fiber make React multithreaded?"
+  back: "No. Rendering still runs on the main thread; Fiber only lets that thread stop between components and resume."
+  question: react/concurrent-rendering/fiber
+- id: fiber-unit-is-component
+  front: "Can React pause inside a component's render?"
+  back: "No. The unit of work is a whole fiber. One component computing for 100 ms under a transition was still one 100 ms long task in Chrome 156."
+  question: react/concurrent-rendering/fiber
+- id: fiber-internals-unstable
+  front: "Why not build on fiber internals?"
+  back: "Field names change between versions. The 2016 notes describe `pendingWorkPriority` and `output` fields that React 19.3.1 no longer has. `__reactFiber$` is fine in a debugging console only."
+  question: react/concurrent-rendering/fiber
+- id: fiber-demo-alternate
+  front: "In the `<ul>` demo, what do a `<li>`'s fiber and its `alternate` show after mount, the first click and the second click?"
+  back: "After mount `alternate` is `null`. The first update builds `a1` in a new object; the second reuses the original object for `a2`. Two copies alternate between current and work-in-progress (Chrome 156, Firefox 159, React 19.3.1)."
+  question: react/concurrent-rendering/fiber
+- id: fiber-why-links-not-array
+  front: "Why does Fiber use child, sibling and parent links instead of an array of children?"
+  back: "So the walk can stop and resume from one pointer. The loop keeps the next fiber in `workInProgress`, and the links let it go down, across and back up without recursion or a separate stack."
+  question: react/concurrent-rendering/fiber
+- id: fiber-lanes
+  front: "What replaced the priority field from the 2016 design notes?"
+  back: "Lanes: each update gets one bit of a 31-bit mask (sync, continuous input, default, 14 transition lanes, retry, idle, offscreen and more). Fibers store pending lanes as masks, so one render can process several priorities and tests are bitwise `&`."
+  question: react/concurrent-rendering/fiber
+- id: fiber-enabled-besides-scheduling
+  front: "What did Fiber enable besides scheduling?"
+  back: "React 16's release notes credit it with error boundaries and fragments, and it is the base for Suspense and `<Activity>`. Frames kept as objects let React unwind to a boundary or keep a hidden subtree's fibers."
+  question: react/concurrent-rendering/fiber
+- id: fiber-work-loop
+  front: "What does the concurrent work loop look like in React 19.3.1?"
+  back: "`while (workInProgress !== null && !shouldYield()) performUnitOfWork(workInProgress)`. `workLoopSync` is the same loop without `shouldYield()`; the update's lanes decide which is used."
+  question: react/concurrent-rendering/fiber
+- id: fiber-begin-work
+  front: "What does `beginWork` do, and when does it skip a subtree?"
+  back: "It calls the component, reconciles the returned elements against current children and returns the first child fiber. If neither the fiber nor any descendant has work in this render's lanes (`lanes`, `childLanes`, bitwise test), it skips the subtree."
+  question: react/concurrent-rendering/fiber
+- id: fiber-complete-work
+  front: "What does `completeUnitOfWork` do?"
+  back: "It runs when a fiber has no children left: creates or prepares the DOM node off screen, merges children's `flags` into `subtreeFlags`, then moves to `sibling`, or to `return` when there is none."
+  question: react/concurrent-rendering/fiber
+- id: fiber-yield-is-leaving-loop
+  front: "Why is yielding cheap in Fiber?"
+  back: "The state of the walk is one variable, `workInProgress`. Yielding is leaving the loop; resuming is entering it again."
+  question: react/concurrent-rendering/fiber
+- id: fiber-create-work-in-progress
+  front: "What does `createWorkInProgress` do, and when does `root.current` swap?"
+  back: "It returns a current fiber's `alternate`, creating it only the first time, because at most two versions of the tree are needed. `root.current = finishedWork` swaps after the mutation phase and before the layout phase."
+  question: react/concurrent-rendering/fiber
+- id: fiber-commit-swap-timing
+  front: "Why does the tree swap fall between the mutation and layout phases?"
+  back: "So `componentWillUnmount` still sees the old tree and `componentDidMount` the new one."
+  question: react/concurrent-rendering/fiber
+- id: fiber-text-child
+  front: "Does `<li>{label}</li>` with a string have a child fiber for the text?"
+  back: "No. In the test `fiber.child` was `null`: React sets a lone string as the element's text directly."
+  question: react/concurrent-rendering/fiber
+- id: fiber-hook-list
+  front: "Where does a function component's hook list live, and why can't hooks be conditional?"
+  back: "In `memoizedState` on the fiber: the first hook, each linking to the next. It is matched by call order, which is why hooks can't be called conditionally."
+  question: react/concurrent-rendering/fiber
+- id: fiber-tradeoff
+  front: "What does Fiber cost, and what is the contract for application code?"
+  back: "Two objects per element instead of a stack frame, about two dozen fields each, and a harder-to-follow loop. Because a render may be paused, repeated or discarded, components must be pure; Strict Mode checks by rendering twice in development."
+  question: react/concurrent-rendering/fiber
+- id: concurrent-definition
+  front: "What does concurrent rendering mean?"
+  back: "Rendering is interruptible. It isn't parallelism: React still runs on the main thread, one piece at a time, but a render no longer has to finish once started."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-pause-resume-abandon
+  front: "What can React do with an in-progress render?"
+  back: "Pause it every few milliseconds so the browser can handle events and paint, resume where it left off, or abandon it and start over when a more urgent update arrives."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-why-safe
+  front: "Why is interrupting a render safe, and what is the price?"
+  back: "Rendering has no visible effects: React touches the DOM only in the commit, which is synchronous and uninterruptible. The price is that components must be pure, since a render may run several times or never commit."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-commit-uninterruptible
+  front: "Why can't the commit be interrupted?"
+  back: "It mutates the DOM and runs layout effects. Stopping halfway would show a half-updated page, so React applies the whole finished tree in one synchronous pass."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-priority-order
+  front: "In what order of urgency does React rank discrete input, continuous input and default updates?"
+  back: "Discrete input (click, keydown, input) first, then continuous input (mousemove, scroll), then default updates (timers, network callbacks). These render without yielding."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-non-urgent-updates
+  front: "Which updates does React render in interruptible slices?"
+  back: "Transitions, `useDeferredValue` re-renders, Suspense retries and hidden `<Activity>` content. A click or keystroke arriving meanwhile is handled first, then the stale work restarts."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-opt-in
+  front: "Does `createRoot` alone make rendering interruptible?"
+  back: "No. By default updates behave like React 17; a click or `setTimeout` update rendered 200 slow items in one task (100 ms in Chrome 156). Concurrency is used only where you use a concurrent feature."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-mode-dropped
+  front: "What did React 18 change about \"concurrent mode\"?"
+  back: "It was replaced by concurrent features. The working group found most value came from APIs like `startTransition`, so default updates stayed synchronous and apps adopt concurrency per update, not per root."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-not-faster
+  front: "Does concurrent rendering make updates faster?"
+  back: "No. The same render took about 100 ms either way; time slicing spreads it across tasks so input and frames get through. Interrupted work is redone, so total work can increase."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-demo-result
+  front: "Click Slow (a transition), then Fast 30 ms later. How many items had the transition rendered, and what committed?"
+  back: "59–69 items in Chrome, 30–35 in Firefox (1 ms per item on its coarser clock). React discarded them, committed `count=1 value=0`, then rendered all 200 items for `count=1 value=1`. React 19.3.1, both builds."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-lane-from-event
+  front: "How does React DOM pick an update's lane from the browser event?"
+  back: "`click`, `keydown`, `input` map to the sync lane; `mousemove`, `scroll`, `wheel` to the continuous lane; anything outside an event (a timer, a resolved promise) to the default lane. `startTransition` assigns a transition lane."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-sync-flush
+  front: "When is sync-lane work flushed, and what happens to everything else?"
+  back: "Sync work is flushed in a microtask after the event. Everything else becomes a task in React's scheduler."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-should-time-slice
+  front: "In 19.3.1, when does `performWorkOnRoot` time-slice?"
+  back: "When not forced sync, the lanes include no blocking lane (sync, continuous input, default), and none is expired; or when the root is prerendering. Otherwise it renders synchronously."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-task-counts
+  front: "For 200 items of 0.5 ms (production), how many tasks and frames occurred for a click `setState`, a `setTimeout` `setState`, and a click `startTransition`?"
+  back: "Click and timeout: 1 task, 0 frames. Transition: 21 tasks and 6 frames in Chrome; 40–41 tasks and 9–11 frames in Firefox."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-slice-length
+  front: "How long were transition slices, and why did Firefox renders take twice as long?"
+  back: "About 5 ms each. Firefox's coarser clock made each item take 1 ms instead of 0.5 ms."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-interrupt-rebase
+  front: "What happens to a transition's update when an urgent update interrupts its render?"
+  back: "React drops the work-in-progress tree and renders the urgent update first. The transition's update stays queued and is rebased onto the new state in the next render."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-default-no-interrupt
+  front: "Does a `setTimeout` update arriving mid-transition interrupt the transition?"
+  back: "No. It is in the default lane, and `getNextLanes` keeps the in-progress transition render; the transition committed first (Chrome 156, Firefox 159, both builds). Only input-priority updates interrupt."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-starvation
+  front: "When does a transition lane expire, and what changes then?"
+  back: "5 s after it was scheduled; from then on the rest renders without yielding. With a 7 s transition in Chrome 156, slicing stopped at 5,004 ms and the remaining 2 s ran as one task."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-prerendering
+  front: "Why does prerendering a suspended tree's siblings never block?"
+  back: "It uses the concurrent loop even for sync lanes."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: concurrent-25ms-flag
+  front: "What does the 19.3.1 flag that is off in its builds change about transition slices?"
+  back: "It would yield every 25 ms for transitions instead of every 5 ms, capping animations near 30 fps to favour finishing the render. The slice size is a tuning choice."
+  question: react/concurrent-rendering/interruptible-rendering
+- id: transition-use-transition-api
+  front: "What does `useTransition()` return, and what does it mark?"
+  back: "`[isPending, startTransition]`. Every setter called while the `startTransition` callback runs becomes a Transition, saying \"this update can wait\"."
+  question: react/concurrent-rendering/transitions
+- id: transition-stays-responsive
+  front: "What happens to a Transition render when the user clicks or types during it?"
+  back: "React handles the input first, discards the half-built tree and starts again with the newest state. An abandoned screen is never shown."
+  question: react/concurrent-rendering/transitions
+- id: transition-is-pending
+  front: "When does `isPending` turn `true` and `false`?"
+  back: "It turns `true` immediately and stays `true` until the Transition commits, so you can dim old content or show a spinner while it remains on screen."
+  question: react/concurrent-rendering/transitions
+- id: transition-suspense-keeps-content
+  front: "What does a Transition do to an already-revealed Suspense boundary?"
+  back: "It keeps the already-revealed content instead of falling back to a loading state."
+  question: react/concurrent-rendering/transitions
+- id: transition-no-delay
+  front: "Does `startTransition` delay the callback or speed up rendering?"
+  back: "Neither. The callback runs immediately and synchronously; only updates scheduled while it runs are marked. A setter in a `setTimeout` inside the callback is not a Transition."
+  question: react/concurrent-rendering/transitions
+- id: transition-need-setter
+  front: "What do you use when you don't own the state setter, such as a prop?"
+  back: "`useDeferredValue`. A Transition needs the state's setter."
+  question: react/concurrent-rendering/transitions
+- id: transition-text-input-rule
+  front: "Why must a text input's state stay out of a Transition?"
+  back: "Transition updates can't control a text input. React resets the controlled input to the old state right after the event; six keystrokes sent back to back left just `f` in Chrome 156."
+  question: react/concurrent-rendering/transitions
+- id: transition-standalone-import
+  front: "What is the standalone `startTransition` import for, and what does it lack?"
+  back: "Use outside components, such as routers and data libraries. It marks updates the same way but has no `isPending`; the Hook also routes an Action's error to the component's error boundary."
+  question: react/concurrent-rendering/transitions
+- id: transition-async-actions
+  front: "How do async Transition callbacks work in React 19?"
+  back: "The callback may be async; such a function is called an Action. `isPending` stays `true` until it finishes, and its Transition updates commit together at the end."
+  question: react/concurrent-rendering/transitions
+- id: transition-after-await
+  front: "What happens to a setter called after an `await` in an async Transition?"
+  back: "It is no longer a Transition and must be wrapped in another `startTransition`. Unwrapped, it was urgent: it committed 100 ms in while `isPending` was still `true`, showing a half-finished result."
+  question: react/concurrent-rendering/transitions
+- id: transition-after-await-why
+  front: "Why does a setter after `await` lose the Transition, and what will change it?"
+  back: "By then `startTransition` has returned and `ReactSharedInternals.T` is cleared, so React can't follow async context. The docs say this will change once JavaScript has `AsyncContext`."
+  question: react/concurrent-rendering/transitions
+- id: transition-wrapped-after-await
+  front: "A second `startTransition` after `await` sets `page`; when does it commit?"
+  back: "At the end of the whole Action (200 ms in the example), together with `isPending` becoming `false`, so the user never sees the new page without the finished state."
+  question: react/concurrent-rendering/transitions
+- id: transition-overlap
+  front: "What happens when two Transitions overlap?"
+  back: "The docs say React currently batches ongoing Transitions together. In the example the Posts and Contact updates rendered as one, and only `contact` committed."
+  question: react/concurrent-rendering/transitions
+- id: transition-demo-numbers
+  front: "Click Posts then Contact 30 ms later: how long did the Contact click wait with and without a Transition?"
+  back: "With a Transition: Posts abandoned after 64–68 posts (Chrome) or 29–35 (Firefox). With plain `setTab`: Contact was handled only after 108–109 ms (Chrome) or 206–217 ms (Firefox). React 19.3.1, three runs each."
+  question: react/concurrent-rendering/transitions
+- id: transition-one-slow-component
+  front: "Does a Transition split one slow component?"
+  back: "No. React yields between components, never inside one; a single 100 ms component is still a 100 ms task."
+  question: react/concurrent-rendering/transitions
+- id: transition-impl-flag
+  front: "How is `startTransition` implemented in React 19.3.1?"
+  back: "A flag, not a scheduler call: it calls `setIsPending(true)`, sets `ReactSharedInternals.T`, runs your callback, then `setIsPending(false)`. `requestUpdateLane` sees `T !== null` and returns a transition lane. Implementation details."
+  question: react/concurrent-rendering/transitions
+- id: transition-is-pending-two-updates
+  front: "Why does `isPending=true` commit immediately while `setTab` waits?"
+  back: "`isPending` is ordinary state updated twice. The `true` update has input priority and commits right away; the `false` update gets the Transition's lane and commits in the same render as your setter."
+  question: react/concurrent-rendering/transitions
+- id: transition-entangled-lane
+  front: "Why do updates inside an Action wait for the whole Action?"
+  back: "For an async callback the `false` value is a thenable that suspends the render until the Action ends. React reuses the same lane for every Transition started inside it (the entangled action lane)."
+  question: react/concurrent-rendering/transitions
+- id: transition-controlled-input-restore
+  front: "How did the test show React restoring a controlled input's value?"
+  back: "A listener on `document` already saw `\"\"` after typing `a`; the value came back only with the commit."
+  question: react/concurrent-rendering/transitions
+- id: transition-errors
+  front: "How are errors from a `useTransition` callback surfaced?"
+  back: "An error thrown, or a rejected promise from an async callback, is rethrown when the component renders, so the nearest error boundary shows it."
+  question: react/concurrent-rendering/transitions
+- id: transition-out-of-order
+  front: "Do Actions in a Transition run in order?"
+  back: "No guarantee: a slow earlier response can overwrite a newer one. The docs point to `useActionState` and `<form>` actions, which handle ordering."
+  question: react/concurrent-rendering/transitions
+- id: transition-search-split
+  front: "In a search box, how do you split state with a Transition?"
+  back: "Set the input's `text` urgently, and wrap `setQuery` in `startTransition`. In Chrome 156 (production) the input committed on every keystroke and results once, for the final query; Firefox 159's slower typing let every query commit."
+  question: react/concurrent-rendering/transitions
+- id: transition-tradeoff
+  front: "What does a Transition cost?"
+  back: "Extra renders: one for `isPending`, possibly several abandoned, and the final one, so total CPU goes up. The user sees stale content longer, and the slow part must be split into components React can yield between."
+  question: react/concurrent-rendering/transitions
+- id: deferred-what-it-does
+  front: "What does `useDeferredValue(query)` return when `query` changes?"
+  back: "The old value during the urgent render; then React re-renders in the background with the new value at Transition priority. A newer keystroke abandons that render and restarts with the newest value."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-vs-debounce-delay
+  front: "How does the delay of `useDeferredValue` differ from a debounce?"
+  back: "No fixed delay. The deferred render starts as soon as the urgent one commits, so on a fast machine the lag is barely visible and on a slow one it grows with the work."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-vs-debounce-interrupt
+  front: "Why is a deferred render better than a debounced one for responsiveness?"
+  back: "A debounced update still renders in one block when it fires, and input during that render waits. The deferred render yields between components and gives way to input."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-not-requests
+  front: "Does `useDeferredValue` reduce network requests?"
+  back: "No, it defers rendering only. A fetch per keystroke still happens; debounce or throttle requests. Combine them: defer the rendering of results, debounce the request."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-needs-memo
+  front: "Why must the slow child be memoized with `useDeferredValue`?"
+  back: "The urgent render passes the old deferred value, so a `memo` child sees unchanged props and is skipped. Without `memo` it renders twice per change: 1,163–1,410 item renders instead of 800, with no gain."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-fresh-object
+  front: "What goes wrong with `useDeferredValue({ query })`?"
+  back: "A new object every render never equals the last (`Object.is`), so every render schedules another background render. Use a primitive or an object created outside rendering."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-vs-start-transition
+  front: "When use `useDeferredValue` instead of `startTransition`?"
+  back: "When you don't own the setter, such as a prop. With the setter, `startTransition` does the same job. Mechanically the background render gets a Transition lane either way."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-show-stale
+  front: "How do you show that the deferred value is stale?"
+  back: "Compare `query !== deferredQuery`, for example to dim the list."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-initial-value
+  front: "What does the React 19 `initialValue` argument do?"
+  back: "On mount the component first renders with `initialValue`, then re-renders in the background with the real value. Without it there's no older value, so the first render isn't deferred."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-inside-transition
+  front: "What does `useDeferredValue` do when the update is already a Transition?"
+  back: "It returns the new value straight away: one render, `query=b deferred=b`."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-suspends
+  front: "What happens if the deferred background render suspends?"
+  back: "Per the docs the user keeps seeing the old deferred value rather than a Suspense fallback until the data loads. Effects of that render run only once it commits."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-demo-logs
+  front: "In the `Search` demo with `useDeferredValue(query, '')`, what renders on mount and after typing `!`?"
+  back: "Mount: `query=react deferred=` with `SlowList \"\"`, then `deferred=react` with `SlowList \"react\"`. Typing `!`: `query=react! deferred=react` skipping `SlowList`, then `deferred=react!` rendering it. Chrome 156, Firefox 159, React 19.3.1."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-typing-burst
+  front: "Typing `XYZ` back to back in Chrome with the deferred demo: how many renders?"
+  back: "Three urgent renders and a single `SlowList \"reactXYZ\"`."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-impl-lane
+  front: "In 19.3.1, how does the Hook request the background render?"
+  back: "It returns the old value and asks for a deferred lane: one of four Transition lanes reserved for deferred work, shared by every `useDeferredValue` in the render, or the offscreen lane in hidden content. Implementation detail."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-measure-plain
+  front: "Eight keystrokes 30 ms apart over 100 items of 0.5 ms with plain state (production): key-to-frame, list commits, item renders?"
+  back: "Chrome 51 ms, Firefox 100–101 ms median key-to-frame; 8 commits; 800 item renders. Settled in 50 ms and 100 ms. Firefox's coarser clock made each item take 1 ms."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-measure-deferred-memo
+  front: "Same benchmark with `useDeferredValue` plus `memo`: key-to-frame, commits, item renders?"
+  back: "Key-to-frame 5–7 ms (Chrome) and 6–15 ms (Firefox); 1 list commit; 469–519 item renders (Chrome), 369–373 (Firefox); settled in 66–67 ms and 106 ms."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-measure-no-memo
+  front: "Same benchmark with `useDeferredValue` but no `memo`: what happened?"
+  back: "No responsiveness gain: key-to-frame 50 ms and 100 ms, 9 list commits, 1,390–1,410 item renders (Chrome) and 1,163–1,165 (Firefox), settled in 102–110 and 200–208 ms."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-measure-debounce
+  front: "Same benchmark with a 300 ms debounce plus `memo`: what were the trade-offs?"
+  back: "Fewest item renders (100) and one commit, but settled in 353 ms (Chrome) and 403 ms (Firefox), then rendered in one block, freezing a frame: longest gap 33 / 100 ms."
+  question: react/concurrent-rendering/deferred-value
+- id: deferred-tradeoff
+  front: "What are the trade-offs of `useDeferredValue` versus a debounce?"
+  back: "`useDeferredValue` adapts to the device and keeps input responsive, but wastes CPU on abandoned renders, needs memoization, and can't reduce I/O. A debounce is predictable and cheap for requests, but adds a fixed delay and isn't interruptible."
+  question: react/concurrent-rendering/deferred-value
+- id: scheduler-what-it-is
+  front: "What is React's `scheduler`, and how does it relate to the browser's `scheduler.postTask()`?"
+  back: "React's own cooperative scheduler npm package: internal, with no finalized public API, and unrelated to the browser's `scheduler.postTask()`. A spy on `postTask` counted zero calls during a Transition."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-priorities
+  front: "Which scheduler priorities does React use, and what timeouts?"
+  back: "User-blocking for input lanes, normal for default updates, Transitions and retries, idle for the idle lane. The timeouts are 250 ms, 5 s and never. Tasks wait in a min-heap ordered by expiration time."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-message-channel
+  front: "How does the scheduler get the browser to run its tasks?"
+  back: "It posts a message on a `MessageChannel` and runs queued callbacks in the message handler. Not `setTimeout(fn, 0)`, because of the 4 ms clamp on nested timers; not `requestAnimationFrame`, since work needn't line up with frames."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-should-yield
+  front: "When does `shouldYield()` return `true`?"
+  back: "Once 5 ms (`frameYieldMs`) have passed since the browser task started, or straight after a commit so the browser can paint. React calls it before every fiber."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-continuation
+  front: "What happens when React yields mid-render?"
+  back: "It stops, keeping its place in `workInProgress`, and returns a continuation. The scheduler keeps the same task, posts another message and returns, ending the browser task; input and rendering run, then work resumes."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-sync-no-path
+  front: "Which work skips the scheduler slicing path?"
+  back: "Sync-lane updates (click, keydown, input) render in the event's own task. Blocking lanes that become scheduler tasks, like a `setTimeout` update, render without calling `shouldYield()`. Only Transitions, deferred values, retries and hidden work are sliced."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-expired
+  front: "What happens to a scheduler task past its timeout?"
+  back: "It runs without yielding, so starved updates finish. `performWorkOnRootViaSchedulerTask` receives `didTimeout`; when `true`, React renders synchronously."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-cooperative
+  front: "Why is the scheduler called cooperative?"
+  back: "It stops only between components, never inside one."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-demo-counts
+  front: "In the 200-item demo (Chrome 156, production), how many slices and messages for a transition versus an urgent update?"
+  back: "Transition: 21 slices, 22 messages, longest 5 ms. Urgent `setValue`: 1 slice, 0 messages, longest 100 ms. Firefox 159: 40 slices, 42 messages (once 41), longest 200 ms for the urgent update."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-trace
+  front: "What did the Chrome trace show for the transition, and why the spare message?"
+  back: "21 `performWorkUntilDeadline` calls of 4.9–5.1 ms, the last 2.0 ms. The spare messages started scheduler work queued after the commit; development builds posted one more."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-frames-between
+  front: "Do scheduler slices match animation frames?"
+  back: "No. It yields every 5 ms regardless of frame timing; during the 100 ms Transition, Chrome still ran 6 animation frames, in the gaps between slices."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-unstable-apis
+  front: "Should app code import the `unstable_` scheduler APIs?"
+  back: "No. They exist for React; use `startTransition` or the browser's `scheduler.yield()` instead."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-timeout-fallback-cost
+  front: "What happened when `MessageChannel` was deleted so the scheduler fell back to `setTimeout`?"
+  back: "The 100 ms Transition took 175 ms in Chrome and 334 ms in Firefox, instead of 101 and 202. Slices stayed 5 ms but gaps grew to 3–5 ms: the timer clamp at work."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-post-task-build
+  front: "Does React use `scheduler.postTask()` where it exists?"
+  back: "Not by default. The package ships a `scheduler/unstable_post_task` build mapping priorities to `user-blocking`, `user-visible` and `background`, but `react-dom` 19.3.1 requires plain `scheduler`, the `MessageChannel` build."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-yield-after-commit
+  front: "Why yield right after a commit?"
+  back: "React calls `requestPaint()` during the commit, which sets `needsPaint`. The next `shouldYield()` returns `true` regardless of time left, so the browser can paint before more work runs."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-work-loop
+  front: "In the scheduler's `workLoop`, when does it break out, and what does a function return from `task.callback` mean?"
+  back: "It breaks when the task hasn't expired and `shouldYieldToHost()` is true. A function returned is React's continuation: the task keeps it and the loop returns `true` to yield. Simplified from 19.3.1; implementation detail."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-lane-to-priority
+  front: "How does React map a root's lanes to a scheduler priority?"
+  back: "`lanesToEventPriority` maps the highest lane to an event priority, then to a scheduler priority. Transition lanes count as default, so they get `NormalPriority` and its 5 s timeout."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-immediate-unused
+  front: "Is the scheduler's `ImmediatePriority` used for rendering?"
+  back: "No. A source comment explains that sync work now goes through microtasks."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-host-fallbacks
+  front: "In what order does the browser build pick its host mechanism?"
+  back: "`setImmediate` if it exists (Node.js, old IE), then `MessageChannel`, then `setTimeout`."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-back-to-back
+  front: "With nothing else queued, how soon does the next slice run in Chrome?"
+  back: "Within 0.3 ms: yielding costs little when the browser has nothing to do."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-force-frame-rate
+  front: "What does `unstable_forceFrameRate(fps)` do?"
+  back: "Changes the 5 ms interval to `1000 / fps`. It is an unstable export, not something React calls."
+  question: react/concurrent-rendering/scheduler
+- id: scheduler-tradeoff
+  front: "What is the trade-off of a fixed 5 ms slice and a `MessageChannel` message?"
+  back: "Input waits at most one slice plus one component, but each yield has overhead and total time grows if the browser has other work. A message has no priority, so React's priorities exist only in its own queue."
+  question: react/concurrent-rendering/scheduler
+- id: viewtransition-what
+  front: "What does `<ViewTransition>` do, and since which React version is it stable?"
+  back: "Stable since React 19.3. It marks part of the tree for React to animate with the browser's View Transitions API: React decides when and which elements; the browser captures and animates."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-which-updates
+  front: "Which updates animate a `<ViewTransition>`?"
+  back: "Only non-urgent ones: updates inside `startTransition`, `useDeferredValue` updates and Suspense boundaries revealing content. A plain `setState` from a click commits with no animation."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-mechanism
+  front: "What does React do when a qualifying commit touches a boundary?"
+  back: "It calls `document.startViewTransition()` and applies the DOM mutations inside its update callback."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-enter-exit
+  front: "When does a boundary activate `enter` and `exit`, and what placement rule applies?"
+  back: "`enter` when the boundary is inserted, `exit` when removed. It must come before any DOM node in the inserted subtree; one nested inside a new `<div>` doesn't count."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-update
+  front: "When does a boundary get `update`?"
+  back: "When React mutates DOM inside it, or it moves or resizes because of a sibling. A nested boundary takes the update instead of its parent."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-share
+  front: "How does a `share` transition work?"
+  back: "A boundary with a `name` is removed and another with the same `name` inserted in the same Transition; the browser morphs one into the other."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-names
+  front: "How does React handle `view-transition-name`, and what should you do with `name`?"
+  back: "React sets generated unique names inline on the boundary's nearest DOM nodes only while setting up, then removes them. Give `name` only for shared elements, unique among mounted boundaries; a duplicate is an error."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-classes
+  front: "What can the `enter`, `exit`, `update`, `share` and `default` props take?"
+  back: "`\"auto\"`, `\"none\"` or a class name, which React sets as `view-transition-class` so CSS can target `::view-transition-new(.slide-in)`. Or an object keyed by Transition type."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-transition-type
+  front: "What does `addTransitionType` do?"
+  back: "Called inside `startTransition`, it records the cause. React picks the matching class from an object-valued prop and passes the types to the browser."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-event-props
+  front: "What are `onEnter`, `onExit`, `onUpdate` and `onShare` for?"
+  back: "They hand you the pseudo-elements so you can animate with Web Animations instead of CSS."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-no-support
+  front: "What happens in a browser without the View Transitions API?"
+  back: "React commits normally, without animating. It calls `startViewTransition({ update, types })` in a `try` and treats a throw as no support; the options form needs Chrome 125, Firefox 147 or Safari 18.2."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-demo
+  front: "In the toggle demo, what did Plain clicks versus Transition clicks do?"
+  back: "Plain clicks never reached `startViewTransition`. Transition clicks called it with types `[\"toggle\"]`, animating `::view-transition-new(_t_0_)` then `::view-transition-old(_t_0_)`. `_t_0_` is a generated name. Chrome 156, Firefox 159, React 19.3.1."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-nested-in-inserted
+  front: "What happened with `<div><ViewTransition>…` mounted in a Transition?"
+  back: "React didn't call `startViewTransition` at all; the boundary was inside the inserted element."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-own-transitions
+  front: "What happens if you start your own view transitions alongside React's?"
+  back: "The docs say React interrupts any other running view transition; let React coordinate them."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-overlapping-updates
+  front: "What if another update arrives during an animation?"
+  back: "Per the docs React waits for the running transition, then batches everything that arrived into one: going A→B, then C and D, animates B→D next."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-effects-timing
+  front: "When do effects run around a view transition?"
+  back: "Per the docs, layout effects and refs run inside the update callback, before React measures layout; `useEffect` waits until the animation's `finished` promise, unless another update needs it sooner."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-activity
+  front: "How does `<ViewTransition>` behave inside `<Activity>`?"
+  back: "The boundary gets `enter` when the Activity becomes visible and `exit` when hidden, while its state is kept."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-commit-sequence
+  front: "What commit sequence do the docs describe for a view transition?"
+  back: "Call `getSnapshotBeforeUpdate`, set names, call `startViewTransition`; in its update callback apply mutations, wait for fonts, run layout effects, wait for a pending navigation, measure which boundaries moved. After `ready`, remove names and call event props. A mid-way `flushSync` skips the animation."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-observed-bookkeeping
+  front: "What did spying on `startViewTransition` show about options and siblings?"
+  back: "React always passed `{ update, types }`. Inserting an item above a named `<ViewTransition name=\"photo\">` also named `photo`, because the sibling moved it. `useDeferredValue` and a Suspense reveal each made one call; showing a fallback from a plain update made none."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-shared-morph
+  front: "What produced a single `::view-transition-group(photo)` in the test?"
+  back: "Swapping `<ViewTransition name=\"photo\"><h2>` for `<ViewTransition name=\"photo\"><h1>` in one Transition: the shared-element morph."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-types-per-commit
+  front: "How long do `addTransitionType` types last?"
+  back: "The docs say types reset after each commit, so a fallback shown during a Transition gets its types but the later reveal doesn't."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-waits
+  front: "What does a `<ViewTransition>` wait for before animating?"
+  back: "Like any Transition, React waits for data and new stylesheets; `<ViewTransition>` also waits up to 500 ms for fonts and visible images."
+  question: react/concurrent-rendering/view-transition
+- id: viewtransition-reduced-motion
+  front: "Does React handle `prefers-reduced-motion` for `<ViewTransition>`?"
+  back: "No. The docs recommend checking it in your animation CSS."
+  question: react/concurrent-rendering/view-transition
