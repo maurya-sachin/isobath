@@ -3253,3 +3253,368 @@
   front: "Does React handle `prefers-reduced-motion` for `<ViewTransition>`?"
   back: "No. The docs recommend checking it in your animation CSS."
   question: react/concurrent-rendering/view-transition
+# 09 Suspense
+- id: suspense-what-suspending-means
+  front: "What does it mean for a component to suspend?"
+  back: "It can't finish rendering because something it needs isn't ready. React stops rendering it and walks up to the nearest `<Suspense>` boundary."
+  question: react/suspense/suspense-mechanics
+- id: suspense-what-suspends
+  front: "What suspends a component, per the docs?"
+  back: "Reading a pending promise with `use` (directly or via a Suspense-enabled framework), rendering a `lazy` component whose code hasn't loaded, and some resources React manages, such as a stylesheet rendered with `precedence`."
+  question: react/suspense/suspense-mechanics
+- id: suspense-effect-fetch-invisible
+  front: "Does fetching in an Effect or event handler show the Suspense fallback?"
+  back: "No. React never sees that promise. Only `use`, `lazy` and Suspense-enabled sources suspend."
+  question: react/suspense/suspense-mechanics
+- id: suspense-boundary-is-one-unit
+  front: "What does a boundary show when one child suspends?"
+  back: "Its `fallback` in place of all its children. Siblings that rendered fine are replaced too, and everything inside appears together."
+  question: react/suspense/suspense-mechanics
+- id: suspense-fallback-commits-first
+  front: "Since React 19.0, when does the fallback commit relative to the suspended boundary's siblings?"
+  back: "Immediately, without rendering the remaining siblings first. React then renders them in a separate pre-render pass so their `lazy` code and data requests start early. Before 19.0, siblings rendered first, so a slow sibling delayed the loading state."
+  question: react/suspense/suspense-mechanics
+- id: suspense-retry-from-scratch
+  front: "What happens when the suspended promise settles?"
+  back: "React retries the render from scratch: components that never mounted keep no state. If the promise rejects, the nearest error boundary takes over."
+  question: react/suspense/suspense-mechanics
+- id: suspense-reveal-throttle
+  front: "How are Suspense reveals throttled?"
+  back: "React reveals suspended content at most once every 300 ms, so boundaries that become ready close together appear at once instead of popping in one by one."
+  question: react/suspense/suspense-mechanics
+- id: suspense-nested-boundaries
+  front: "Where should `<Suspense>` boundaries go?"
+  back: "Where the design wants loading states, not around every component. Nest them for a loading sequence: outer fallback for the page shell, inner ones for slower panels."
+  question: react/suspense/suspense-mechanics
+- id: suspense-resuspend-visible
+  front: "What happens when already-visible content suspends again?"
+  back: "On an urgent update React hides it, cleans up its layout effects and shows the fallback again. During a Transition or `useDeferredValue` update it keeps the old content on screen."
+  question: react/suspense/suspense-mechanics
+- id: suspense-demo-log
+  front: "In the `A`, `Data`, `B` demo, what does React render before the fallback commits?"
+  back: "`A`, `Data`, then the fallback; `B` isn't rendered before the fallback commits. The pre-render then renders A, Data, B. `A` rendered three times and committed once. Chrome 156, Firefox 159, React 19.3.1, both builds."
+  question: react/suspense/suspense-mechanics
+- id: suspense-promise-in-render
+  front: "Why must the promise not be created during render?"
+  back: "A suspended render that never mounted starts over, so the promise is created again and the component never gets past it. Cache it."
+  question: react/suspense/suspense-mechanics
+- id: suspense-single-root-boundary
+  front: "What is wrong with one boundary near the root?"
+  back: "Any suspension deep in the page replaces the whole layout with a spinner."
+  question: react/suspense/suspense-mechanics
+- id: suspense-no-state-before-mount
+  front: "What state does a component keep if it suspends before mounting?"
+  back: "None. In the test a `useState` initializer ran three times before the first commit."
+  question: react/suspense/suspense-mechanics
+- id: suspense-no-boundary
+  front: "What happens in a `createRoot` app with no `<Suspense>` boundary at all?"
+  back: "The render waits without committing, with no error. The first render showed an empty container for 100 ms; a later `flushSync` update that suspended left the previous screen until its promise resolved."
+  question: react/suspense/suspense-mechanics
+- id: suspense-fallback-suspends
+  front: "What if the fallback itself suspends?"
+  back: "Per the docs it activates the next boundary up, so that boundary's fallback shows instead."
+  question: react/suspense/suspense-mechanics
+- id: suspense-throw-promise
+  front: "Can you still throw a promise to suspend?"
+  back: "It isn't a documented API. React 19.3.1 still treats a thrown thenable as a suspension, labelled deprecated in the source, with no warning in either build. Use `use`."
+  question: react/suspense/suspense-mechanics
+- id: suspense-server-streaming
+  front: "How does Suspense work with streaming server rendering?"
+  back: "The server sends fallbacks first and streams each boundary's HTML as it's ready; since 19.2 those reveals are batched like the client's."
+  question: react/suspense/suspense-mechanics
+- id: suspense-impl-use-throws
+  front: "How does `use` suspend in React 19.3.1?"
+  back: "On a pending promise it attaches handlers writing `status` and `value` (or `reason`) onto the promise, then throws a sentinel `SuspenseException` (\"Suspense Exception: This is not a real error!\"). `lazy` throws the same way. Implementation detail."
+  question: react/suspense/suspense-mechanics
+- id: suspense-impl-unwind
+  front: "How does the work loop find the boundary when something suspends?"
+  back: "`handleThrow` records why the render stopped; `throwException` finds the nearest boundary from the suspense handler stack, marks it to capture and attaches a listener to the promise. Rendering resumes at that boundary with its fallback."
+  question: react/suspense/suspense-mechanics
+- id: suspense-impl-retry-lane
+  front: "How does the retry commit after the promise settles?"
+  back: "The listener schedules a render on a retry lane. The component calls `use` again, the promise's `status` is `fulfilled`, and `use` returns `value` synchronously."
+  question: react/suspense/suspense-mechanics
+- id: suspense-impl-throttle
+  front: "How does the 300 ms throttle work in 19.3.1?"
+  back: "`globalMostRecentFallbackTime` is set when a commit switches a boundary between fallback and content. A render of only retries finishing earlier than 300 ms after that (`FALLBACK_THROTTLE_MS`) is held back until 300 ms have passed."
+  question: react/suspense/suspense-mechanics
+- id: suspense-throttle-measured
+  front: "Outer data at 100 ms and inner at 200 ms: when does each reveal, and what if inner is at 450 ms?"
+  back: "200 ms inner: both reveal in one commit at 302–311 ms, inner fallback never shown. 450 ms inner: outer at 303–311 ms with the inner fallback, inner at 604–614 ms, because the outer reveal restarted the window. Chrome 156, Firefox 159."
+  question: react/suspense/suspense-mechanics
+- id: suspense-resuspend-dom
+  front: "What happened to the DOM and effects when an urgent `flushSync` update re-suspended a mounted component?"
+  back: "The old DOM stayed, hidden with `display: none !important`, and its state was kept. The layout effect cleanup ran, but `useEffect` stayed set up until the dependency changed. Layout effects re-ran on reveal, 300 ms after the fallback appeared."
+  question: react/suspense/suspense-mechanics
+- id: suspense-dashboard-scenario
+  front: "How should you place boundaries for a dashboard with three charts?"
+  back: "One boundary per chart gives independent skeletons, and the throttle merges charts finishing within 300 ms into one reveal. Nest a page-level fallback outside. Make date changes a Transition so old charts stay visible."
+  question: react/suspense/suspense-mechanics
+- id: suspense-tradeoff
+  front: "What does Suspense cost in return for moving loading states out of components?"
+  back: "The data source must cache promises, a never-mounted component can't keep state across a retry, a misplaced boundary hides more UI than intended, and the throttle adds up to 300 ms of latency for fewer layout jumps."
+  question: react/suspense/suspense-mechanics
+- id: use-three-outcomes
+  front: "What does `use(promise)` do when the promise is fulfilled, rejected or pending?"
+  back: "Fulfilled: returns the value. Rejected: throws the reason to the nearest error boundary. Pending: the component suspends and the nearest `<Suspense>` shows its fallback."
+  question: react/suspense/use-api
+- id: use-pending-retry
+  front: "What does React do with a pending promise passed to `use`?"
+  back: "Attaches handlers recording `status` and `value` on the promise; when it settles, React renders the component again and `use` returns synchronously."
+  question: react/suspense/use-api
+- id: use-same-promise-required
+  front: "Why must the promise be the same object on the retry?"
+  back: "The second render has to receive the same promise to find it settled. A component that suspended before mounting has no state and reruns from scratch, so a promise created in render is a new pending one each time."
+  question: react/suspense/use-api
+- id: use-promise-in-render-loop
+  front: "What happens with `use(fetch(url).then(…))` in render?"
+  back: "A new pending promise each render: the component suspends, the new promise settles, it suspends again, and the content never appears. A mounted component that re-renders hits the same trap."
+  question: react/suspense/use-api
+- id: use-where-to-cache
+  front: "Where can the promise for `use` come from?"
+  back: "A cache keyed by input (a module-level `Map` or data library), a Suspense-enabled framework, a Server Component promise prop, or an event handler storing it in state inside `startTransition`."
+  question: react/suspense/use-api
+- id: use-not-quite-hook
+  front: "How does `use` differ from Hooks in call rules?"
+  back: "It must be called during render of a component or Hook, but may sit inside `if` blocks and loops, because it isn't stored in the component's Hook list. It may not sit inside `try`/`catch`."
+  question: react/suspense/use-api
+- id: use-try-catch
+  front: "Why can't `use` be wrapped in `try`/`catch`?"
+  back: "It suspends by throwing. The `catch` receives React's internal \"Suspense Exception: This is not a real error!\", so the error branch renders while data is merely loading. Handle rejections with an error boundary or a cached `promise.catch(…)`."
+  question: react/suspense/use-api
+- id: use-try-catch-lint
+  front: "How do dev and lint report `use` inside `try`/`catch`?"
+  back: "The development build logs \"`use` was called from inside a try/catch block.\" `eslint-plugin-react-hooks` 7.1.1 reports `React Hook \"use\" cannot be called in a try/catch block`."
+  question: react/suspense/use-api
+- id: use-status-check
+  front: "Why not skip `use` once `promise.status === 'fulfilled'`?"
+  back: "React 19.3.1 logged \"This library called use() to suspend in a previous render but did not call use() when it finished.\" Always call `use` for the promise itself."
+  question: react/suspense/use-api
+- id: use-context
+  front: "What does `use(Context)` do?"
+  back: "Reads context like `useContext`, also conditionally."
+  question: react/suspense/use-api
+- id: use-uncached-warning
+  front: "When does \"A component was suspended by an uncached promise\" appear?"
+  back: "Only when the new promise was already resolved, as with `Promise.resolve(data)`. With pending ones nothing was logged, even in a Transition (the old content simply stayed). Don't trust the warning."
+  question: react/suspense/use-api
+- id: use-demo-requests
+  front: "In the cached versus uncached demo, what were the request counts and result after 1 s?"
+  back: "Cached: 1 request, `user 1` shown. Uncached: 13 requests and still `loading`. Chrome 156, Firefox 159, React 19.3.1, both builds, no warning."
+  question: react/suspense/use-api
+- id: use-cache-never-forgets
+  front: "What is the problem with a plain `Map` cache?"
+  back: "It keeps stale data and grows; real apps need invalidation, which data-fetching libraries provide."
+  question: react/suspense/use-api
+- id: use-refetch
+  front: "How do you refetch with `use`?"
+  back: "In an event handler, drop the cache entry, start a new request and store the new promise in state inside `startTransition`. The component suspends but the Transition keeps the old content visible until it resolves."
+  question: react/suspense/use-api
+- id: use-vs-effect-fetch
+  front: "Why prefer `use` to fetching in `useEffect`?"
+  back: "An Effect fetch starts after the commit and needs its own loading, error and race handling. `use` hands loading to Suspense and errors to error boundaries. The request still has to start before render to avoid waterfalls."
+  question: react/suspense/use-api
+- id: use-server-promises
+  front: "How do promises from the server reach `use`?"
+  back: "A Server Component passes an unresolved promise as a prop and the Client Component reads it with `use`. Its resolved value must be serializable."
+  question: react/suspense/use-api
+- id: use-exercise-try-catch
+  front: "A `Profile` wraps `use(promise)` in `try`/`catch` and renders \"Couldn't load\" in the `catch`. What does the user see?"
+  back: "\"Couldn't load\", permanently, though the promise fulfils: `use` suspends by throwing, the `catch` swallowed it, and nothing rendered it again."
+  question: react/suspense/use-api
+- id: transitions-urgent-update
+  front: "What happens when an urgent update makes an already-showing boundary suspend?"
+  back: "React commits right away, hides the content and shows the fallback again. Navigating with a boundary near the root swaps the whole page for a spinner."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-keep-old-ui
+  front: "What does a Transition do when committing would hide already-revealed content behind a fallback?"
+  back: "It doesn't commit. The old UI stays on screen and interactive, and the new UI appears once the data has loaded. With `useTransition`, `isPending` is `true` meanwhile."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-deferred-value
+  front: "What if the `useDeferredValue` background re-render suspends?"
+  back: "It is a Transition too, so the user keeps seeing the stale value instead of a fallback."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-new-boundary
+  front: "Does a Transition wait for a `<Suspense>` that appears for the first time in this update?"
+  back: "No. A new boundary shows its fallback immediately, so the new page renders its shell while slower sections load. Nothing was visible there, so a fallback hides nothing."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-key-resets
+  front: "How do you make navigating to a different profile show the fallback in a Transition?"
+  back: "Give the boundary (or a parent) `key={userId}`. A new key makes it a new boundary, so it shows its fallback even in a Transition."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-only-non-urgent
+  front: "Does React ever delay an urgent render to avoid a fallback?"
+  back: "No. Only non-urgent updates get this treatment. That is why Suspense-enabled routers wrap navigations in Transitions by default."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-demo-log
+  front: "In the Bob/Ann demo, how do the logs differ with and without `key={user}` on the boundary?"
+  back: "Without: `commit ann true`, `show` Bob's bio, `commit bob false`; Ann's bio stays for 300 ms. With the key: spinner shown at once. With a plain `setUser` the spinner showed in both. Chrome 156, Firefox 159, React 19.3.1."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-no-timeout
+  front: "Is there a timeout on the old UI staying during a Transition?"
+  back: "No. In a test a 5-second request kept the old page for 5 seconds. Use `isPending` to give feedback."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-interactive-while-pending
+  front: "Can the user interact while the Transition waits?"
+  back: "Yes. A counter click 200 ms into a pending navigation committed at once over the old page with `isPending` still `true`; the navigation committed 300 ms later, keeping the new count."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-nested-waterfall
+  front: "In a Transition that reset the boundary with `key`, when did a nested section's request start in 19.3.1?"
+  back: "Only after the outer data arrived (200 ms later): React didn't pre-render the nested section. Start requests in the event handler."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-navigation-vs-deferred
+  front: "Do the docs suggest `useTransition` or `useDeferredValue` for navigation?"
+  back: "Transitions for navigation, usually inside the router; `useDeferredValue` in application code where one part may lag, such as search results under an urgent input."
+  question: react/suspense/suspense-and-transitions
+- id: transitions-exercise
+  front: "A Transition opens `ArtistPage` inside an already-revealed outer boundary: `Biography` takes 200 ms, a new inner boundary's `Albums` takes 1,000 ms. What does the user see?"
+  back: "Index stays; \"page loading\" never shows. At about 200 ms the page appears with \"albums loading\"; albums at 1,000 ms. Measured 202–218 ms and 1,005–1,019 ms (Chrome 156, Firefox 159)."
+  question: react/suspense/suspense-and-transitions
+- id: lazy-declaration
+  front: "What does `lazy(() => import('./Chart.jsx'))` do at declaration?"
+  back: "Nothing. React calls the loader the first time it renders the component; until the promise settles it suspends to the nearest `<Suspense>`."
+  question: react/suspense/lazy
+- id: lazy-splitting
+  front: "Why does a dynamic `import()` shrink the main bundle?"
+  back: "It is a split point: the module and whatever only it imports go into a separate chunk."
+  question: react/suspense/lazy
+- id: lazy-default-export
+  front: "What must a `lazy` loader return?"
+  back: "A promise or thenable resolving to an object whose `.default` is a component. For a named export: `import('./Chart.jsx').then((m) => ({ default: m.Chart }))`."
+  question: react/suspense/lazy
+- id: lazy-caching
+  front: "How often does a `lazy` loader run, and what is cached?"
+  back: "At most once per `lazy` type: React caches both promise and result, so remounting renders the component synchronously. A rejected load is cached too and goes to the nearest error boundary."
+  question: react/suspense/lazy
+- id: lazy-top-level
+  front: "Why declare `lazy` at module top level?"
+  back: "Each `lazy()` call creates a new component type with its own cache. Inside a component, every render calls the loader again and flashes the fallback for visible content; the docs say state gets reset."
+  question: react/suspense/lazy
+- id: lazy-inside-component-measured
+  front: "What happened with `lazy` declared inside a component in the test, and was state lost?"
+  back: "Every parent re-render called the loader again and flashed the fallback for about 300 ms. State survived, because React 19.3.1 compares a lazy type by the component it resolves to, but the docs say to expect resets."
+  question: react/suspense/lazy
+- id: lazy-avoid-loading-state
+  front: "How can you avoid the loading state of a lazy component?"
+  back: "Render it during a Transition inside a boundary already showing content, so the old UI stays until the code arrives; or pre-render it hidden in `<Activity>`, which loads the code ahead of time."
+  question: react/suspense/lazy
+- id: lazy-demo
+  front: "In the esbuild-bundled demo, when was the `Chart` chunk requested and how did Toggle clicks behave?"
+  back: "Right after `load called`, not at page load. First click showed \"loading chart\" until the chunk arrived; the third showed the chart at once with no request. Loader called once. esbuild 0.28, Chrome 156, Firefox 159."
+  question: react/suspense/lazy
+- id: lazy-no-default
+  front: "What error do you get from a lazy module with no default export?"
+  back: "Development: \"lazy: Expected the result of a dynamic import() call. Instead received: [object Module]\", then the error boundary got \"Element type is invalid. Received a promise that resolves to: undefined.\" Production: error #306."
+  question: react/suspense/lazy
+- id: lazy-failed-chunk
+  front: "Does resetting an error boundary retry a failed chunk?"
+  back: "No. It showed the same error and called no loader: the rejection is cached. Retry with a new `lazy` type or a page reload."
+  question: react/suspense/lazy
+- id: lazy-bare-preload
+  front: "Does preloading with a bare `import()` on hover avoid the fallback?"
+  back: "It saved the request, but the click still showed the fallback for about 300 ms: the loader's promise was pending at first render, and the reveal was throttled."
+  question: react/suspense/lazy
+- id: lazy-loader-any-thenable
+  front: "Does a `lazy` loader have to call `import()`?"
+  back: "No. React calls it with no arguments and accepts any promise or thenable resolving to an object with a `default` component, useful in tests and for adapting named exports."
+  question: react/suspense/lazy
+- id: lazy-no-boundary
+  front: "What if there is no `<Suspense>` above a lazy component?"
+  back: "It suspends to the nearest boundary further up. With none at all, a `createRoot` app commits nothing for that update until the code arrives."
+  question: react/suspense/lazy
+- id: lazy-vs-use
+  front: "How does `lazy` differ from `use`?"
+  back: "`lazy` suspends while a component's code loads and caches it per type; `use` suspends on a data promise you must cache yourself. Both use the same Suspense and error boundary machinery."
+  question: react/suspense/lazy
+- id: errorboundary-definition
+  front: "What is an error boundary?"
+  back: "A class component defining `static getDerivedStateFromError(error)`. When a descendant throws while React works on the tree, React unwinds to the nearest boundary and renders its fallback in place of that subtree."
+  question: react/suspense/error-boundaries
+- id: errorboundary-gdsfe
+  front: "What are the rules for `getDerivedStateFromError`?"
+  back: "It runs during rendering and returns state that switches to the fallback. It must be pure: React may call it more than once (it ran twice for one render error in both builds)."
+  question: react/suspense/error-boundaries
+- id: errorboundary-did-catch
+  front: "What is `componentDidCatch(error, info)` for?"
+  back: "It runs in the commit, once, for side effects such as reporting; `info.componentStack` says where it happened."
+  question: react/suspense/error-boundaries
+- id: errorboundary-two-methods
+  front: "Why two methods instead of one?"
+  back: "`getDerivedStateFromError` runs in the render phase so React can switch to the fallback before committing; it must stay pure. `componentDidCatch` runs after the commit, where side effects like logging are allowed."
+  question: react/suspense/error-boundaries
+- id: errorboundary-caught
+  front: "Which errors does a boundary catch?"
+  back: "Errors thrown while rendering descendants, in their lifecycle methods and Effects, from `use` with a rejected promise, from a failed `lazy` load, and from a Transition started with `useTransition`'s `startTransition`."
+  question: react/suspense/error-boundaries
+- id: errorboundary-not-caught
+  front: "Which errors does a boundary not catch?"
+  back: "Event handlers, asynchronous code (`setTimeout`, promise callbacks, code after `await`), the boundary's own errors (they go to the next boundary up), and server rendering (falls back to the nearest `<Suspense>`)."
+  question: react/suspense/error-boundaries
+- id: errorboundary-why-not-async
+  front: "Why doesn't a boundary catch async errors?"
+  back: "The JavaScript rule, not a React one: by the time the callback runs, React has finished calling your component, so there's no React stack frame left to catch the throw."
+  question: react/suspense/error-boundaries
+- id: errorboundary-no-hook
+  front: "Is there a Hook equivalent of an error boundary in React 19.3.1?"
+  back: "No. Write one boundary class (or use a library) and reuse it."
+  question: react/suspense/error-boundaries
+- id: errorboundary-uncaught-root
+  front: "What happens to an uncaught error?"
+  back: "It unmounts the whole root: the container is left empty."
+  question: react/suspense/error-boundaries
+- id: errorboundary-react19-reporting
+  front: "How does React 19 report errors?"
+  back: "Errors are no longer rethrown. Caught ones go to `console.error`, uncaught ones to `window.reportError` (firing the window `error` event). `createRoot`/`hydrateRoot` accept `onCaughtError`, `onUncaughtError` and `onRecoverableError`."
+  question: react/suspense/error-boundaries
+- id: errorboundary-handler-fix
+  front: "How do you bring an async or event-handler error into a boundary?"
+  back: "Rethrow it from a state update: `setState(() => { throw error; })` throws while React renders, where the boundary sees it. In the test the boundary showed \"profile failed\" and `onCaughtError` reported it, in both builds."
+  question: react/suspense/error-boundaries
+- id: errorboundary-demo-order
+  front: "In the demo, what logged for Handler, Timeout and Render clicks, and in what order for the render error?"
+  back: "Handler and Timeout: window `error` events, UI unchanged. Render: `onCaughtError`, then `componentDidCatch`, fallback shown. Chrome 156, Firefox 159, React 19.3.1, both builds, served from `http://localhost`."
+  question: react/suspense/error-boundaries
+- id: errorboundary-try-catch-jsx
+  front: "Why doesn't wrapping JSX in `try`/`catch` work?"
+  back: "Child components render later, so their errors never reach the `catch`. `eslint-plugin-react-hooks` 7.1.1 reports \"Avoid constructing JSX within try/catch\"."
+  question: react/suspense/error-boundaries
+- id: errorboundary-reset
+  front: "How do you reset a boundary that is stuck on its fallback?"
+  back: "Reset its state from a \"Try again\" button, or give it a `key` that changes on navigation."
+  question: react/suspense/error-boundaries
+- id: errorboundary-recoverable
+  front: "What is `onRecoverableError` for?"
+  back: "Errors React recovered from itself, such as a concurrent render that threw once and succeeded on synchronous retry, or hydration mismatches. The original error is in `error.cause`."
+  question: react/suspense/error-boundaries
+- id: errorboundary-sync-retry
+  front: "What does React do before showing a boundary's fallback?"
+  back: "It renders the failed lanes once more synchronously (`getLanesToRetrySynchronouslyOnError`, 19.3.1). A component that threw only on its first attempt rendered fine and `onRecoverableError` fired. It also explains `getDerivedStateFromError` running twice."
+  question: react/suspense/error-boundaries
+- id: errorboundary-impl-capture
+  front: "How does React 19.3.1 find the boundary for a thrown error?"
+  back: "The work loop walks up from the failing fiber to the first class with `getDerivedStateFromError`, or `componentDidCatch` that hasn't failed already in this batch. With none, the root gets `{ element: null }` and the uncaught handler. Implementation detail."
+  question: react/suspense/error-boundaries
+- id: errorboundary-handler-order
+  front: "Why did `onCaughtError` log before `componentDidCatch`?"
+  back: "The queued update's commit callback calls the root's caught-error handler first, then `componentDidCatch`."
+  question: react/suspense/error-boundaries
+- id: errorboundary-default-logging
+  front: "What do the default handlers log for a caught error in development versus production?"
+  back: "Development: one `console.error` with the error and \"The above error occurred in the <Buggy> component.\" plus a note that React will recreate the tree using the boundary. Production: `console.error(error)`."
+  question: react/suspense/error-boundaries
+- id: errorboundary-uncaught-logging
+  front: "How do default handlers report uncaught and recoverable errors?"
+  back: "Uncaught: `reportError(error)`, plus in development a `console.warn` suggesting a boundary. Recoverable: `reportError(error)`. Passing `onUncaughtError` replaces the default, so the window `error` event no longer fired. Caught errors never reached it."
+  question: react/suspense/error-boundaries
+- id: errorboundary-legacy
+  front: "How did error reporting work before React 19?"
+  back: "Errors in render were caught and rethrown, so a caught error showed up as an uncaught exception, and development logged the same error up to three times."
+  question: react/suspense/error-boundaries
+- id: errorboundary-thrown-from-table
+  front: "Where do errors from a `useEffect` setup, the boundary's own `render`, and a rejected promise in an Effect go?"
+  back: "`useEffect` setup: boundary fallback. The boundary's own `render`: parent boundary's fallback. A rejected promise in an Effect: `unhandledrejection`, UI unchanged. Chrome 156, Firefox 159."
+  question: react/suspense/error-boundaries
+- id: errorboundary-granularity
+  front: "How should boundaries be placed in a dashboard?"
+  back: "One around the app shell (reload page) and one per widget, so a crashing chart leaves the rest usable. Around every component hides failures in tiny broken rectangles; only at the root, one bad widget blanks the page."
+  question: react/suspense/error-boundaries
