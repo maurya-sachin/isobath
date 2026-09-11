@@ -5,7 +5,8 @@
 Interview questions for frontend, backend and infrastructure engineers, answered the way a strong candidate would: a 30-second answer first, then the mechanism underneath.
 Not an introduction: work through a topic and you should be able to explain *why* it behaves the way it does.
 
-Live at [learn.sachinmaurya.com](https://learn.sachinmaurya.com). The previous JavaScript-only version stays at
+Live at [learn.sachinmaurya.com](https://learn.sachinmaurya.com).
+This repo started as the *Frontend Master Prep Series* and was rebuilt from scratch as isobath; the old JavaScript-only site stays at
 [maurya-sachin.github.io/javascript-interview-deep-dive](https://maurya-sachin.github.io/javascript-interview-deep-dive/) until this one has published content.
 
 ## What each question gives you
@@ -28,7 +29,7 @@ Topics are grouped into four tracks. Each has a README with its scope, chapters 
 | Infrastructure and delivery | [Git](content/git/) · [CI/CD](content/ci-cd/) · [Containers and Kubernetes](content/containers-and-kubernetes/) · [Cloud and IaC](content/cloud-and-iac/) · [Networking](content/networking/) · [Observability](content/observability/) |
 | Engineering practice | [Testing](content/testing/) · [Web performance](content/web-performance/) · [Web security](content/web-security/) · [Tooling](content/tooling/) · [System design](content/system-design/) · [Data structures and algorithms](content/data-structures-and-algorithms/) |
 
-**Status:** JavaScript (28 chapters) and TypeScript (8 chapters) are fully drafted and under review; the other topics are scoped and waiting for chapters.
+**Status:** JavaScript, TypeScript, HTML and CSS, Browser runtime and React are drafted and under review; the other topics are scoped and waiting for chapters.
 Nothing is marked `published` until a maintainer has reviewed it.
 
 ## Run it locally
@@ -48,6 +49,7 @@ Other commands: `npm run content:check` (validate all content), `npm run build` 
 ```
 content/<topic>/<NN-chapter>/<NNN-question>.md   one Markdown file per question
 content/flashcards/<topic>.yaml                  recall cards
+content/paths/<role>.yaml                        study paths (frontend, backend, ...)
 templates/                                       the writing guide and file templates
 app/                                             client-only React app (Vite, Tailwind, shadcn/ui)
 PLAN.md                                          open work and settled rules
