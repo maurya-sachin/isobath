@@ -6,8 +6,7 @@ Interview questions for frontend, backend and infrastructure engineers, answered
 Not an introduction: work through a topic and you should be able to explain *why* it behaves the way it does.
 
 Live at [learn.sachinmaurya.com](https://learn.sachinmaurya.com).
-This repo started as the *Frontend Master Prep Series* and was rebuilt from scratch as isobath; the old JavaScript-only site stays at
-[maurya-sachin.github.io/javascript-interview-deep-dive](https://maurya-sachin.github.io/javascript-interview-deep-dive/) until this one has published content.
+This repo started as the *Frontend Master Prep Series* and was rebuilt from scratch as isobath. The old JavaScript-only version is kept at the `v1-archive` tag.
 
 ## What each question gives you
 
