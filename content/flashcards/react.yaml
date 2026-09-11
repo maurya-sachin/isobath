@@ -3935,3 +3935,244 @@
   front: "Do server-cache libraries need `useOptimistic` for optimistic updates?"
   back: "No. Libraries such as TanStack Query have their own optimistic APIs."
   question: react/forms-and-actions/use-optimistic
+# 11 Server rendering
+- id: ssr-two-renders
+  front: "What are the two renders in server rendering with hydration?"
+  back: "The server renders the tree to HTML with a `react-dom/server` API. The browser paints that HTML, then `hydrateRoot` renders the same tree again and claims the existing DOM nodes instead of creating them."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-streaming-apis
+  front: "Which `react-dom/server` APIs stream HTML, and what goes first?"
+  back: "`renderToPipeableStream` (Node streams) and `renderToReadableStream` (Web Streams). The shell, everything outside `<Suspense>` boundaries, goes first; suspended parts follow as data arrives."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-node-web-streams
+  front: "Does Node support the Web Streams server APIs, and which does the React team recommend there?"
+  back: "Since React 19.2 Node has the Web Streams APIs too, but the docs recommend Node streams there for speed."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-render-to-string-suspense
+  front: "What does `renderToString` do when a component suspends?"
+  back: "It can't wait for data. The nearest `<Suspense>` fallback goes into the HTML, inside a client-rendered boundary marker, and the client renders the content. It didn't throw."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-prerender
+  front: "What do `prerender` and `prerenderToNodeStream` do differently from `renderToString`?"
+  back: "They come from `react-dom/static`, wait for all data, and emit final HTML, for static generation."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-what-runs-on-server
+  front: "Which parts of a component run during server rendering?"
+  back: "Only the render phase: state initializers run. Effects, layout effects, ref callbacks and event handlers don't."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-bootstrap-scripts
+  front: "How does the server output load the client bundle?"
+  back: "The HTML contains `<script>` tags for the client bundle, set with the `bootstrapScripts` option."
+  question: react/server-rendering/ssr-and-hydration
+- id: hydration-claims-nodes
+  front: "What does `hydrateRoot(container, <App />)` do instead of creating DOM nodes?"
+  back: "It walks the existing nodes and claims them: each fiber gets the matching node, props and handlers attach, then the commit runs refs and Effects."
+  question: react/server-rendering/ssr-and-hydration
+- id: hydration-must-match-first-render
+  front: "Why must the client's first render match the server's output?"
+  back: "A difference is a hydration mismatch: React discards the server HTML for that part and renders it from scratch on the client."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-cost-gap
+  front: "What is the cost of server rendering that streaming and selective hydration narrow?"
+  back: "Until hydration finishes the page looks ready but ignores clicks."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-create-root-on-server-html
+  front: "What happens if you call `createRoot` on server-rendered HTML?"
+  back: "It throws the HTML away and builds new nodes. In the test the original `<button>` was disconnected. Use `hydrateRoot`."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-on-shell-ready-vs-all-ready
+  front: "When do you pipe in `onShellReady` versus `onAllReady`?"
+  back: "`onShellReady` to stream to people: shell and fallbacks arrive first. `onAllReady` for crawlers or static generation, with no progressive loading. `renderToReadableStream` exposes it as `await stream.allReady`."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-shell-error
+  front: "What happens when the shell itself throws during streaming SSR?"
+  back: "No bytes have been sent, so `onShellError` fires (or the `renderToReadableStream` promise rejects). Send a 500 or a client-rendered fallback page. An error inside a `<Suspense>` boundary only falls back to that boundary."
+  question: react/server-rendering/ssr-and-hydration
+- id: hydration-root-render-caveat
+  front: "What does the docs warn about calling `root.render` on a hydrating root?"
+  back: "Calling it before hydration finishes clears the server HTML and switches the whole root to client rendering. After hydration it works like on any root."
+  question: react/server-rendering/ssr-and-hydration
+- id: fizz-renderer
+  front: "What is Fizz, and why does it have no Effects? (implementation detail)"
+  back: "`react-dom/server` is React's Fizz renderer. It renders components to HTML segments, not fibers: no DOM and no commit phase, so no Effects."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-text-separator
+  front: "Why did `Clicked {count}` become `Clicked <!-- -->0` in the server HTML?"
+  back: "Two adjacent text nodes need a separator so the client can find both."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-suspense-comment-markers
+  front: "How does the server HTML mark Suspense boundaries in React 19.3.1?"
+  back: "With comment markers: `<!--$-->` … `<!--/$-->` around a boundary. A boundary rendered as a fallback by `renderToString` uses `<!--$!-->` with a `<template>`. These tell the client where a boundary starts and ends."
+  question: react/server-rendering/ssr-and-hydration
+- id: hydrate-root-lane
+  front: "Does `hydrateRoot` render synchronously? (React 19.3.1, implementation detail)"
+  back: "No. It attaches event listeners to the container, schedules the initial render on a hydration lane and returns before rendering: a log right after the call printed before `render on client`."
+  question: react/server-rendering/ssr-and-hydration
+- id: hydration-claim-algorithm
+  front: "How does React 19.3.1 claim a DOM node for a host fiber? (implementation detail)"
+  back: "`tryToClaimNextHydratableInstance` checks whether the next DOM node has the same tag (`canHydrateInstance`). If so the fiber's `stateNode` becomes that node; otherwise it is a mismatch."
+  question: react/server-rendering/ssr-and-hydration
+- id: hydrate-instance-events
+  front: "What does `hydrateInstance` do, and where does the event system later find `onClick`? (implementation detail)"
+  back: "It links the node to its fiber (`precacheFiberNode`) and stores the props (`updateFiberProps`). `onClick` is read from those stored props on dispatch. Text is compared to the server text."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-server-exports
+  front: "Which functions does `react-dom/static` export in Node in React 19.3.1?"
+  back: "`prerender`, `prerenderToNodeStream`, `resumeAndPrerender` and `resumeAndPrerenderToNodeStream`. `react-dom/server` has `renderToString`, `renderToStaticMarkup`, `renderToPipeableStream`, `renderToReadableStream`, `resumeToPipeableStream` and `resume`."
+  question: react/server-rendering/ssr-and-hydration
+- id: hydration-strict-mode-effects
+  front: "What does Strict Mode do during hydration since React 19.3?"
+  back: "It double-invokes Effects during hydration too, as with `createRoot`. In the development test the component rendered twice and ran its layout effect and Effect twice, while keeping the server node."
+  question: react/server-rendering/ssr-and-hydration
+- id: ssr-tradeoffs
+  front: "Does server rendering reduce the JavaScript the client runs?"
+  back: "No. The client still downloads and runs every component to hydrate it, so time to interactive can be later than with a client-only app. Server Components keep some components off the client entirely."
+  question: react/server-rendering/ssr-and-hydration
+- id: mismatch-definition
+  front: "What is a hydration mismatch, and how does React 19's development build report it?"
+  back: "Any difference between the client's first render and the server HTML. The development build reports it with a diff."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-causes-environment
+  front: "Which render-time patterns commonly cause hydration mismatches?"
+  back: "Branching on the environment (`typeof window`, `localStorage`, `matchMedia`) and values that change between renders (`Date.now()`, `Math.random()`, dates formatted in the server's time zone or locale)."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-causes-data
+  front: "How can different data cause a hydration mismatch?"
+  back: "The client fetched newer data instead of reusing the server's."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-invalid-nesting
+  front: "Why does invalid nesting like `<p><div>` cause a hydration mismatch?"
+  back: "The HTML parser closes the `<p>`, so the DOM no longer matches the tree. `<p>a<div>b</div></p>` became `<p>a</p><div>b</div><p></p>`."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-nesting-warning
+  front: "What development warning appears for `<div>` inside `<p>` during hydration?"
+  back: "\"In HTML, <div> cannot be a descendant of <p>. This will cause a hydration error.\" Then hydration failed and the client re-rendered."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-tag-or-text
+  front: "What does React 19.3.1 do on a different tag or text during hydration?"
+  back: "Hydration fails at that point. React reports a recoverable error, discards the server DOM up to the nearest `<Suspense>` boundary (or the whole root without one), and renders it on the client. `onRecoverableError` receives it."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-text-message
+  front: "What recoverable error message does a text mismatch produce in React 19.3.1?"
+  back: "\"Hydration failed because the server rendered text didn't match the client…\". In the production build it is \"Minified React error #418\"."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-attribute-not-patched
+  front: "What does React 19.3.1 do on a different attribute during hydration?"
+  back: "Only a development `console.error` (\"…This won't be patched up.\"). The DOM keeps the server's value, which the docs allow: attribute fixes aren't guaranteed."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-attribute-warning-text
+  front: "Which development warning is logged for mismatched attributes on hydration?"
+  back: "\"A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up.\" with a diff. Production left the attribute wrong silently."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-attribute-silent-prod
+  front: "Why is ignoring attribute mismatch warnings risky?"
+  back: "Nothing crashes, but the server's `class` stayed on the element in both builds: wrong styling with no error in production."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-fix-deterministic
+  front: "What is the best fix for a hydration mismatch?"
+  back: "Make the render deterministic: pass the server's data and timestamps to the client, format dates with an explicit `timeZone`, fix the markup, and generate ids with `useId`."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-browser-only-content
+  front: "How do you render content that can only exist in the browser without a mismatch?"
+  back: "Render a placeholder first: set a flag in `useEffect` and render a second pass, or since React 19.3 call `use(browser())` from `react-dom` inside a `<Suspense>` boundary, so the server sends the fallback and the client renders the content."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-browser-no-error
+  front: "Does `use(browser())` report an error on the server or client?"
+  back: "No. On the server the boundary is marked client-rendered (\"Switched to client rendering because a component requested it.\"); on the client the content rendered with no `onRecoverableError` call."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-suppress-warning-scope
+  front: "What does `suppressHydrationWarning` cover?"
+  back: "Only that element's own text and attributes, and React won't patch them. It doesn't reach children: on a `<div>` around a differing `<p>`, the error still fired and the subtree was re-rendered."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-use-effect-typeof-window
+  front: "Why is fixing a mismatch with `typeof window` in render wrong?"
+  back: "That is the mismatch. Move the browser-only part into an Effect or behind `use(browser())`."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-use-id
+  front: "Why use `useId` rather than a counter for ids in server-rendered components?"
+  back: "Hydration order can differ from server order; `useId` derives ids from tree position and matched (`_R_0_` on both sides)."
+  question: react/server-rendering/hydration-mismatches
+- id: use-id-prefixes
+  front: "Which `useId` prefixes does React use since 19.2?"
+  back: "`_R_` for server and hydration, `_r_` for a client render. A client-rendered tree after a failed hydration therefore changed the ids too."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-boundary-scope
+  front: "How much does a text mismatch throw away?"
+  back: "Up to the nearest `<Suspense>` boundary. With `<b>` outside and the mismatching `<p>` inside a boundary, `<b>` kept its server node and the boundary's nodes were recreated. Without a boundary, every node in the root was recreated."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-extensions
+  front: "Do browser extensions cause hydration mismatches in React 19?"
+  back: "Less: React 19 skips unexpected tags in `<head>` and `<body>` when hydrating the document. A `<div>` at the start of `<body>` or a `<style>` in `<head>` caused no error. One injected inside `<main>` failed hydration, and the client render removed it."
+  question: react/server-rendering/hydration-mismatches
+- id: mismatch-whitespace-container
+  front: "What happens if whitespace precedes the server HTML inside the root container?"
+  back: "The whitespace text node didn't match the expected `<div>`, so hydration failed with \"Hydration failed because the server rendered HTML didn't match the client\" and the root was client-rendered, with all new nodes."
+  question: react/server-rendering/hydration-mismatches
+- id: streaming-three-waterfalls
+  front: "Which three waterfalls of old-style SSR do Suspense boundaries break?"
+  back: "Fetching all data before sending any HTML, loading all JavaScript before hydrating anything, and hydrating everything before anything responds."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-html-mechanics
+  front: "How does streaming HTML deliver a boundary's content after the shell?"
+  back: "React sends its HTML in a hidden `<div>` at the end of the stream, plus an inline `<script>` that moves it into place. Boundaries complete in any order. The swap needs no React on the client."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-instruction-names
+  front: "Which instruction names and ids appear in the streamed HTML of React 19.3.1? (implementation detail)"
+  back: "`B:0` is a `<template>` marking where a boundary goes, `S:0` holds its content; `$RC` queues the pair and `$RV` swaps it in, with `$RB` and `$RT` also present. The names are implementation details."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-reveal-batching
+  front: "How are boundary reveals throttled in SSR since React 19.2?"
+  back: "Batched: at most one every 300 ms, as on the client. Near 2.3 s (for LCP) the throttle shortens."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-batching-measured
+  front: "How did the 19.2 reveal batching look in Chrome 156 versus Firefox 159?"
+  back: "Chrome 156: data at 100 and 200 ms appeared together at 311–327 ms; at 100 and 450 ms, about 315 and 615. Firefox 159 ran its first frame later: first reveal at 112–132 ms, the next at least 300 ms after."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: selective-hydration-order
+  front: "How does `hydrateRoot` order selective hydration?"
+  back: "It hydrates the shell first; each boundary hydrates separately once its HTML and code (say a `lazy` chunk) have arrived, in tree order, yielding between pieces so the page stays responsive."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: selective-hydration-click
+  front: "What happens when the user clicks inside a Suspense boundary that isn't hydrated yet?"
+  back: "React hydrates that boundary synchronously in the click's capture phase, then dispatches the click normally. Other boundaries wait."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: selective-hydration-click-dropped
+  front: "What happens to a click on a boundary whose code hasn't loaded in React 19.3.1?"
+  back: "React stops the event and raises the boundary's priority; the click is lost, not replayed. Discrete events on unhydrated boundaries are dropped."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: selective-hydration-measured
+  front: "How did selective hydration behave in the test with a sidebar taking about 400 ms?"
+  back: "A trusted click on a comments button 30 ms after `hydrateRoot` hydrated the comments boundary first; its `onClick` ran 57–145 ms after navigation and the sidebar finished at 461–548 ms (Chrome 156 and Firefox 159)."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-clicks-before-hydrate
+  front: "Are clicks before `hydrateRoot` queued?"
+  back: "No. Before `hydrateRoot` there is no listener at all, and a click on a boundary whose code was missing was dropped."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-server-error-boundary
+  front: "What happens when a component throws on the server inside a Suspense boundary?"
+  back: "The boundary's fallback is final in the HTML. The client renders that boundary from scratch and reports the error to `onRecoverableError`. Only an error in the shell fails the response."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-server-error-marker
+  front: "How does the client learn about a server error in a boundary, and what message does it get?"
+  back: "The shell had `<!--$!-->` and a `<template>` before the fallback. `onRecoverableError` got \"Switched to client rendering because the server rendering errored: db down\" (production: minified error #419)."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: partial-prerender
+  front: "What is partial pre-rendering (React 19.2) and how does it work?"
+  back: "The same shell/boundary split at build time: `prerender` with an aborted `signal` returns the shell as `prelude` plus a `postponed` state; at request time `resume` streams only the boundaries that were left."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: partial-prerender-resume-output
+  front: "What did `resume` send in the test with a cart boundary left waiting?"
+  back: "The prelude held its fallback and `postponed` was a 624-character JSON object. `resume` with the same tree streamed only `<div hidden id=\"S:0\">…</div>` and the `$RC` script."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-effects-dont-stream
+  front: "Why doesn't a boundary stream when its data is fetched in an Effect?"
+  back: "Effects don't run on the server; only data read with `use` or a Suspense-enabled library suspends."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-shell-boundary-placement
+  front: "What goes wrong with a shell that has no boundaries, or one boundary around everything?"
+  back: "No boundaries means no streaming; one boundary around everything means the first paint is a spinner."
+  question: react/server-rendering/streaming-and-selective-hydration
+- id: streaming-on-all-ready-for-everyone
+  front: "Why not pipe in `onAllReady` for every visitor?"
+  back: "The response then starts only when all data is in: no progressive loading. Keep it for crawlers and static generation."
+  question: react/server-rendering/streaming-and-selective-hydration
