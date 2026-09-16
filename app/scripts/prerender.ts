@@ -5,8 +5,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { chapterStats } from '../src/content/stats.ts'
 import type { ContentManifest, SearchDoc, TopicSummary } from '../src/content/types.ts'
 import { SITE_NAME, SITE_URL, TAGLINE } from '../src/lib/site.ts'
+import { CARD_HEIGHT, CARD_WIDTH, type CardData } from './lib/ogCard.ts'
+import { renderQuestionCard } from './lib/ogImage.ts'
 
 interface Rendered {
   html: string
@@ -17,6 +20,8 @@ interface Page {
   path: string
   description: string
   type: 'website' | 'article'
+  /** Question pages share a social card, written to `dist/og/<path>.png`. */
+  card?: CardData
 }
 
 const HOME_DESCRIPTION = 'Interview questions for any software engineer, from the language to the spec and the engine.'
@@ -67,17 +72,34 @@ async function listPages(): Promise<Page[]> {
 
     // Topics without chapters have no search.json.
     const searchDocs = topic.chapters.length > 0 ? await readJson<SearchDoc[]>(`data/topics/${topic.slug}/search.json`) : []
+    const { byDifficulty, total } = chapterStats(topic.chapters)
+    const map = { slug: topic.slug, chapterCount: topic.chapters.length, hardShare: total === 0 ? 0 : byDifficulty.hard / total }
     const tldrs = new Map(searchDocs.map((doc) => [doc.id, doc.tldr]))
     for (const chapter of topic.chapters) {
       pages.push({ path: `/${topic.slug}/${chapter.slug}`, description: chapter.summaryText, type: 'website' })
       for (const question of chapter.questions.filter((candidate) => candidate.hasPage)) {
         const description = tldrs.get(question.id)
         if (!description) throw new Error(`${question.id}: no TL;DR in search.json for the page description`)
-        pages.push({ path: `/${question.id}`, description, type: 'article' })
+        const card: CardData = { title: question.title, topicTitle: topic.title, chapterTitle: chapter.title, difficulty: question.difficulty, map }
+        pages.push({ path: `/${question.id}`, description, type: 'article', card })
       }
     }
   }
   return pages
+}
+
+function cardFile(pagePath: string): string {
+  return path.join(distDir, 'og', `${pagePath}.png`)
+}
+
+function imageTags(pagePath: string, alt: string): string[] {
+  return [
+    `<meta property="og:image" content="${SITE_URL}/og${pagePath}.png" />`,
+    `<meta property="og:image:width" content="${CARD_WIDTH}" />`,
+    `<meta property="og:image:height" content="${CARD_HEIGHT}" />`,
+    `<meta property="og:image:alt" content="${escapeHtml(alt)}" />`,
+    '<meta name="twitter:card" content="summary_large_image" />',
+  ]
 }
 
 /** `title` is already HTML-escaped by React. */
@@ -93,7 +115,7 @@ function headTags(title: string, page: Page): string {
     `<meta property="og:url" content="${escapeHtml(url)}" />`,
     `<meta property="og:type" content="${page.type}" />`,
     `<meta property="og:site_name" content="${SITE_NAME}" />`,
-    '<meta name="twitter:card" content="summary" />',
+    ...(page.card ? imageTags(page.path, page.card.title) : ['<meta name="twitter:card" content="summary" />']),
   ].join('\n    ')
 }
 
@@ -115,7 +137,7 @@ function outputFile(pagePath: string): string {
   return path.join(distDir, pagePath === '/' ? 'index.html' : `${pagePath}.html`)
 }
 
-async function writePage(file: string, contents: string): Promise<void> {
+async function writePage(file: string, contents: string | Uint8Array): Promise<void> {
   await mkdir(path.dirname(file), { recursive: true })
   await writeFile(file, contents)
 }
@@ -138,10 +160,11 @@ for (const page of pages) {
   if (status !== 200) throw new Error(`${page.path}: rendered with status ${status}`)
   const { title, markup } = splitTitle(page.path, html)
   await writePage(outputFile(page.path), fillTemplate(headTags(title, page), markup))
+  if (page.card) await writePage(cardFile(page.path), await renderQuestionCard(page.card))
 }
 
 const urls = pages.map((page) => `  <url><loc>${escapeHtml(page.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${page.path}`)}</loc></url>`)
 await writeFile(path.join(distDir, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`)
 await writeFile(path.join(distDir, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`)
 
-console.log(`✔ prerendered ${pages.length} pages, sitemap.xml and robots.txt`)
+console.log(`✔ prerendered ${pages.length} pages, ${pages.filter((page) => page.card).length} social cards, sitemap.xml and robots.txt`)
