@@ -124,7 +124,7 @@ Different task sources are different queues. HTML lets the browser choose betwee
 
 Node.js runs microtasks at different moments than a browser. Its docs describe phases: *timers* runs expired `setTimeout` and `setInterval` callbacks, *poll* retrieves I/O events, and *check* runs `setImmediate` callbacks. After each callback Node drains the `process.nextTick` queue and then the microtask queue. In a CommonJS main script the `nextTick` queue runs first, so `nextTick` runs before a promise job. In an ES module the module is already being evaluated inside a microtask drain, so the promise job runs first. Ordering of `setTimeout(fn, 0)` against `setImmediate` in the main module depends on process performance, so it is not guaranteed. Phase detail belongs in the Node.js topic.
 
-```js
+```js script
 // run as CommonJS (.cjs)
 setTimeout(() => console.log('timer'), 0);
 Promise.resolve().then(() => console.log('promise job'));
