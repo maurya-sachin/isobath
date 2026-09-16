@@ -7,7 +7,7 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
 - Bug, awaiting OK to fix and deploy: direct loads of non-prerendered routes (`/flashcards/<topic>`, `/practice/…`, unknown paths) get Vercel's NOT_FOUND, because `cleanUrls` 308s the `/app-shell.html` rewrite. Likely fix: destination `/app-shell`; confirm in Vercel docs, curl live.
 - Repo renamed `isobath` (2026-11-05); `dev` not yet pushed since. Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); publish the dev.to draft "I rebuilt my interview prep repo…" (update counts if React ships first); pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
-- Next: fix the NOT_FOUND bug → release React → Phase 6 in order. Phase 7 (`nextjs`) waits until Phase 6 tier 1 ships.
+- Next: fix the NOT_FOUND bug → release React → Phase 6 in order. Phase 7 (`nextjs`) waits until Phase 6 tier 1 and 6.10 ship; tier 2–3 then alternate with content.
 - Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
 
 ## Goal
