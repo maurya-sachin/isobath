@@ -13,7 +13,8 @@
     "content:sync": "node scripts/sync.ts",
     "content:status": "node scripts/status.ts",
     "content:new": "node scripts/new.ts",
-    "content:build": "node scripts/build.ts"
+    "content:build": "node scripts/build.ts",
+    "examples:check": "node scripts/examples.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
