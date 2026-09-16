@@ -46,7 +46,7 @@ Concurrent access is dangerous. `counter[0]++` is a read, an add, and a write, s
 
 ## Example
 
-```js
+```js no-run
 // race.mjs, Node 24: four workers each add 100,000 to two counters
 import { Worker, isMainThread, workerData } from 'node:worker_threads';
 

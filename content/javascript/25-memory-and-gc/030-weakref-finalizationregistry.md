@@ -49,7 +49,7 @@ Consequences: collection timing differs by engine, flags, heap pressure and vers
 
 ## Example
 
-```js
+```js no-run
 // weak.mjs, run with: node --expose-gc weak.mjs
 const nextTask = () => new Promise((resolve) => setTimeout(resolve, 0));
 

@@ -44,7 +44,7 @@ When it's a mistake is mostly about state. A singleton is a global variable with
 
 ## Example
 
-```js
+```js no-run
 // registry.mjs
 export const registry = new Map();
 

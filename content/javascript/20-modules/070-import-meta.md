@@ -39,7 +39,7 @@ The common job is finding files next to the module. Relative paths in `fs` calls
 
 ## Example
 
-```js
+```js no-run
 import { readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 

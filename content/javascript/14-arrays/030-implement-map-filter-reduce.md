@@ -184,7 +184,7 @@ console.log(await Promise.all(promises)); // → [ 2, 4, 6 ]
 
 The bug that reaches production most often is an `async` callback. `ids.map(async …)` is fine as long as you `await Promise.all(…)` the result, but `ids.filter(async …)` keeps *everything*, because every Promise is an object and objects are truthy, so the filter condition never excludes anything. The same applies to `some`, `every` and `find`. Resolve first, then filter on the resolved values:
 
-```js
+```js no-run
 const results = await Promise.all(ids.map(async (id) => ({ id, ok: id > 1 })));
 const accepted = results.filter((result) => result.ok).map((result) => result.id);
 console.log(accepted); // → [ 2, 3 ]
