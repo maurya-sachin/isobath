@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { contourRings, furthestPoint, ringAtLevel, ringPath } from '../../src/lib/contours.ts'
+import { contourRings, coverRings, furthestPoint, ringAtLevel, ringPath } from '../../src/lib/contours.ts'
 
 const SEEDS = Array.from({ length: 120 }, (_, index) => `topic-${index}`)
 
@@ -54,4 +54,10 @@ test('furthestPoint picks the point furthest in a direction (angle 0 is right, y
   assert.equal(furthestPoint(square, Math.PI)[0], 0)
   assert.equal(furthestPoint(square, Math.PI / 2)[1], 10)
   assert.equal(furthestPoint(square, -Math.PI / 2)[1], 0)
+})
+
+test('a cover has one level per chapter, clamped to three to nine', () => {
+  assert.equal(coverRings('demo', 1, 0).levels, 3)
+  assert.equal(coverRings('demo', 5, 0).levels, 5)
+  assert.equal(coverRings('demo', 40, 0).levels, 9)
 })

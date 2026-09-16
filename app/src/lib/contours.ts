@@ -195,6 +195,18 @@ export function contourRings({ seed, levels, steepness = 0, size = 100 }: Contou
   return Array.from({ length: levels }, (_, level) => ringsAtHeight(field, floor + ((peak - floor) * (level + 0.5)) / levels, level, size)).flat()
 }
 
+const MIN_COVER_LEVELS = 3
+const MAX_COVER_LEVELS = 9
+
+/**
+ * A topic cover's contour map: one level per chapter, three to nine. `hardShare` is the share of the topic's
+ * questions rated hard, 0 to 1: harder topics get steeper, more crowded rings. Shared by the app and the social cards.
+ */
+export function coverRings(slug: string, chapterCount: number, hardShare: number): { rings: Ring[]; levels: number } {
+  const levels = Math.min(Math.max(chapterCount, MIN_COVER_LEVELS), MAX_COVER_LEVELS)
+  return { rings: contourRings({ seed: slug, levels, steepness: hardShare }), levels }
+}
+
 export function ringPath(points: readonly Point[]): string {
   return points.map(([x, y], index) => `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`).join('') + 'Z'
 }
