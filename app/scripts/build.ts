@@ -6,6 +6,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { isStale } from '../src/content/freshness.ts'
 import type { ContentManifest, Exercise, Flashcard, FollowUp, QuestionPage, QuestionSummary, RolePath, SearchDoc, StartQuestion, TopicSummary } from '../src/content/types.ts'
+import { ankiDeck } from './lib/anki.ts'
 import { readChangelog, type ChangelogQuestion } from './lib/changelog.ts'
 import { collectProblems, printProblems } from './lib/check.ts'
 import { loadContent, type Question, type Topic } from './lib/content.ts'
@@ -272,6 +273,9 @@ for (const deck of decks) {
   const cards = await flashcardsOf(deck)
   allFlashcards.push(...cards)
   await writeJson(path.join(topicDir(deck.topic), 'flashcards.json'), cards)
+  const topicTitle = topics.find((topic) => topic.slug === deck.topic)?.title
+  if (!topicTitle) throw new Error(`${repoRelative(deck.file)}: no topic "${deck.topic}" for this deck`)
+  await writeFile(path.join(topicDir(deck.topic), 'anki.txt'), ankiDeck(topicTitle, cards))
 }
 
 console.log(
