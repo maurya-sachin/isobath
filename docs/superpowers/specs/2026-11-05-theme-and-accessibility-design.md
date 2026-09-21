@@ -43,8 +43,14 @@ These pass WCAG 2.2 AA at every hue (checked 0–360 in 5° steps): text 4.5:1, 
 4. Keyboard and screen readers: focus ring ≥ 3:1, targets ≥ 24 px, skip link, scrollable code blocks focusable, names on custom controls.
 5. Audit: axe-core over key pages in the browser check; findings fixed or recorded.
 
+## Fonts
+Keep the families (Geist, Geist Mono, Newsreader); fix how they load and read.
+- Loading: real fallback stacks (`ui-sans-serif, system-ui` / `ui-serif, Georgia` / `ui-monospace, Menlo`), only the latin and latin-ext subsets, preload of the latin variable files, and size-adjusted fallback faces (`size-adjust`, `ascent-override`) so the swap shifts no layout. Measured before and after with layout-shift observation in Chrome.
+- Typography: `text-wrap: balance` on headings and `pretty` on body, tabular numerals in stats and tables, code ligatures off, `font-optical-sizing: auto` kept, no italic file shipped unless used.
+- Reading settings (Appearance panel): reading font serif or sans, and line spacing comfortable or relaxed; both must pass WCAG text-spacing overrides.
+
 ## Not doing
 Layout or font changes; a second accent; per-user lightness or chroma; a dyslexia font; syncing settings across devices; a custom giscus theme (after deploy, from the palette).
 
 ## Order
-T1 palette source + generated CSS + contrast test, replacing token values. T2 Shiki, output highlight, social card on the palette. T3 verify in the browser (both modes, three widths, no-drafts build). T4 Appearance panel and pre-paint script. T5 accessibility audit and fixes. T6 giscus theme from the palette.
+T1 palette source + generated CSS + contrast test, replacing token values. T2 Shiki, output highlight, social card on the palette. T3 verify in the browser (both modes, three widths, no-drafts build). T4 Appearance panel and pre-paint script. T5 accessibility audit and fixes. T6 giscus theme from the palette. F1 font loading, F2 typographic polish, F3 reading-font and spacing settings (after T4).

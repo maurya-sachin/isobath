@@ -44,11 +44,12 @@ Non-goals: backend service, accounts, paid AI.
 - [ ] Per question: maintainer review → `published`; update README status lines
 
 ### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`; before 6.5)
-- [ ] T1 `palette.ts` + generated `palette.css` + contrast test; replace token values in `index.css`
-- [ ] T2 Shiki `css-variables` theme, output-line highlight and social card read the palette
-- [ ] T3 Verify in Chrome: light/dark, 390/1024/1440 px, no-drafts build
+- [ ] T3 Verify in Chrome at 390 and 1440 px and in a no-drafts build (1440 light/dark done)
 - [ ] T4 Appearance panel (hue per mode, text size, contrast, motion) + pre-paint script
 - [ ] T5 Accessibility audit (axe-core, keyboard, 200 % zoom, forced colours, colour-blind check) and fixes
+- [ ] F1 Font loading: fallback stacks, latin subsets, preload, size-adjusted fallbacks; measure layout shift before/after
+- [ ] F2 Typographic polish: text-wrap, tabular numerals, code ligatures off, drop unused italic
+- [ ] F3 Reading font (serif/sans) and line spacing in the Appearance panel
 - [ ] T6 Giscus custom theme from the palette (after deploy)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
