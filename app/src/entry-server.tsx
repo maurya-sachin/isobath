@@ -9,7 +9,8 @@ import { SITE_URL } from './lib/site.ts'
 export async function render(path: string): Promise<{ html: string; status: number }> {
   const handler = createStaticHandler(routes)
   const context = await handler.query(new Request(new URL(path, SITE_URL)))
-  if (context instanceof Response) throw new Error(`${path}: loaders returned a redirect (${context.status}); prerender expects pages`)
+  if (context instanceof Response)
+    throw new Error(`${path}: loaders returned a redirect (${context.status}); prerender expects pages`)
   const router = createStaticRouter(handler.dataRoutes, context)
   const html = renderToString(
     <StrictMode>

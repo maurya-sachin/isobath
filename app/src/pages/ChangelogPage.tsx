@@ -44,7 +44,10 @@ export function ChangelogPage() {
           <ul>
             {monthDays.flatMap((day) =>
               day.topics.map((topic) => (
-                <li key={`${day.date}/${topic.slug}`} className="grid grid-cols-[4.5rem_1fr] gap-x-4 border-b border-dashed py-3 last:border-b-0">
+                <li
+                  key={`${day.date}/${topic.slug}`}
+                  className="grid grid-cols-[4.5rem_1fr] gap-x-4 border-b border-dashed py-3 last:border-b-0"
+                >
                   <time dateTime={day.date} className="font-mono text-sm text-muted-foreground">
                     {formatDay(day.date)}
                   </time>
@@ -59,7 +62,9 @@ export function ChangelogPage() {
                         </Link>
                       ))}
                       {topic.questions.length > VISIBLE_QUESTIONS && (
-                        <span className="text-muted-foreground">+{topic.questions.length - VISIBLE_QUESTIONS} more</span>
+                        <span className="text-muted-foreground">
+                          +{topic.questions.length - VISIBLE_QUESTIONS} more
+                        </span>
                       )}
                     </p>
                   </div>

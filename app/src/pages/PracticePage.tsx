@@ -21,7 +21,13 @@ interface SessionProps {
   next: { title: string; to: string } | undefined
 }
 
-function Summary({ questions, missed, next, headingRef, onRestart }: SessionProps & { missed: QuestionData[]; headingRef: Ref<HTMLHeadingElement>; onRestart: () => void }) {
+function Summary({
+  questions,
+  missed,
+  next,
+  headingRef,
+  onRestart,
+}: SessionProps & { missed: QuestionData[]; headingRef: Ref<HTMLHeadingElement>; onRestart: () => void }) {
   const knew = questions.length - missed.length
   return (
     <>
@@ -88,10 +94,21 @@ function Session({ questions, next }: SessionProps) {
   }
 
   const finished = position >= questions.length
-  const { promptRef, answerRef, doneRef } = useSessionFocus<HTMLHeadingElement, HTMLElement>(position, revealed, finished)
-  useShortcuts(finished ? {} : revealed ? { '1': () => record(false), '2': () => record(true) } : { ' ': () => setRevealed(true), Enter: () => setRevealed(true) })
+  const { promptRef, answerRef, doneRef } = useSessionFocus<HTMLHeadingElement, HTMLElement>(
+    position,
+    revealed,
+    finished,
+  )
+  useShortcuts(
+    finished
+      ? {}
+      : revealed
+        ? { '1': () => record(false), '2': () => record(true) }
+        : { ' ': () => setRevealed(true), Enter: () => setRevealed(true) },
+  )
 
-  if (finished) return <Summary questions={questions} missed={missed} next={next} headingRef={doneRef} onRestart={restart} />
+  if (finished)
+    return <Summary questions={questions} missed={missed} next={next} headingRef={doneRef} onRestart={restart} />
 
   const question = questions[position]
   return (
@@ -150,7 +167,9 @@ export function PracticePage() {
   const { topic, questions } = useLoaderData<Awaited<ReturnType<typeof loadPractice>>>()
   const chapter = topic && findChapter(topic, params.chapter)
   if (!topic || !chapter) return <NotFound what="Chapter" />
-  const nextChapter = topic.chapters.slice(topic.chapters.indexOf(chapter) + 1).find((later) => later.questions.some((question) => question.hasPage))
+  const nextChapter = topic.chapters
+    .slice(topic.chapters.indexOf(chapter) + 1)
+    .find((later) => later.questions.some((question) => question.hasPage))
 
   return (
     <PageShell
@@ -166,7 +185,11 @@ export function PracticePage() {
       ) : (
         // Keyed so moving between chapters starts a fresh session.
         <div className="mx-auto max-w-2xl">
-          <Session key={chapter.slug} questions={questions} next={nextChapter && { title: nextChapter.title, to: `/practice/${topic.slug}/${nextChapter.slug}` }} />
+          <Session
+            key={chapter.slug}
+            questions={questions}
+            next={nextChapter && { title: nextChapter.title, to: `/practice/${topic.slug}/${nextChapter.slug}` }}
+          />
         </div>
       )}
     </PageShell>

@@ -5,18 +5,42 @@ import { resolveRolePaths, validateRolePaths, type RolePathSource } from './role
 
 function questions(readable: number, unreadable = 0): QuestionSummary[] {
   return Array.from({ length: readable + unreadable }, (_, index) => ({
-    id: `q${index}`, number: '010', title: 'Q', titleHtml: 'Q', status: 'draft', difficulty: 'easy', frequency: 3, core: false, hasPage: index < readable, verified: '2026-10', stale: false, legacy: null,
+    id: `q${index}`,
+    number: '010',
+    title: 'Q',
+    titleHtml: 'Q',
+    status: 'draft',
+    difficulty: 'easy',
+    frequency: 3,
+    core: false,
+    hasPage: index < readable,
+    verified: '2026-10',
+    stale: false,
+    legacy: null,
   }))
 }
 function chapter(slug: string, title: string, list: QuestionSummary[]): ChapterSummary {
   return { number: '01', slug, title, titleHtml: title, summaryHtml: '', summaryText: '', questions: list }
 }
 function topic(slug: string, title: string, chapters: ChapterSummary[]): TopicSummary {
-  return { slug, title, track: 'Frontend', covers: null, summaryHtml: '', summaryText: '', plannedAreasHtml: [], flashcardCount: 0, chapters }
+  return {
+    slug,
+    title,
+    track: 'Frontend',
+    covers: null,
+    summaryHtml: '',
+    summaryText: '',
+    plannedAreasHtml: [],
+    flashcardCount: 0,
+    chapters,
+  }
 }
 
 const topics: TopicSummary[] = [
-  topic('javascript', 'JavaScript', [chapter('engine', 'How JavaScript runs', questions(2, 1)), chapter('types', 'Types', questions(1))]),
+  topic('javascript', 'JavaScript', [
+    chapter('engine', 'How JavaScript runs', questions(2, 1)),
+    chapter('types', 'Types', questions(1)),
+  ]),
   topic('typescript', 'TypeScript', [chapter('compiler', 'The compiler', questions(0, 4))]),
   topic('react', 'React', []),
 ]
@@ -29,7 +53,10 @@ function path(overrides: Partial<RolePathSource> = {}): RolePathSource {
     title: 'Frontend engineer',
     summary: 'Language first.',
     order: 1,
-    steps: [{ ref: 'javascript', why: 'The language.' }, { ref: 'react', why: 'The framework.' }],
+    steps: [
+      { ref: 'javascript', why: 'The language.' },
+      { ref: 'react', why: 'The framework.' },
+    ],
     ...overrides,
   }
 }
@@ -40,7 +67,17 @@ test('a valid path has no problems', () => {
 
 test('reports an unknown topic, an unknown chapter, a duplicate entry and an unknown start question', () => {
   const problems = validateRolePaths(
-    [path({ start: 'javascript/engine/zzz', steps: [{ ref: 'nope', why: 'x' }, { ref: 'javascript/missing', why: 'x' }, { ref: 'javascript', why: 'x' }, { ref: 'javascript', why: 'y' }] })],
+    [
+      path({
+        start: 'javascript/engine/zzz',
+        steps: [
+          { ref: 'nope', why: 'x' },
+          { ref: 'javascript/missing', why: 'x' },
+          { ref: 'javascript', why: 'x' },
+          { ref: 'javascript', why: 'y' },
+        ],
+      }),
+    ],
     topics,
     questionIds,
   )
@@ -53,18 +90,44 @@ test('reports an unknown topic, an unknown chapter, a duplicate entry and an unk
 })
 
 test('two paths may not share an order', () => {
-  const problems = validateRolePaths([path(), path({ slug: 'backend', file: 'content/paths/backend.yaml' })], topics, questionIds)
+  const problems = validateRolePaths(
+    [path(), path({ slug: 'backend', file: 'content/paths/backend.yaml' })],
+    topics,
+    questionIds,
+  )
   assert.match(problems.map((problem) => problem.message).join('\n'), /order 1 is already used by `frontend`/)
 })
 
 test('resolves titles and counts only readable questions, sorted by order', () => {
   const resolved = resolveRolePaths(
-    [path({ slug: 'second', order: 2 }), path({ steps: [{ ref: 'javascript/engine', why: 'a' }, { ref: 'typescript', why: 'b' }, { ref: 'react', why: 'c' }, { ref: 'javascript/types', why: 'd' }] })],
+    [
+      path({ slug: 'second', order: 2 }),
+      path({
+        steps: [
+          { ref: 'javascript/engine', why: 'a' },
+          { ref: 'typescript', why: 'b' },
+          { ref: 'react', why: 'c' },
+          { ref: 'javascript/types', why: 'd' },
+        ],
+      }),
+    ],
     topics,
   )
-  assert.deepEqual(resolved.map((entry) => entry.slug), ['frontend', 'second'])
+  assert.deepEqual(
+    resolved.map((entry) => entry.slug),
+    ['frontend', 'second'],
+  )
   const [chapterStep, unreadableStep, plannedStep, otherChapter] = resolved[0].steps
-  assert.deepEqual(chapterStep, { topic: 'javascript', topicTitle: 'JavaScript', chapter: 'engine', chapterTitle: 'How JavaScript runs', why: 'a', ready: true, started: true, questionCount: 2 })
+  assert.deepEqual(chapterStep, {
+    topic: 'javascript',
+    topicTitle: 'JavaScript',
+    chapter: 'engine',
+    chapterTitle: 'How JavaScript runs',
+    why: 'a',
+    ready: true,
+    started: true,
+    questionCount: 2,
+  })
   assert.deepEqual([unreadableStep.ready, unreadableStep.questionCount], [false, 0])
   assert.deepEqual([plannedStep.ready, plannedStep.questionCount], [false, 0])
   assert.deepEqual([unreadableStep.started, plannedStep.started], [true, false])
@@ -73,13 +136,45 @@ test('resolves titles and counts only readable questions, sorted by order', () =
 })
 
 test('a chapter entry may not repeat a topic that is already on the path', () => {
-  const problems = validateRolePaths([path({ steps: [{ ref: 'javascript', why: 'a' }, { ref: 'javascript/engine', why: 'b' }] })], topics, questionIds)
-  assert.match(problems.map((problem) => problem.message).join('\n'), /`javascript\/engine` is already covered by `javascript`/)
-  const reversed = validateRolePaths([path({ steps: [{ ref: 'javascript/engine', why: 'b' }, { ref: 'javascript', why: 'a' }] })], topics, questionIds)
-  assert.match(reversed.map((problem) => problem.message).join('\n'), /`javascript\/engine` is already covered by `javascript`/)
+  const problems = validateRolePaths(
+    [
+      path({
+        steps: [
+          { ref: 'javascript', why: 'a' },
+          { ref: 'javascript/engine', why: 'b' },
+        ],
+      }),
+    ],
+    topics,
+    questionIds,
+  )
+  assert.match(
+    problems.map((problem) => problem.message).join('\n'),
+    /`javascript\/engine` is already covered by `javascript`/,
+  )
+  const reversed = validateRolePaths(
+    [
+      path({
+        steps: [
+          { ref: 'javascript/engine', why: 'b' },
+          { ref: 'javascript', why: 'a' },
+        ],
+      }),
+    ],
+    topics,
+    questionIds,
+  )
+  assert.match(
+    reversed.map((problem) => problem.message).join('\n'),
+    /`javascript\/engine` is already covered by `javascript`/,
+  )
 })
 
 test('the file name, which becomes the URL, must be kebab-case', () => {
-  const problems = validateRolePaths([path({ slug: 'Front End', file: 'content/paths/Front End.yaml' })], topics, questionIds)
+  const problems = validateRolePaths(
+    [path({ slug: 'Front End', file: 'content/paths/Front End.yaml' })],
+    topics,
+    questionIds,
+  )
   assert.match(problems.map((problem) => problem.message).join('\n'), /file name must be kebab-case/)
 })

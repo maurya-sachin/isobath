@@ -3,7 +3,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ComingSoon } from '@/components/PageShell'
 import { Button } from '@/components/ui/button'
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import { loadSearchEngine, type SearchEngine } from '@/content/search'
 
 export function SearchDialog() {
@@ -39,19 +47,33 @@ export function SearchDialog() {
 
   return (
     <>
-      <Button variant="outline" onClick={() => setOpen(true)} aria-label="Search questions" className="w-9 px-0 sm:w-64 sm:justify-start sm:px-2.5 md:w-40 lg:w-64">
+      <Button
+        variant="outline"
+        onClick={() => setOpen(true)}
+        aria-label="Search questions"
+        className="w-9 px-0 sm:w-64 sm:justify-start sm:px-2.5 md:w-40 lg:w-64"
+      >
         <Search />
         <span className="hidden flex-1 text-left text-muted-foreground sm:inline">Search questions</span>
         <kbd className="hidden rounded border px-1.5 font-mono text-xs lg:inline">⌘K</kbd>
       </Button>
 
-      <CommandDialog open={open} onOpenChange={handleOpenChange} title="Search questions" description="Find a question by title, tag, or summary.">
+      <CommandDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        title="Search questions"
+        description="Find a question by title, tag, or summary."
+      >
         {/* MiniSearch ranks the results, so cmdk's own filtering is off. */}
         <Command shouldFilter={false}>
           <CommandInput value={query} onValueChange={setQuery} placeholder="Search questions…" />
           <CommandList>
             {failed && <p className="py-6 text-center text-sm">Search is unavailable. Run npm run content:build.</p>}
-            {!failed && !trimmed && <p className="py-6 text-center text-sm text-muted-foreground">Type to search titles, tags, and summaries.</p>}
+            {!failed && !trimmed && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Type to search titles, tags, and summaries.
+              </p>
+            )}
             {!failed && trimmed && engine && <CommandEmpty>No questions match “{trimmed}”.</CommandEmpty>}
             {results.length > 0 && (
               <CommandGroup>

@@ -11,7 +11,8 @@ export function coversProblem(readme: string): string | null {
   if (at === -1) return null
   const text = lines[at].slice(COVERS_PREFIX.length).trim()
   if (text === '') return '`> **Covers:**` line is empty; fill it in or remove it'
-  if (!lines[at + 1]?.startsWith(TRACK_PREFIX)) return '`> **Covers:**` line must sit directly above the `> **Track:**` line'
+  if (!lines[at + 1]?.startsWith(TRACK_PREFIX))
+    return '`> **Covers:**` line must sit directly above the `> **Track:**` line'
   const words = text.split(/\s+/).length
   if (words > MAX_WORDS) return `\`> **Covers:**\` line has ${words} words; keep it to ${MAX_WORDS} or fewer`
   return null

@@ -8,7 +8,10 @@ import { loadContent, type Chapter, type Question } from './lib/content.ts'
 const published = (questions: Question[]) => questions.filter((q) => q.meta?.status === 'published').length
 const gapsOf = (chapter: Chapter) => chapter.subTopics.filter((subTopic) => subTopic.refs.length === 0)
 
-const { values, positionals } = parseArgs({ options: { stale: { type: 'boolean', default: false } }, allowPositionals: true })
+const { values, positionals } = parseArgs({
+  options: { stale: { type: 'boolean', default: false } },
+  allowPositionals: true,
+})
 const onlyTopic = positionals[0]
 const { topics, problems } = await loadContent()
 const shown = onlyTopic ? topics.filter((topic) => topic.slug === onlyTopic) : topics
@@ -32,7 +35,9 @@ function questionsToRecheck(): string[] {
     .sort((a, b) => a.verified.localeCompare(b.verified) || a.id.localeCompare(b.id))
   const width = Math.max(0, ...rows.map((row) => row.id.length))
   return [
-    ...rows.map(({ id, verified, stale, notes }) => [id.padEnd(width), verified, stale ? 'stale' : '     ', ...notes.map((note) => `· ${note}`)].join('  ')),
+    ...rows.map(({ id, verified, stale, notes }) =>
+      [id.padEnd(width), verified, stale ? 'stale' : '     ', ...notes.map((note) => `· ${note}`)].join('  '),
+    ),
     `${rows.length} question(s) to re-check`,
   ]
 }
@@ -57,4 +62,5 @@ function printProgress(): void {
 if (values.stale) console.log(questionsToRecheck().join('\n'))
 else printProgress()
 
-if (problems.length > 0) console.error(`\n⚠ ${problems.length} problem(s) — counts may be off; run npm run content:check`)
+if (problems.length > 0)
+  console.error(`\n⚠ ${problems.length} problem(s) — counts may be off; run npm run content:check`)

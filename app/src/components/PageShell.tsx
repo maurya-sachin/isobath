@@ -22,7 +22,15 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
   )
 }
 
-export function PageShell({ crumbs, wide = false, children }: { crumbs: Crumb[]; wide?: boolean; children: ReactNode }) {
+export function PageShell({
+  crumbs,
+  wide = false,
+  children,
+}: {
+  crumbs: Crumb[]
+  wide?: boolean
+  children: ReactNode
+}) {
   return (
     <main className={cn('mx-auto px-6 py-8', wide ? 'max-w-5xl' : 'max-w-180')}>
       {crumbs.length > 0 && <Breadcrumbs crumbs={crumbs} />}

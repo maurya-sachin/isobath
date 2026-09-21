@@ -2,7 +2,14 @@
 // The inline script in index.html applies the saved settings before first paint; this keeps <html> in sync afterwards.
 
 import { useSyncExternalStore } from 'react'
-import { APPEARANCE_KEY, DEFAULT_APPEARANCE, parseAppearance, rootSettings, serializeAppearance, type Appearance } from './appearance'
+import {
+  APPEARANCE_KEY,
+  DEFAULT_APPEARANCE,
+  parseAppearance,
+  rootSettings,
+  serializeAppearance,
+  type Appearance,
+} from './appearance'
 
 const listeners = new Set<() => void>()
 let current: Appearance | undefined

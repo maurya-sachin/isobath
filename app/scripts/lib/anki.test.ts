@@ -15,7 +15,13 @@ const card = (overrides: Partial<Flashcard> = {}): Flashcard => ({
 const lines = (text: string) => text.trimEnd().split('\n')
 
 test('starts with the import headers Anki documents', () => {
-  assert.deepEqual(lines(ankiDeck('JavaScript', [card()])).slice(0, 5), ['#separator:tab', '#html:true', '#notetype:Basic', '#deck:isobath::JavaScript', '#tags column:3'])
+  assert.deepEqual(lines(ankiDeck('JavaScript', [card()])).slice(0, 5), [
+    '#separator:tab',
+    '#html:true',
+    '#notetype:Basic',
+    '#deck:isobath::JavaScript',
+    '#tags column:3',
+  ])
 })
 
 test('writes one tab-separated row per card: front, back with a source link, chapter tag', () => {

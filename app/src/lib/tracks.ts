@@ -16,7 +16,9 @@ export function groupByTrack(topics: TopicOverview[]): TrackGroup[] {
   const names = [...new Set(topics.map((topic) => topic.track))].sort((a, b) => rank(a) - rank(b))
   return names.map((name) => ({
     name,
-    topics: topics.filter((topic) => topic.track === name).sort((a, b) => Number(b.chapterCount > 0) - Number(a.chapterCount > 0)),
+    topics: topics
+      .filter((topic) => topic.track === name)
+      .sort((a, b) => Number(b.chapterCount > 0) - Number(a.chapterCount > 0)),
   }))
 }
 

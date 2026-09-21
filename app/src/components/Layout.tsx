@@ -33,7 +33,12 @@ export function Layout() {
               <NavLink
                 key={to}
                 to={to}
-                className={({ isActive }) => cn('rounded-md px-2.5 py-1.5 hover:text-foreground', isActive ? 'font-medium text-foreground' : 'text-muted-foreground')}
+                className={({ isActive }) =>
+                  cn(
+                    'rounded-md px-2.5 py-1.5 hover:text-foreground',
+                    isActive ? 'font-medium text-foreground' : 'text-muted-foreground',
+                  )
+                }
               >
                 {label}
               </NavLink>

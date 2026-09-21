@@ -20,7 +20,13 @@ const DEPTH_TEXT = ['text-depth-1', 'text-depth-2', 'text-depth-3', 'text-depth-
 /** The marker for one depth, shared by the map and its key. */
 function DepthNumber({ depth }: { depth: number }) {
   return (
-    <span aria-hidden="true" className={cn('grid size-6 shrink-0 place-items-center rounded-full border border-current font-mono text-xs', DEPTH_TEXT[depth])}>
+    <span
+      aria-hidden="true"
+      className={cn(
+        'grid size-6 shrink-0 place-items-center rounded-full border border-current font-mono text-xs',
+        DEPTH_TEXT[depth],
+      )}
+    >
       {depth + 1}
     </span>
   )
@@ -50,7 +56,11 @@ export function StrataFigure({ className }: { className?: string }) {
           </g>
         </svg>
         {markers.map(({ index, point: [x, y] }) => (
-          <span key={index} style={{ left: `${x}%`, top: `${y}%` }} className="absolute -translate-1/2 rounded-full bg-background">
+          <span
+            key={index}
+            style={{ left: `${x}%`, top: `${y}%` }}
+            className="absolute -translate-1/2 rounded-full bg-background"
+          >
             <DepthNumber depth={index} />
           </span>
         ))}

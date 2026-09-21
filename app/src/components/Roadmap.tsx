@@ -21,7 +21,8 @@ export function RoadmapSummary({ topics }: { topics: TopicOverview[] }) {
   const drafted = topics.reduce((sum, topic) => sum + topic.stats.drafted, 0)
   return (
     <p className="max-w-2xl text-muted-foreground">
-      {started} of {topics.length} topics started · {published} questions reviewed{drafted > 0 && ` · ${drafted} in review`}.{' '}
+      {started} of {topics.length} topics started · {published} questions reviewed
+      {drafted > 0 && ` · ${drafted} in review`}.{' '}
       <a href={CONTRIBUTE_URL} className="text-link hover:text-link-hover">
         Contribute a question
       </a>
@@ -37,19 +38,17 @@ export function Roadmap({ topics, paths }: { topics: TopicOverview[]; paths: Rol
       {groupByTrack(topics).map((group) => {
         const ordered = orderTrack(group.topics, paths)
         const started = ordered.filter((topic) => topicState(topic) !== 'planned').length
-        const nodes = ordered.map(
-          (topic): DiagramNode => ({
-            key: topic.slug,
-            index: null,
-            title: topic.title,
-            to: `/${topic.slug}`,
-            meta: metaOf(topic),
-            note: null,
-            planned: topicState(topic) === 'planned',
-            current: false,
-            branches: topicBranches(topic, read),
-          }),
-        )
+        const nodes = ordered.map((topic): DiagramNode => ({
+          key: topic.slug,
+          index: null,
+          title: topic.title,
+          to: `/${topic.slug}`,
+          meta: metaOf(topic),
+          note: null,
+          planned: topicState(topic) === 'planned',
+          current: false,
+          branches: topicBranches(topic, read),
+        }))
         return (
           <section key={group.name}>
             <h2 className="flex flex-wrap items-baseline gap-x-3 border-b pb-3 font-serif text-2xl font-medium tracking-tight">

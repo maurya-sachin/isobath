@@ -37,7 +37,10 @@ test('matches output ignoring whitespace', () => {
 })
 
 test('treats … as an elision between parts that must appear in order', () => {
-  assert.equal(outputMatches(['TypeError: Cannot read … of undefined'], 'TypeError: Cannot read properties of undefined'), true)
+  assert.equal(
+    outputMatches(['TypeError: Cannot read … of undefined'], 'TypeError: Cannot read properties of undefined'),
+    true,
+  )
   assert.equal(outputMatches(['a … c'], 'a b c'), true)
   assert.equal(outputMatches(['a … c'], 'c b a'), false)
   assert.equal(outputMatches(['a … a'], 'a'), false)

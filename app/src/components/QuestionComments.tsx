@@ -19,7 +19,9 @@ export function QuestionComments({ questionId }: { questionId: string }) {
       <h2 id="comments" className="font-serif text-2xl font-medium tracking-tight">
         Comments
       </h2>
-      <p className="mt-2 text-sm text-muted-foreground">Comments are GitHub Discussions: you sign in with GitHub to post or react.</p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Comments are GitHub Discussions: you sign in with GitHub to post or react.
+      </p>
       <div className="mt-4 min-h-40">
         {hydrated && (
           <Suspense fallback={null}>

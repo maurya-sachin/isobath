@@ -22,7 +22,11 @@ const DEEP_DIVE_ORDER = ['How it works', 'Edge cases', 'Real-world scenario', 'T
 const isFence = (line: string) => line.trimStart().startsWith('```')
 
 /** Splits Markdown at headings of one level, ignoring `#` lines inside code fences. */
-export function splitSections(lines: string[], level: number, firstLine: number): { intro: string[]; sections: Section[] } {
+export function splitSections(
+  lines: string[],
+  level: number,
+  firstLine: number,
+): { intro: string[]; sections: Section[] } {
   const marker = `${'#'.repeat(level)} `
   const intro: string[] = []
   const sections: Section[] = []

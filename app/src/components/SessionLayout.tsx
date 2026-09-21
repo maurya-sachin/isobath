@@ -20,7 +20,11 @@ export function SessionHeader({ title, status }: { title: string; status?: strin
 
 /** The surface a card, question or summary sits on. */
 export function SessionCard({ children }: { children: ReactNode }) {
-  return <div className="mt-6 flex min-h-72 flex-col rounded-xl border bg-card p-5 [overflow-wrap:anywhere] sm:p-10">{children}</div>
+  return (
+    <div className="mt-6 flex min-h-72 flex-col rounded-xl border bg-card p-5 [overflow-wrap:anywhere] sm:p-10">
+      {children}
+    </div>
+  )
 }
 
 interface Segment {
@@ -34,7 +38,10 @@ export function SegmentBar({ segments, label }: { segments: Segment[]; label: st
   const total = segments.reduce((sum, { count }) => sum + count, 0)
   return (
     <div role="img" aria-label={label} className="flex h-1.5 gap-0.5 overflow-hidden rounded-full bg-muted">
-      {segments.map(({ count, className }) => count > 0 && <div key={className} className={className} style={{ width: `${(count / total) * 100}%` }} />)}
+      {segments.map(
+        ({ count, className }) =>
+          count > 0 && <div key={className} className={className} style={{ width: `${(count / total) * 100}%` }} />,
+      )}
     </div>
   )
 }

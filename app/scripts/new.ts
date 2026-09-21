@@ -37,7 +37,8 @@ if (problems.length > 0) fail(`${problems.length} problem(s) in content/ — run
 const topic = topics.find((candidate) => candidate.slug === topicSlug)
 if (!topic) fail(`no topic \`${topicSlug}\` — topics: ${topics.map((t) => t.slug).join(', ')}`)
 const chapter = topic.chapters.find((candidate) => candidate.slug === chapterSlug)
-if (!chapter) fail(`no chapter \`${chapterSlug}\` in ${topicSlug} — chapters: ${topic.chapters.map((c) => c.slug).join(', ')}`)
+if (!chapter)
+  fail(`no chapter \`${chapterSlug}\` in ${topicSlug} — chapters: ${topic.chapters.map((c) => c.slug).join(', ')}`)
 
 // Next free step of 10 unless a number between neighbours (e.g. 015) is given.
 const lastNumber = Math.max(0, ...chapter.questions.map((question) => Number(question.number)))
@@ -73,5 +74,8 @@ const frontmatter = [
 await writeFile(file, frontmatter, { flag: 'wx' })
 console.log(`created ${repoRelative(file)}`)
 
-for (const readme of await writeStaleReadmes((await loadContent()).topics)) console.log(`updated ${repoRelative(readme)}`)
-console.log(`Next: point a sub-topic in ${repoRelative(chapter.readmeFile)} at ${number} — content:check fails until you do.`)
+for (const readme of await writeStaleReadmes((await loadContent()).topics))
+  console.log(`updated ${repoRelative(readme)}`)
+console.log(
+  `Next: point a sub-topic in ${repoRelative(chapter.readmeFile)} at ${number} — content:check fails until you do.`,
+)

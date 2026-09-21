@@ -31,7 +31,13 @@ export function extractExamples(markdown: string): { examples: Example[]; skippe
     if (expected.length === 0) return
     const meta = node.meta?.split(/\s+/) ?? []
     if (meta.includes(OPT_OUT)) skipped++
-    else examples.push({ line: node.position?.start.line ?? 0, code: node.value, mode: meta.includes(SCRIPT_MODE) ? 'script' : 'module', expected })
+    else
+      examples.push({
+        line: node.position?.start.line ?? 0,
+        code: node.value,
+        mode: meta.includes(SCRIPT_MODE) ? 'script' : 'module',
+        expected,
+      })
   })
   return { examples, skipped }
 }
@@ -40,7 +46,8 @@ function expectedOutput(code: string): string[] {
   const expected: string[] = []
   let continuing = false
   for (const line of code.split('\n')) {
-    const text: string | undefined = OUTPUT_COMMENT.exec(line)?.[1] ?? (continuing ? OUTPUT_CONTINUATION.exec(line)?.[1] : undefined)
+    const text: string | undefined =
+      OUTPUT_COMMENT.exec(line)?.[1] ?? (continuing ? OUTPUT_CONTINUATION.exec(line)?.[1] : undefined)
     if (text !== undefined) expected.push(text)
     continuing = text !== undefined
   }

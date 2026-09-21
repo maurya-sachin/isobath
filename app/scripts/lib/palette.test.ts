@@ -1,7 +1,18 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { contrastRatio } from '../../src/theme/oklch.ts'
-import { CSS_TOKENS, hex, linearRgb, paletteCss, PALETTE, STATUS_HUES, statusRgb, type Mode, type StatusName, type Token } from '../../src/theme/palette.ts'
+import {
+  CSS_TOKENS,
+  hex,
+  linearRgb,
+  paletteCss,
+  PALETTE,
+  STATUS_HUES,
+  statusRgb,
+  type Mode,
+  type StatusName,
+  type Token,
+} from '../../src/theme/palette.ts'
 
 const MODES: Mode[] = ['light', 'dark']
 const HUES = Array.from({ length: 72 }, (_, index) => index * 5)
@@ -40,7 +51,10 @@ test('every text and graphic pair meets WCAG AA at every hue, in both modes', ()
     for (const hue of HUES) {
       for (const [foreground, background, minimum] of PAIRS) {
         const ratio = contrastRatio(linearRgb(mode, foreground, hue), linearRgb(mode, background, hue))
-        assert.ok(ratio >= minimum, `${mode} ${foreground} on ${background} at hue ${hue}: ${ratio.toFixed(2)} < ${minimum}`)
+        assert.ok(
+          ratio >= minimum,
+          `${mode} ${foreground} on ${background} at hue ${hue}: ${ratio.toFixed(2)} < ${minimum}`,
+        )
       }
     }
   }
@@ -64,7 +78,10 @@ test('the higher-contrast steps give text 7:1 and borders and graphics 3:1 at ev
     for (const hue of HUES) {
       for (const [foreground, background, minimum] of pairs) {
         const ratio = contrastRatio(linearRgb(mode, foreground, hue, 'high'), linearRgb(mode, background, hue, 'high'))
-        assert.ok(ratio >= minimum, `high ${mode} ${foreground} on ${background} at hue ${hue}: ${ratio.toFixed(2)} < ${minimum}`)
+        assert.ok(
+          ratio >= minimum,
+          `high ${mode} ${foreground} on ${background} at hue ${hue}: ${ratio.toFixed(2)} < ${minimum}`,
+        )
       }
     }
   }
@@ -86,9 +103,16 @@ test('status text reads on its badge and on the page, card and muted surfaces at
 })
 
 test('the depth ramp steps one way: lighter to deeper in light mode, deeper to lighter in dark mode', () => {
-  const lightness = (mode: Mode) => (['depth1', 'depth2', 'depth3', 'depth4'] as const).map((token) => PALETTE[mode][token].l)
-  assert.deepEqual(lightness('light'), [...lightness('light')].sort((a, b) => b - a))
-  assert.deepEqual(lightness('dark'), [...lightness('dark')].sort((a, b) => b - a))
+  const lightness = (mode: Mode) =>
+    (['depth1', 'depth2', 'depth3', 'depth4'] as const).map((token) => PALETTE[mode][token].l)
+  assert.deepEqual(
+    lightness('light'),
+    [...lightness('light')].sort((a, b) => b - a),
+  )
+  assert.deepEqual(
+    lightness('dark'),
+    [...lightness('dark')].sort((a, b) => b - a),
+  )
 })
 
 test('the generated stylesheet defines every token for both modes and defaults the hue per mode', () => {

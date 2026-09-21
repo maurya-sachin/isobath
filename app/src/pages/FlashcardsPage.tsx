@@ -26,14 +26,29 @@ const RATINGS: { label: string; key: string; grade: Grade; count: keyof Counts; 
   { label: 'Easy', key: '4', grade: Rating.Easy, count: 'easy', bar: 'bg-depth-4' },
 ]
 
-function Session({ topic, cards, isLaterRound, onNextRound }: { topic: string; cards: Flashcard[]; isLaterRound: boolean; onNextRound: () => void }) {
+function Session({
+  topic,
+  cards,
+  isLaterRound,
+  onNextRound,
+}: {
+  topic: string
+  cards: Flashcard[]
+  isLaterRound: boolean
+  onNextRound: () => void
+}) {
   const [reviews, setReviews] = useState(loadReviews)
   const [queue, setQueue] = useState(() => dueQueue(cards, reviews, new Date()))
   const [revealed, setRevealed] = useState(false)
   const [counts, setCounts] = useState<Counts>({ again: 0, hard: 0, good: 0, easy: 0 })
   const rated = counts.again + counts.hard + counts.good + counts.easy
   const card = queue[0]
-  const { promptRef, answerRef, doneRef } = useSessionFocus<HTMLHeadingElement, HTMLElement>(rated, revealed, !card, isLaterRound)
+  const { promptRef, answerRef, doneRef } = useSessionFocus<HTMLHeadingElement, HTMLElement>(
+    rated,
+    revealed,
+    !card,
+    isLaterRound,
+  )
 
   function rate(grade: Grade, count: keyof Counts) {
     setReviews(recordRating(reviews, card.id, grade, new Date()))
@@ -44,7 +59,11 @@ function Session({ topic, cards, isLaterRound, onNextRound }: { topic: string; c
   }
 
   useShortcuts(
-    !card ? {} : revealed ? Object.fromEntries(RATINGS.map(({ key, grade, count }) => [key, () => rate(grade, count)])) : { ' ': () => setRevealed(true), Enter: () => setRevealed(true) },
+    !card
+      ? {}
+      : revealed
+        ? Object.fromEntries(RATINGS.map(({ key, grade, count }) => [key, () => rate(grade, count)]))
+        : { ' ': () => setRevealed(true), Enter: () => setRevealed(true) },
   )
 
   if (!card) {
@@ -78,7 +97,9 @@ function Session({ topic, cards, isLaterRound, onNextRound }: { topic: string; c
               </div>
             </>
           )}
-          <p className="mt-5 text-muted-foreground">{next ? `The next card is due ${formatUntil(next, now)}.` : 'No cards are scheduled.'}</p>
+          <p className="mt-5 text-muted-foreground">
+            {next ? `The next card is due ${formatUntil(next, now)}.` : 'No cards are scheduled.'}
+          </p>
           {unseen > 0 && (
             <p className="mt-1 text-muted-foreground">
               {unseen} new {unseen === 1 ? 'card' : 'cards'} left.
@@ -108,7 +129,12 @@ function Session({ topic, cards, isLaterRound, onNextRound }: { topic: string; c
         {revealed && (
           <>
             <hr className="my-6" />
-            <section ref={answerRef} tabIndex={-1} aria-label="Answer" className="font-serif text-lg leading-relaxed outline-none">
+            <section
+              ref={answerRef}
+              tabIndex={-1}
+              aria-label="Answer"
+              className="font-serif text-lg leading-relaxed outline-none"
+            >
               <InlineHtml html={card.backHtml} className={CODE_STYLE} />
             </section>
             <Link to={`/${card.question}`} className="mt-4 self-start text-sm text-link hover:text-link-hover">
@@ -120,7 +146,13 @@ function Session({ topic, cards, isLaterRound, onNextRound }: { topic: string; c
       {intervals ? (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {RATINGS.map(({ label, key, grade, count }) => (
-            <Button key={label} variant="outline" className="h-auto flex-col gap-0.5 py-2.5" aria-keyshortcuts={key} onClick={() => rate(grade, count)}>
+            <Button
+              key={label}
+              variant="outline"
+              className="h-auto flex-col gap-0.5 py-2.5"
+              aria-keyshortcuts={key}
+              onClick={() => rate(grade, count)}
+            >
               <span>
                 {label}
                 <Kbd>{key}</Kbd>
@@ -161,7 +193,13 @@ export function FlashcardsPage() {
       ) : (
         // Keyed so moving between topics, or starting the next round, begins a fresh session.
         <div className="mx-auto max-w-2xl">
-          <Session key={`${topic.slug}-${round}`} topic={topic.slug} cards={cards} isLaterRound={round > 0} onNextRound={() => setRound(round + 1)} />
+          <Session
+            key={`${topic.slug}-${round}`}
+            topic={topic.slug}
+            cards={cards}
+            isLaterRound={round > 0}
+            onNextRound={() => setRound(round + 1)}
+          />
         </div>
       )}
     </PageShell>
