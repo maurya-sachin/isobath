@@ -7,7 +7,7 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
 - On `dev`, unmerged (maintainer merges at EOD): 6.1 rewrite fix (then curl `/flashcards/react` live), 6.2 example runner (272 JS examples run, 48 `no-run`), 6.3 og cards (412 PNGs, +13 s build; check a shared link with a card validator after deploy), 6.4 giscus comments (built-in light/dark theme; `giscus.json` origins apply once merged to `main`), 6.6 Anki decks (`/data/topics/<slug>/anki.txt`; import into Anki once to confirm).
 - Repo renamed `isobath` (2026-11-05); `dev` not yet pushed since. Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); publish the dev.to draft "I rebuilt my interview prep repo…" (update counts if React ships first); pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
-- Next: 6.5 (cheat sheet: plan is a per-chapter `cheatsheet.json` of styled TL;DRs), then Tier 2. Phase 7 (`nextjs`) waits until Phase 6 tier 1 and 6.10 ship; tier 2–3 then alternate with content.
+- Now: 6A theme and accessibility (T1 first). Then 6.5 (per-chapter `cheatsheet.json` of styled TL;DRs), then Tier 2. Phase 7 (`nextjs`) waits until Phase 6 tier 1 and 6.10 ship; tier 2–3 then alternate with content.
 - Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
 
 ## Goal
@@ -34,6 +34,7 @@ Non-goals: backend service, accounts, paid AI.
 - R18 Progress backup: JSON `isobath-progress` v1; import merges and never carries HTML; max 20 new flashcards per session.
 - R19 Prerender: every content page ships as `dist/<path>.html` and hydrates; no module touches `window`/`document`/`localStorage` at import time; browser-only state renders neutral on the server; unknown paths fall back to `app-shell.html`.
 - R20 Freshness: stale = verified 12+ months before the build month; labels Draft/Reviewed/Legacy come from `status` and `legacy`; `Covers` is authored in topic READMEs directly above Track; the changelog lists published questions only.
+- R23 Colour has one source: `src/theme/palette.ts`; never hard-code a colour elsewhere. Users pick a hue only; lightness is fixed so contrast holds.
 - R22 JS examples with `// →` run in CI (`examples:check`, spec `docs/superpowers/specs/2026-11-05-example-runner-design.md`); fence meta `script`/`no-run`; a new example must pass or say why it can't.
 - R21 Content accuracy work (writing questions, audits) runs on Opus; Sonnet only for mechanical work such as flashcards from finished text.
 
@@ -41,6 +42,14 @@ Non-goals: backend service, accounts, paid AI.
 
 ### 5 — Review and publish
 - [ ] Per question: maintainer review → `published`; update README status lines
+
+### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`; before 6.5)
+- [ ] T1 `palette.ts` + generated `palette.css` + contrast test; replace token values in `index.css`
+- [ ] T2 Shiki `css-variables` theme, output-line highlight and social card read the palette
+- [ ] T3 Verify in Chrome: light/dark, 390/1024/1440 px, no-drafts build
+- [ ] T4 Appearance panel (hue per mode, text size, contrast, motion) + pre-paint script
+- [ ] T5 Accessibility audit (axe-core, keyboard, 200 % zoom, forced colours, colour-blind check) and fixes
+- [ ] T6 Giscus custom theme from the palette (after deploy)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
 Tier 1:
