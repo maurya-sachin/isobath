@@ -6,14 +6,15 @@
 @import '@fontsource-variable/newsreader';
 @import '@fontsource-variable/newsreader/wght-italic.css';
 @import './theme/palette.css';
+@import './theme/fonts.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
-  --font-mono: 'Geist Mono Variable', monospace;
-  --font-serif: 'Newsreader Variable', Georgia, serif;
+  --font-sans: 'Geist Variable', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono Fallback', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-serif: 'Newsreader Variable', 'Newsreader Fallback', ui-serif, Georgia, serif;
   --color-depth-from: var(--depth-from);
   --color-depth-to: var(--depth-to);
   --color-depth-1: var(--depth-1);
