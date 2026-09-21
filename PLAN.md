@@ -50,7 +50,6 @@ Non-goals: backend service, accounts, paid AI.
 - [ ] T4 Appearance panel (hue per mode, text size, contrast, motion) + pre-paint script
 - [ ] T5 Accessibility audit (axe-core, keyboard, 200 % zoom, forced colours, colour-blind check) and fixes
 - [ ] T6 Giscus custom theme from the palette (after deploy)
-- [ ] Doc trim pass (CLAUDE.md, PLAN, style.md, memory) when 6A is done; then after each phase, per `CLAUDE.md` → Plan hygiene
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
 Tier 1:
