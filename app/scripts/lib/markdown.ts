@@ -10,7 +10,7 @@ import rehypeStringify from 'rehype-stringify'
 import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
-import type { ShikiTransformer } from 'shiki'
+import { createCssVariablesTheme, type ShikiTransformer } from 'shiki'
 import { unified } from 'unified'
 import { questionAt, targetMarkdownFile, visitLinks } from './links.ts'
 
@@ -32,7 +32,7 @@ const blockProcessor = unified()
   .use(remarkParse)
   .use(remarkGfm)
   .use(remarkRehype)
-  .use(rehypeShiki, { themes: { light: 'github-light', dark: 'github-dark' }, transformers: [markOutputLines] })
+  .use(rehypeShiki, { theme: createCssVariablesTheme({ name: 'isobath' }), transformers: [markOutputLines] })
   .use(rehypeStringify)
 
 /** Parses Markdown to mdast without rendering; for checks that read the structure. */
