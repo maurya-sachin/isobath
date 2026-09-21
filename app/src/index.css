@@ -69,6 +69,12 @@
     --radius: 0.625rem;
 }
 
+/* Reduced motion: the system preference or the in-app setting. */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+[data-motion="reduce"] *, [data-motion="reduce"] ::before, [data-motion="reduce"] ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+
 @layer base {
   :root {
     color-scheme: light;
