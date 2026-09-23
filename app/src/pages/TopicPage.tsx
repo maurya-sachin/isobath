@@ -58,7 +58,7 @@ function Topic({ topic }: { topic: TopicSummary }) {
           <h1 className="text-4xl font-bold tracking-[-0.03em]">{topic.title}</h1>
           <InlineHtml
             html={topic.summaryHtml}
-            className={`mt-3 block font-serif text-xl leading-relaxed text-muted-foreground ${INLINE_CODE}`}
+            className={`mt-3 block font-reading text-xl leading-relaxed text-muted-foreground ${INLINE_CODE}`}
           />
 
           {topic.chapters.length > 0 && (

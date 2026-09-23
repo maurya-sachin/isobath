@@ -14,6 +14,7 @@
   --font-heading: var(--font-sans);
   --font-sans: 'Geist Variable', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', 'Geist Mono Fallback', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-reading: var(--reading-font);
   --font-serif: 'Newsreader Variable', 'Newsreader Fallback', ui-serif, Georgia, serif;
   --color-depth-from: var(--depth-from);
   --color-depth-to: var(--depth-to);
@@ -93,6 +94,18 @@
 @layer base {
   :root {
     color-scheme: light;
+    /* Long-form reading: the brand serif by default; the Appearance panel can switch it to the sans. */
+    --reading-font: var(--font-serif);
+    --prose-leading: 1.7;
+    --prose-gap: 1rem;
+  }
+  [data-reading-font='sans'] {
+    --reading-font: var(--font-sans);
+  }
+  /* Relaxed spacing is at least what WCAG 1.4.12 asks readers to be able to apply: lines 1.5x, paragraphs 2x. */
+  [data-spacing='relaxed'] {
+    --prose-leading: 1.95;
+    --prose-gap: 1.6rem;
   }
   .dark {
     color-scheme: dark;
@@ -135,13 +148,17 @@
 /* Styles for HTML compiled by content:build (Markdown → HTML), including Shiki output. */
 @layer components {
   .content {
-    font-family: var(--font-serif);
+    font-family: var(--reading-font);
     font-size: 1.1875rem;
-    line-height: 1.7;
+    line-height: var(--prose-leading);
     font-optical-sizing: auto;
   }
   .content > * + * {
-    margin-top: 1rem;
+    margin-top: var(--prose-gap);
+  }
+  [data-spacing='relaxed'] .content {
+    letter-spacing: 0.01em;
+    word-spacing: 0.06em;
   }
   .content h3 {
     margin-top: 1.75rem;

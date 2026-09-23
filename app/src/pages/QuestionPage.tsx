@@ -100,7 +100,7 @@ export function QuestionPage() {
               <h2 id="tldr" className="text-sm font-medium">
                 30-second answer
               </h2>
-              <p className="mt-2 font-serif text-[1.375rem] leading-snug text-foreground">
+              <p className="mt-2 font-reading text-[1.375rem] leading-snug text-foreground">
                 <InlineHtml html={content.tldrHtml} className={CODE_STYLE} />
               </p>
             </section>

@@ -48,7 +48,7 @@ export function PathPage() {
     <PageShell crumbs={[{ label: 'Paths', to: '/paths' }]} wide>
       <title>{`${path.title} · ${SITE_NAME}`}</title>
       <h1 className="font-serif text-4xl font-medium tracking-tight">{path.title}</h1>
-      <p className="mt-3 max-w-2xl font-serif text-xl leading-relaxed text-muted-foreground">{path.summary}</p>
+      <p className="mt-3 max-w-2xl font-reading text-xl leading-relaxed text-muted-foreground">{path.summary}</p>
       <p className="mt-4 text-sm text-muted-foreground">
         {ready.length === 0
           ? `${describePath(path)}.`
