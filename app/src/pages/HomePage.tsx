@@ -122,7 +122,7 @@ export function HomePage() {
 function AvailableTopic({ topic }: { topic: TopicOverview }) {
   const { stats } = topic
   return (
-    <Link to={`/${topic.slug}`} className="group grid grid-cols-[7.5rem_1fr] gap-5">
+    <Link to={`/${topic.slug}`} className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-5">
       <TopicCover
         slug={topic.slug}
         chapterCount={topic.chapterCount}

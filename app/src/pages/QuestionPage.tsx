@@ -63,7 +63,8 @@ export function QuestionPage() {
           ]}
         />
         <title>{`${question.title} · ${SITE_NAME}`}</title>
-        <h1 className="text-[2.5rem] leading-[1.1] font-bold tracking-[-0.03em]">
+        {/* Mono is wider and heavier than the sans at the same size: code in the title runs smaller and lighter. */}
+        <h1 className="text-[2.5rem] leading-[1.1] font-bold tracking-[-0.03em] [&_code]:text-[0.84em] [&_code]:font-semibold">
           <QuestionTitle html={question.titleHtml} />
         </h1>
 

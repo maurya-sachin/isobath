@@ -102,6 +102,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* A long word wraps instead of widening the page, which matters most at large text sizes. */
+    overflow-wrap: break-word;
   }
   html {
     @apply font-sans;
@@ -116,6 +118,10 @@
   p,
   li {
     text-wrap: pretty;
+  }
+  /* Inline code may break inside a long identifier rather than widen the page. */
+  :not(pre) > code {
+    overflow-wrap: anywhere;
   }
   /* Code reads as typed: no ligatures for !==, => and the like. */
   code,

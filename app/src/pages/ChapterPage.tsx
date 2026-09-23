@@ -94,7 +94,7 @@ export function ChapterPage() {
           {shown.map((question) => (
             <li
               key={question.id}
-              className="grid grid-cols-[2.5rem_1fr] gap-x-3 gap-y-2 border-b py-4 sm:grid-cols-[2.5rem_1fr_auto]"
+              className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3 gap-y-2 border-b py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto]"
             >
               <span className="font-mono text-xs text-muted-foreground sm:pt-1">{question.number}</span>
               {question.hasPage ? (
