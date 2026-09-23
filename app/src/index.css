@@ -71,6 +71,14 @@
   --radius: 0.625rem;
 }
 
+/* Windows forced-colours mode drops box-shadow focus rings: draw a real outline. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
 /* Reduced motion: the system preference or the in-app setting. */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -23,7 +23,7 @@ export function RoadmapSummary({ topics }: { topics: TopicOverview[] }) {
     <p className="max-w-2xl text-muted-foreground">
       {started} of {topics.length} topics started · {published} questions reviewed
       {drafted > 0 && ` · ${drafted} in review`}.{' '}
-      <a href={CONTRIBUTE_URL} className="text-link hover:text-link-hover">
+      <a href={CONTRIBUTE_URL} className="text-link underline underline-offset-4 hover:text-link-hover">
         Contribute a question
       </a>
     </p>

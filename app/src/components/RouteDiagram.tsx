@@ -149,7 +149,7 @@ export function RouteDiagram({ nodes, label }: { nodes: DiagramNode[]; label: st
               >
                 <span className="row-span-2 font-mono text-xs opacity-70">{node.index}</span>
                 <span className="font-semibold">{node.title}</span>
-                <span className="text-xs opacity-80">{node.meta}</span>
+                <span className="text-xs">{node.meta}</span>
               </Link>
               {node.note && (
                 <p className="bg-background px-1.5 text-xs text-muted-foreground lg:max-w-60 lg:text-center">

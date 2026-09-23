@@ -32,7 +32,7 @@ export function PageShell({
   children: ReactNode
 }) {
   return (
-    <main className={cn('mx-auto px-6 py-8', wide ? 'max-w-5xl' : 'max-w-180')}>
+    <main id="main" tabIndex={-1} className={cn('mx-auto px-6 py-8', wide ? 'max-w-5xl' : 'max-w-180')}>
       {crumbs.length > 0 && <Breadcrumbs crumbs={crumbs} />}
       {children}
     </main>
