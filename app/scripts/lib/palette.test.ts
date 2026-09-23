@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { contrastRatio } from '../../src/theme/oklch.ts'
+import { contrastRatio, type Rgb } from '../../src/theme/oklch.ts'
 import {
   CSS_TOKENS,
   hex,
@@ -38,6 +38,9 @@ const PAIRS: readonly (readonly [Token, Token, number])[] = [
   ['syntaxConstant', 'code', 4.5],
   ['syntaxString', 'code', 4.5],
   ['link', 'code', 4.5],
+  ['inputBorder', 'background', 3],
+  ['inputBorder', 'card', 3],
+  ['inputBorder', 'muted', 3],
   ['depth1', 'background', 3],
   ['depth1', 'card', 3],
   ['depth1', 'muted', 3],
@@ -82,6 +85,46 @@ test('the higher-contrast steps give text 7:1 and borders and graphics 3:1 at ev
           ratio >= minimum,
           `high ${mode} ${foreground} on ${background} at hue ${hue}: ${ratio.toFixed(2)} < ${minimum}`,
         )
+      }
+    }
+  }
+})
+
+/** Machado et al. (2009), severity 1: how protanopia, deuteranopia and tritanopia change linear-light sRGB. */
+const COLOUR_BLIND: Record<string, readonly (readonly number[])[]> = {
+  protanopia: [
+    [0.152286, 1.052583, -0.204868],
+    [0.114503, 0.786281, 0.099216],
+    [-0.003882, -0.048116, 1.051998],
+  ],
+  deuteranopia: [
+    [0.367322, 0.860646, -0.227968],
+    [0.280085, 0.672501, 0.047413],
+    [-0.01182, 0.04294, 0.968881],
+  ],
+  tritanopia: [
+    [1.255528, -0.076749, -0.178779],
+    [-0.078411, 0.930809, 0.147602],
+    [0.004733, 0.691367, 0.3039],
+  ],
+}
+
+test('neighbouring depth steps stay distinguishable by lightness under colour-blind vision, at every hue', () => {
+  const simulate = (rgb: readonly number[], matrix: readonly (readonly number[])[]) =>
+    matrix.map((row) => row[0] * rgb[0] + row[1] * rgb[1] + row[2] * rgb[2]) as unknown as Rgb
+  const steps = ['depth1', 'depth2', 'depth3', 'depth4'] as const
+  for (const mode of MODES) {
+    for (const hue of HUES) {
+      for (const [kind, matrix] of Object.entries(COLOUR_BLIND)) {
+        for (let index = 1; index < steps.length; index++) {
+          const previous = simulate(linearRgb(mode, steps[index - 1], hue), matrix)
+          const next = simulate(linearRgb(mode, steps[index], hue), matrix)
+          const ratio = contrastRatio(previous, next)
+          assert.ok(
+            ratio >= 1.25,
+            `${mode} ${kind} at hue ${hue}: ${steps[index - 1]} vs ${steps[index]} is ${ratio.toFixed(2)}:1`,
+          )
+        }
       }
     }
   }
