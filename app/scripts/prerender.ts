@@ -10,7 +10,7 @@ import type { ContentManifest, SearchDoc, TopicSummary } from '../src/content/ty
 import { SITE_NAME, SITE_URL, TAGLINE } from '../src/lib/site.ts'
 import { hex } from '../src/theme/palette.ts'
 import { CARD_HEIGHT, CARD_WIDTH, type CardData } from './lib/ogCard.ts'
-import { renderQuestionCard } from './lib/ogImage.ts'
+import { renderCard } from './lib/ogImage.ts'
 import {
   breadcrumbList,
   duplicates,
@@ -33,8 +33,8 @@ interface Page {
   type: 'website' | 'article'
   /** Structured data for the page, one JSON-LD script each. */
   jsonLd?: object[]
-  /** Question pages share a social card, written to `dist/og/<path>.png`. */
-  card?: CardData
+  /** The social card: its URL path under `/og/` and its alt text. Rendered once per path (see `cards`). */
+  image?: { path: string; alt: string }
 }
 
 const HOME_DESCRIPTION = 'Interview questions for any software engineer, from the language to the spec and the engine.'
@@ -67,23 +67,50 @@ function escapeHtml(text: string): string {
   return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 }
 
+/** Every social card to render, by the URL path of its image: shared by the pages that use it. */
+const cards = new Map<string, CardData>()
+
+function registerCard(imagePath: string, data: CardData): { path: string; alt: string } {
+  cards.set(imagePath, data)
+  return { path: imagePath, alt: data.title }
+}
+
 async function listPages(): Promise<Page[]> {
   const manifest = await readJson<ContentManifest>('data/manifest.json')
+  const site = registerCard('/og/site.png', {
+    kicker: 'Interview questions for any software engineer',
+    title: TAGLINE,
+    note: '',
+    map: { slug: SITE_NAME, chapterCount: 6, hardShare: 0.3 },
+  })
   const pages: Page[] = [
-    { path: '/', description: HOME_DESCRIPTION, type: 'website', jsonLd: webSite(HOME_DESCRIPTION) },
-    { path: '/paths', description: PATHS_DESCRIPTION, type: 'website' },
+    { path: '/', description: HOME_DESCRIPTION, type: 'website', image: site, jsonLd: webSite(HOME_DESCRIPTION) },
+    { path: '/paths', description: PATHS_DESCRIPTION, type: 'website', image: site },
     ...manifest.paths.map((rolePath): Page => ({
       path: `/paths/${rolePath.slug}`,
       description: rolePath.summary || PATHS_DESCRIPTION,
       type: 'website',
+      image: site,
     })),
-    { path: '/roadmap', description: ROADMAP_DESCRIPTION, type: 'website' },
-    { path: '/changelog', description: CHANGELOG_DESCRIPTION, type: 'website' },
-    { path: '/practice', description: PRACTICE_DESCRIPTION, type: 'website' },
+    { path: '/roadmap', description: ROADMAP_DESCRIPTION, type: 'website', image: site },
+    { path: '/changelog', description: CHANGELOG_DESCRIPTION, type: 'website', image: site },
+    { path: '/practice', description: PRACTICE_DESCRIPTION, type: 'website', image: site },
   ]
 
   for (const overview of manifest.topics) {
     const topic = await readJson<TopicSummary>(`data/topics/${overview.slug}/index.json`)
+    const { byDifficulty, total } = chapterStats(topic.chapters)
+    const map = {
+      slug: topic.slug,
+      chapterCount: topic.chapters.length,
+      hardShare: total === 0 ? 0 : byDifficulty.hard / total,
+    }
+    const topicImage = registerCard(`/og/${topic.slug}.png`, {
+      kicker: topic.chapters.length > 0 ? `${topic.chapters.length} chapters · ${total} questions` : 'Planned topic',
+      title: topic.title,
+      note: '',
+      map,
+    })
     const home: Crumb = { name: SITE_NAME, path: '/' }
     const topicCrumbs: Crumb[] = [home, { name: topic.title, path: `/${topic.slug}` }]
     if (overview.stats.readable > 0)
@@ -91,23 +118,19 @@ async function listPages(): Promise<Page[]> {
         path: `/practice/${topic.slug}`,
         description: `Practise ${topic.title} interview questions and review its flashcards.`,
         type: 'website',
+        image: topicImage,
       })
     pages.push({
       path: `/${topic.slug}`,
       description: topic.summaryText,
       type: 'website',
+      image: topicImage,
       jsonLd: [breadcrumbList(topicCrumbs)],
     })
 
     // Topics without chapters have no search.json.
     const searchDocs =
       topic.chapters.length > 0 ? await readJson<SearchDoc[]>(`data/topics/${topic.slug}/search.json`) : []
-    const { byDifficulty, total } = chapterStats(topic.chapters)
-    const map = {
-      slug: topic.slug,
-      chapterCount: topic.chapters.length,
-      hardShare: total === 0 ? 0 : byDifficulty.hard / total,
-    }
     const tldrs = new Map(searchDocs.map((doc) => [doc.id, doc.tldr]))
     for (const chapter of topic.chapters) {
       const chapterCrumbs: Crumb[] = [...topicCrumbs, { name: chapter.title, path: `/${topic.slug}/${chapter.slug}` }]
@@ -115,23 +138,23 @@ async function listPages(): Promise<Page[]> {
         path: `/${topic.slug}/${chapter.slug}`,
         description: chapter.summaryText,
         type: 'website',
+        image: topicImage,
         jsonLd: [breadcrumbList(chapterCrumbs)],
       })
       for (const question of chapter.questions.filter((candidate) => candidate.hasPage)) {
         const description = tldrs.get(question.id)
         if (!description) throw new Error(`${question.id}: no TL;DR in search.json for the page description`)
-        const card: CardData = {
+        const image = registerCard(`/og/${question.id}.png`, {
+          kicker: `${topic.title} · ${chapter.title}`,
           title: question.title,
-          topicTitle: topic.title,
-          chapterTitle: chapter.title,
-          difficulty: question.difficulty,
+          note: question.difficulty,
           map,
-        }
+        })
         pages.push({
           path: `/${question.id}`,
           description,
           type: 'article',
-          card,
+          image,
           jsonLd: [
             techArticle({ title: question.title, description: metaDescription(description), path: `/${question.id}` }),
             breadcrumbList([...chapterCrumbs, { name: question.title, path: `/${question.id}` }]),
@@ -149,13 +172,9 @@ const themeColorTags = [
   `<meta name="theme-color" content="${hex('dark', 'background')}" media="(prefers-color-scheme: dark)" />`,
 ]
 
-function cardFile(pagePath: string): string {
-  return path.join(distDir, 'og', `${pagePath}.png`)
-}
-
-function imageTags(pagePath: string, alt: string): string[] {
+function imageTags({ path: imagePath, alt }: { path: string; alt: string }): string[] {
   return [
-    `<meta property="og:image" content="${SITE_URL}/og${pagePath}.png" />`,
+    `<meta property="og:image" content="${SITE_URL}${imagePath}" />`,
     `<meta property="og:image:width" content="${CARD_WIDTH}" />`,
     `<meta property="og:image:height" content="${CARD_HEIGHT}" />`,
     `<meta property="og:image:alt" content="${escapeHtml(alt)}" />`,
@@ -179,7 +198,7 @@ function headTags(title: string, page: Page): string {
     `<meta property="og:url" content="${escapeHtml(url)}" />`,
     `<meta property="og:type" content="${page.type}" />`,
     `<meta property="og:site_name" content="${SITE_NAME}" />`,
-    ...(page.card ? imageTags(page.path, page.card.title) : ['<meta name="twitter:card" content="summary" />']),
+    ...(page.image ? imageTags(page.image) : ['<meta name="twitter:card" content="summary" />']),
     ...(page.jsonLd ?? []).map(jsonLdScript),
   ].join('\n    ')
 }
@@ -279,8 +298,9 @@ for (const page of pages) {
   const { title, markup } = splitTitle(page.path, html)
   titles.push({ path: page.path, value: title })
   await writePage(outputFile(page.path), fillTemplate(headTags(title, page), markup))
-  if (page.card) await writePage(cardFile(page.path), await renderQuestionCard(page.card))
 }
+
+for (const [imagePath, data] of cards) await writePage(path.join(distDir, imagePath), await renderCard(data))
 
 const sharedTitles = duplicates(titles)
 if (sharedTitles.length > 0)
@@ -297,6 +317,4 @@ await writeFile(
 )
 await writeFile(path.join(distDir, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`)
 
-console.log(
-  `✔ prerendered ${pages.length} pages, ${pages.filter((page) => page.card).length} social cards, sitemap.xml and robots.txt`,
-)
+console.log(`✔ prerendered ${pages.length} pages, ${cards.size} social cards, sitemap.xml and robots.txt`)

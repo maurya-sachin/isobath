@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { Resvg } from '@resvg/resvg-js'
 import satori from 'satori'
-import { CARD_HEIGHT, CARD_WIDTH, questionCard, type CardData } from './ogCard.ts'
+import { CARD_HEIGHT, CARD_WIDTH, card, type CardData } from './ogCard.ts'
 
 // Satori renders a variable font at its default instance only, so the cards use the static packages.
 const require = createRequire(import.meta.url)
@@ -24,8 +24,8 @@ const fonts = await Promise.all(
   })),
 )
 
-export async function renderQuestionCard(data: CardData): Promise<Uint8Array> {
-  const svg = await satori(questionCard(data) as Parameters<typeof satori>[0], {
+export async function renderCard(data: CardData): Promise<Uint8Array> {
+  const svg = await satori(card(data) as Parameters<typeof satori>[0], {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     fonts,
