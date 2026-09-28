@@ -1,6 +1,6 @@
 // Prerender every content page into dist/ (run by `npm run build` after the client and server builds).
 // Each page becomes dist/<path>.html: the built template with the page's markup and head tags filled in.
-// Also writes dist/app-shell.html (the fallback for unknown URLs), sitemap.xml and robots.txt.
+// Also writes dist/app-shell.html (client-only routes), dist/404.html, sitemap.xml and robots.txt.
 
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -255,6 +255,22 @@ const titles: { path: string; value: string }[] = []
 await writePage(
   path.join(distDir, 'app-shell.html'),
   fillTemplate(appShellHeadTags(`${SITE_NAME}: ${TAGLINE}`, HOME_DESCRIPTION), ''),
+)
+
+// Vercel serves this, with a 404 status, for any URL that is neither a page nor a client-only route (vercel.json).
+const notFound = await render('/not-found/page/does/not-exist')
+const notFoundParts = splitTitle('404', notFound.html)
+await writePage(
+  path.join(distDir, '404.html'),
+  fillTemplate(
+    [
+      `<title>${notFoundParts.title}</title>`,
+      '<meta name="robots" content="noindex" />',
+      ...fontPreloads,
+      ...themeColorTags,
+    ].join('\n    '),
+    notFoundParts.markup,
+  ),
 )
 
 for (const page of pages) {
