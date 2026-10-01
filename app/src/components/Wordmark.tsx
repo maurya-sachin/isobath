@@ -1,3 +1,4 @@
+import { RING_PATH } from '@/lib/ring'
 import { SITE_NAME } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
@@ -18,7 +19,7 @@ export function Wordmark({ className }: { className?: string }) {
           stroke="currentColor"
           className="mx-[0.015em] size-[0.6em] translate-y-[0.06em] self-baseline text-link"
         >
-          <path d="M4 16.5c0-7 5.5-12.3 12.2-12.3S28 9.2 28 16s-5.2 12-11.9 12S4 23.5 4 16.5Z" strokeWidth="5.2" />
+          <path d={RING_PATH} strokeWidth="5.2" />
           <circle cx="16.2" cy="16.4" r="3" fill="currentColor" stroke="none" />
         </svg>
         bath
