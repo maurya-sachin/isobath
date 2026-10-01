@@ -35,7 +35,7 @@ export function DepthRail({ stops }: { stops: DepthStop[] }) {
 
   return (
     <nav aria-label="Depth of this answer" className="h-full text-sm">
-      <div className="sticky top-8 flex gap-3">
+      <div className="sticky top-[calc(var(--header-height)+2rem)] flex gap-3">
         <div className="relative w-1.5 shrink-0 rounded-full bg-border" aria-hidden="true">
           <div
             className="absolute inset-x-0 top-0 rounded-full bg-linear-to-b from-depth-from to-depth-to"

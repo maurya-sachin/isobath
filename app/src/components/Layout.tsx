@@ -1,9 +1,11 @@
+import { useRef } from 'react'
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 import { AppearanceMenu } from '@/components/AppearanceMenu'
 import { SearchDialog } from '@/components/SearchDialog'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { TopicSwitcher } from '@/components/TopicSwitcher'
 import { Wordmark } from '@/components/Wordmark'
+import { useHeaderHeight } from '@/lib/useHeaderHeight'
 import { REPO_URL } from '@/lib/repo'
 import { AUTHOR, AUTHOR_URL, SITE_NAME } from '@/lib/site'
 import { cn } from '@/lib/utils'
@@ -15,6 +17,8 @@ const MAIN_LINKS = [
 ]
 
 export function Layout() {
+  const header = useRef<HTMLElement>(null)
+  useHeaderHeight(header)
   return (
     <>
       <a
@@ -23,7 +27,10 @@ export function Layout() {
       >
         Skip to content
       </a>
-      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b bg-background/85 px-6 py-3 backdrop-blur">
+      <header
+        ref={header}
+        className="sticky top-0 z-40 flex flex-wrap items-center gap-x-4 gap-y-2 border-b bg-background/85 px-6 py-3 backdrop-blur"
+      >
         <div className="flex items-baseline gap-2.5">
           <Link to="/" className="text-foreground">
             <Wordmark className="text-xl" />

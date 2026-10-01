@@ -106,6 +106,12 @@
     --reading-font: var(--font-serif);
     --prose-leading: 1.7;
     --prose-gap: 1rem;
+    /* Height of the sticky header; src/lib/useHeaderHeight.ts keeps it exact. */
+    --header-height: 3.6rem;
+  }
+  html {
+    /* Anchors and focused elements scroll clear of the sticky header. */
+    scroll-padding-top: calc(var(--header-height) + 1rem);
   }
   [data-reading-font='sans'] {
     --reading-font: var(--font-sans);
@@ -226,4 +232,22 @@
     border: 1px solid var(--border);
     text-align: left;
   }
+}
+
+/*
+ * Appearance overrides sit outside the cascade layers on purpose: Tailwind's utilities (font-serif, leading-*) live in a
+ * layer, and unlayered rules win over every layer.
+ */
+/* The sans setting covers everything set in the serif: headings and summaries too. Only the wordmark keeps its lettering. */
+[data-reading-font='sans'] .font-serif:not([data-brand]) {
+  font-family: var(--font-sans);
+}
+
+[data-spacing='relaxed'] :is(p, li, dd) {
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  word-spacing: 0.06em;
+}
+[data-spacing='relaxed'] .content :is(p, li) {
+  line-height: var(--prose-leading);
 }

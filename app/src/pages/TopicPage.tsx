@@ -48,7 +48,7 @@ function Topic({ topic }: { topic: TopicSummary }) {
     <PageShell crumbs={[{ label: 'Topics', to: '/' }]} wide>
       <title>{`${topic.title} · ${SITE_NAME}`}</title>
       <div className="grid gap-10 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-14">
-        <header className="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:self-start lg:-mx-1 lg:overflow-y-auto lg:pr-3 lg:pl-1">
+        <header className="lg:sticky lg:top-[calc(var(--header-height)+2rem)] lg:max-h-[calc(100dvh-var(--header-height)-4rem)] lg:self-start lg:-mx-1 lg:overflow-y-auto lg:pr-3 lg:pl-1">
           <TopicCover
             slug={topic.slug}
             chapterCount={topic.chapters.length}
