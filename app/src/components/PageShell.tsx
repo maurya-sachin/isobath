@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { SITE_NAME } from '@/lib/site'
+import { StatusPage } from '@/components/StatusPage'
 import { cn } from '@/lib/utils'
 
 export interface Crumb {
@@ -42,13 +42,15 @@ export function PageShell({
 
 export function NotFound({ what }: { what: string }) {
   return (
-    <PageShell crumbs={[]}>
-      <title>{`${what} not found · ${SITE_NAME}`}</title>
-      <h1 className="text-2xl font-bold">{what} not found</h1>
-      <Link to="/" className="mt-4 inline-block text-link hover:text-link-hover">
+    <StatusPage
+      eyebrow="404"
+      title={`${what} not found`}
+      message="This address doesn't match anything here. It may have moved, or the link has a typo."
+    >
+      <Link to="/" className="text-link underline underline-offset-4 hover:text-link-hover">
         Back to all topics
       </Link>
-    </PageShell>
+    </StatusPage>
   )
 }
 

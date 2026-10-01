@@ -33,7 +33,7 @@ export const routes: RouteObject[] = [
     id: MANIFEST_ROUTE_ID,
     path: '/',
     element: <Layout />,
-    errorElement: <RouteError />,
+    errorElement: <RouteError standalone />,
     HydrateFallback: LoadingShell,
     loader: loadManifest,
     children: [
