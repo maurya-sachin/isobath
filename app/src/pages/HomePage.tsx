@@ -17,12 +17,10 @@ const INLINE_CODE = '[&_code]:font-mono [&_code]:text-[0.9em]'
 
 export function HomePage() {
   const { topics, paths } = useManifest()
-  const { last, lastTitleHtml } = useProgress()
   // Topics with something to read: published or draft questions.
   const available = topics.filter((topic) => topic.stats.readable > 0)
-  const drafted = topics.reduce((sum, topic) => sum + topic.stats.drafted, 0)
+  const draftsInReview = available.length === 0 ? topics.reduce((sum, topic) => sum + topic.stats.drafted, 0) : 0
   const start = paths.find((path) => path.start)?.start ?? null
-  const lastQuestion = last && lastTitleHtml ? { id: last, titleHtml: lastTitleHtml } : null
 
   return (
     <PageShell crumbs={[]} wide>
@@ -41,68 +39,19 @@ export function HomePage() {
         <StrataFigure className="mx-auto w-full max-w-md lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-[30rem]" />
         <div>
           <h2 className="mb-1 text-sm font-semibold">What are you preparing as?</h2>
-          {available.length === 0 && drafted > 0 && (
+          {draftsInReview > 0 && (
             <p className="mb-2 text-sm text-muted-foreground">
-              Nothing is published yet: {drafted} questions are written and in review.
+              Nothing is published yet: {draftsInReview} questions are written and in review.
             </p>
           )}
           <RoleList paths={paths} />
-          {lastQuestion && (
-            <Link
-              to={questionPath(lastQuestion)}
-              className="group mt-8 flex max-w-lg items-baseline gap-3 border-l-2 border-link pl-4"
-            >
-              <span>
-                <span className="block text-sm text-muted-foreground">Continue where you left off</span>
-                <span className="block font-medium group-hover:text-link">
-                  <QuestionTitle html={lastQuestion.titleHtml} />
-                </span>
-              </span>
-            </Link>
-          )}
+          <ContinueReading />
         </div>
       </section>
 
-      {start && (
-        <section
-          className="mt-20 grid grid-cols-1 gap-10 border-t pt-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16"
-          aria-labelledby="start-here"
-        >
-          <div>
-            <h2 id="start-here" className="font-serif text-3xl font-medium tracking-tight">
-              Start here
-            </h2>
-            <p className="mt-2 text-muted-foreground">If you read one question first, read this one.</p>
-            <p className="mt-6 font-serif text-3xl leading-tight font-medium tracking-tight">
-              <QuestionTitle html={start.titleHtml} />
-            </p>
-            <Button asChild size="lg" className="mt-6">
-              <Link to={questionPath(start)}>Read the question</Link>
-            </Button>
-          </div>
-          <div className="rounded-r-xl border-l-4 border-link bg-tldr py-5 pr-6 pl-6 text-tldr-foreground">
-            <p className="text-sm font-medium">30-second answer</p>
-            <InlineHtml
-              html={start.tldrHtml}
-              className={`mt-2 block font-serif text-xl leading-snug text-foreground ${INLINE_CODE}`}
-            />
-          </div>
-        </section>
-      )}
+      {start && <StartHere start={start} />}
 
-      {available.length > 0 && (
-        <section className="mt-20 border-t pt-12" aria-labelledby="available">
-          <h2 id="available" className="font-serif text-3xl font-medium tracking-tight">
-            Available now
-          </h2>
-          <p className="mt-2 text-muted-foreground">Written and researched against primary sources.</p>
-          <div className="mt-8 grid gap-10 md:grid-cols-2">
-            {available.map((topic) => (
-              <AvailableTopic key={topic.slug} topic={topic} />
-            ))}
-          </div>
-        </section>
-      )}
+      {available.length > 0 && <AvailableNow topics={available} />}
 
       <section className="mt-20 border-t pt-12" aria-labelledby="roadmap">
         <h2 id="roadmap" className="font-serif text-3xl font-medium tracking-tight">
@@ -116,6 +65,72 @@ export function HomePage() {
         </Link>
       </section>
     </PageShell>
+  )
+}
+
+type StartQuestion = NonNullable<ReturnType<typeof useManifest>['paths'][number]['start']>
+
+function ContinueReading() {
+  const { last, lastTitleHtml } = useProgress()
+  if (!last || !lastTitleHtml) return null
+  const question = { id: last, titleHtml: lastTitleHtml }
+  return (
+    <Link
+      to={questionPath(question)}
+      className="group mt-8 flex max-w-lg items-baseline gap-3 border-l-2 border-link pl-4"
+    >
+      <span>
+        <span className="block text-sm text-muted-foreground">Continue where you left off</span>
+        <span className="block font-medium group-hover:text-link">
+          <QuestionTitle html={question.titleHtml} />
+        </span>
+      </span>
+    </Link>
+  )
+}
+
+function StartHere({ start }: { start: StartQuestion }) {
+  return (
+    <section
+      className="mt-20 grid grid-cols-1 gap-10 border-t pt-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16"
+      aria-labelledby="start-here"
+    >
+      <div>
+        <h2 id="start-here" className="font-serif text-3xl font-medium tracking-tight">
+          Start here
+        </h2>
+        <p className="mt-2 text-muted-foreground">If you read one question first, read this one.</p>
+        <p className="mt-6 font-serif text-3xl leading-tight font-medium tracking-tight">
+          <QuestionTitle html={start.titleHtml} />
+        </p>
+        <Button asChild size="lg" className="mt-6">
+          <Link to={questionPath(start)}>Read the question</Link>
+        </Button>
+      </div>
+      <div className="rounded-r-xl border-l-4 border-link bg-tldr py-5 pr-6 pl-6 text-tldr-foreground">
+        <p className="text-sm font-medium">30-second answer</p>
+        <InlineHtml
+          html={start.tldrHtml}
+          className={`mt-2 block font-serif text-xl leading-snug text-foreground ${INLINE_CODE}`}
+        />
+      </div>
+    </section>
+  )
+}
+
+function AvailableNow({ topics }: { topics: TopicOverview[] }) {
+  return (
+    <section className="mt-20 border-t pt-12" aria-labelledby="available">
+      <h2 id="available" className="font-serif text-3xl font-medium tracking-tight">
+        Available now
+      </h2>
+      <p className="mt-2 text-muted-foreground">Written and researched against primary sources.</p>
+      <div className="mt-8 grid gap-10 md:grid-cols-2">
+        {topics.map((topic) => (
+          <AvailableTopic key={topic.slug} topic={topic} />
+        ))}
+      </div>
+    </section>
   )
 }
 
