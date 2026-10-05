@@ -49,7 +49,7 @@ export function QuestionPage() {
   ].filter((section) => section.shown)
 
   return (
-    <div className="mx-auto grid max-w-340 gap-12 px-6 py-8 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,45rem)_14rem] xl:justify-center">
+    <div className="mx-auto grid max-w-340 grid-cols-1 gap-12 px-6 py-8 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,45rem)_14rem] xl:justify-center">
       <aside aria-label="Questions in this chapter" className="hidden lg:block">
         <ChapterNav topicSlug={topic.slug} chapter={chapter} currentId={question.id} />
       </aside>

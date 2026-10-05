@@ -28,7 +28,7 @@ export function HomePage() {
     <PageShell crumbs={[]} wide>
       <title>{`${SITE_NAME}: ${TAGLINE}`}</title>
       {/* Phones read intro, figure, roles; from lg the figure takes the right column beside both. */}
-      <section className="grid items-start gap-x-16 gap-y-10 lg:grid-cols-[1fr_1.1fr] lg:gap-y-9">
+      <section className="grid grid-cols-1 items-start gap-x-16 gap-y-10 lg:grid-cols-[1fr_1.1fr] lg:gap-y-9">
         <div>
           <h1 className="font-serif text-[2.75rem] leading-[1.05] font-medium tracking-[-0.025em] sm:text-6xl">
             {TAGLINE}.
@@ -65,7 +65,7 @@ export function HomePage() {
 
       {start && (
         <section
-          className="mt-20 grid gap-10 border-t pt-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16"
+          className="mt-20 grid grid-cols-1 gap-10 border-t pt-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16"
           aria-labelledby="start-here"
         >
           <div>

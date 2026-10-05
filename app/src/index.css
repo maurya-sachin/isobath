@@ -243,11 +243,32 @@
   font-family: var(--font-sans);
 }
 
-[data-spacing='relaxed'] :is(p, li, dd) {
+[data-spacing='relaxed'] {
   line-height: 1.8;
   letter-spacing: 0.01em;
   word-spacing: 0.06em;
+  /* Tailwind's text-xs to text-xl and leading-relaxed take their line-height from these variables, so one override relaxes every body-size text. Display sizes and leading-none/tight keep theirs. */
+  --text-xs--line-height: 1.8;
+  --text-sm--line-height: 1.8;
+  --text-base--line-height: 1.8;
+  --text-lg--line-height: 1.8;
+  --text-xl--line-height: 1.75;
+  --leading-relaxed: 1.9;
+  --leading-snug: 1.6;
 }
-[data-spacing='relaxed'] .content :is(p, li) {
-  line-height: var(--prose-leading);
+[data-spacing='relaxed'] :is(code, pre) {
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+/* Higher contrast also means an opaque header: no text showing through a translucent bar. */
+[data-contrast='high'] header {
+  background-color: var(--background);
+  backdrop-filter: none;
+}
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  header {
+    background-color: var(--background);
+    backdrop-filter: none;
+  }
 }
