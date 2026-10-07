@@ -78,15 +78,14 @@ function registerCard(imagePath: string, data: CardData): { path: string; alt: s
   return { path: imagePath, alt: data.title }
 }
 
-async function listPages(): Promise<Page[]> {
-  const manifest = await readJson<ContentManifest>('data/manifest.json')
+function staticPages(manifest: ContentManifest): Page[] {
   const site = registerCard('/og/site.png', {
     kicker: 'Interview questions for any software engineer',
     title: TAGLINE,
     note: '',
     map: { slug: SITE_NAME, chapterCount: 6, hardShare: 0.3 },
   })
-  const pages: Page[] = [
+  return [
     { path: '/', description: HOME_DESCRIPTION, type: 'website', image: site, jsonLd: webSite(HOME_DESCRIPTION) },
     { path: '/paths', description: PATHS_DESCRIPTION, type: 'website', image: site },
     ...manifest.paths.map((rolePath): Page => ({
@@ -99,74 +98,109 @@ async function listPages(): Promise<Page[]> {
     { path: '/changelog', description: CHANGELOG_DESCRIPTION, type: 'website', image: site },
     { path: '/practice', description: PRACTICE_DESCRIPTION, type: 'website', image: site },
   ]
+}
 
-  for (const overview of manifest.topics) {
-    const topic = await readJson<TopicSummary>(`data/topics/${overview.slug}/index.json`)
-    const { byDifficulty, total } = chapterStats(topic.chapters)
-    const map = {
-      slug: topic.slug,
-      chapterCount: topic.chapters.length,
-      hardShare: total === 0 ? 0 : byDifficulty.hard / total,
-    }
-    const topicImage = registerCard(`/og/${topic.slug}.png`, {
-      kicker: topic.chapters.length > 0 ? `${topic.chapters.length} chapters · ${total} questions` : 'Planned topic',
-      title: topic.title,
-      note: '',
-      map,
-    })
-    const home: Crumb = { name: SITE_NAME, path: '/' }
-    const topicCrumbs: Crumb[] = [home, { name: topic.title, path: `/${topic.slug}` }]
-    if (overview.stats.readable > 0)
-      pages.push({
-        path: `/practice/${topic.slug}`,
-        description: `Practise ${topic.title} interview questions and review its flashcards.`,
-        type: 'website',
-        image: topicImage,
-      })
-    pages.push({
-      path: `/${topic.slug}`,
-      description: topic.summaryText,
-      type: 'website',
-      image: topicImage,
-      jsonLd: [breadcrumbList(topicCrumbs)],
-    })
+interface TopicContext {
+  topic: TopicSummary
+  crumbs: Crumb[]
+  image: Page['image']
+  map: CardData['map']
+  tldrs: Map<string, string>
+}
 
-    // Topics without chapters have no search.json.
-    const searchDocs =
-      topic.chapters.length > 0 ? await readJson<SearchDoc[]>(`data/topics/${topic.slug}/search.json`) : []
-    const tldrs = new Map(searchDocs.map((doc) => [doc.id, doc.tldr]))
-    for (const chapter of topic.chapters) {
-      const chapterCrumbs: Crumb[] = [...topicCrumbs, { name: chapter.title, path: `/${topic.slug}/${chapter.slug}` }]
-      pages.push({
-        path: `/${topic.slug}/${chapter.slug}`,
-        description: chapter.summaryText,
-        type: 'website',
-        image: topicImage,
-        jsonLd: [breadcrumbList(chapterCrumbs)],
-      })
-      for (const question of chapter.questions.filter((candidate) => candidate.hasPage)) {
-        const description = tldrs.get(question.id)
-        if (!description) throw new Error(`${question.id}: no TL;DR in search.json for the page description`)
-        const image = registerCard(`/og/${question.id}.png`, {
-          kicker: `${topic.title} · ${chapter.title}`,
-          title: question.title,
-          note: question.difficulty,
-          map,
-        })
-        pages.push({
-          path: `/${question.id}`,
-          description,
-          type: 'article',
-          image,
-          lastmod: question.verified ? `${question.verified}-01` : undefined,
-          jsonLd: [
-            techArticle({ title: question.title, description: metaDescription(description), path: `/${question.id}` }),
-            breadcrumbList([...chapterCrumbs, { name: question.title, path: `/${question.id}` }]),
-          ],
-        })
-      }
-    }
+async function topicPages(overview: ContentManifest['topics'][number]): Promise<Page[]> {
+  const topic = await readJson<TopicSummary>(`data/topics/${overview.slug}/index.json`)
+  const { byDifficulty, total } = chapterStats(topic.chapters)
+  const map = {
+    slug: topic.slug,
+    chapterCount: topic.chapters.length,
+    hardShare: total === 0 ? 0 : byDifficulty.hard / total,
   }
+  const image = registerCard(`/og/${topic.slug}.png`, {
+    kicker: topic.chapters.length > 0 ? `${topic.chapters.length} chapters · ${total} questions` : 'Planned topic',
+    title: topic.title,
+    note: '',
+    map,
+  })
+  const crumbs: Crumb[] = [
+    { name: SITE_NAME, path: '/' },
+    { name: topic.title, path: `/${topic.slug}` },
+  ]
+  // Topics without chapters have no search.json.
+  const searchDocs =
+    topic.chapters.length > 0 ? await readJson<SearchDoc[]>(`data/topics/${topic.slug}/search.json`) : []
+  const context: TopicContext = {
+    topic,
+    crumbs,
+    image,
+    map,
+    tldrs: new Map(searchDocs.map((doc) => [doc.id, doc.tldr])),
+  }
+
+  const pages: Page[] = []
+  if (overview.stats.readable > 0) {
+    pages.push({
+      path: `/practice/${topic.slug}`,
+      description: `Practise ${topic.title} interview questions and review its flashcards.`,
+      type: 'website',
+      image,
+    })
+  }
+  pages.push({
+    path: `/${topic.slug}`,
+    description: topic.summaryText,
+    type: 'website',
+    image,
+    jsonLd: [breadcrumbList(crumbs)],
+  })
+  return [...pages, ...topic.chapters.flatMap((chapter) => chapterPages(context, chapter))]
+}
+
+function chapterPages(context: TopicContext, chapter: TopicSummary['chapters'][number]): Page[] {
+  const { topic, crumbs, image } = context
+  const chapterCrumbs: Crumb[] = [...crumbs, { name: chapter.title, path: `/${topic.slug}/${chapter.slug}` }]
+  const chapterPage: Page = {
+    path: `/${topic.slug}/${chapter.slug}`,
+    description: chapter.summaryText,
+    type: 'website',
+    image,
+    jsonLd: [breadcrumbList(chapterCrumbs)],
+  }
+  const questions = chapter.questions.filter((candidate) => candidate.hasPage)
+  return [chapterPage, ...questions.map((question) => questionPage(context, chapter, chapterCrumbs, question))]
+}
+
+function questionPage(
+  { topic, tldrs, map }: TopicContext,
+  chapter: TopicSummary['chapters'][number],
+  chapterCrumbs: Crumb[],
+  question: TopicSummary['chapters'][number]['questions'][number],
+): Page {
+  const description = tldrs.get(question.id)
+  if (!description) throw new Error(`${question.id}: no TL;DR in search.json for the page description`)
+  const image = registerCard(`/og/${question.id}.png`, {
+    kicker: `${topic.title} · ${chapter.title}`,
+    title: question.title,
+    note: question.difficulty,
+    map,
+  })
+  return {
+    path: `/${question.id}`,
+    description,
+    type: 'article',
+    image,
+    lastmod: question.verified ? `${question.verified}-01` : undefined,
+    jsonLd: [
+      techArticle({ title: question.title, description: metaDescription(description), path: `/${question.id}` }),
+      breadcrumbList([...chapterCrumbs, { name: question.title, path: `/${question.id}` }]),
+    ],
+  }
+}
+
+async function listPages(): Promise<Page[]> {
+  const manifest = await readJson<ContentManifest>('data/manifest.json')
+  const pages = staticPages(manifest)
+  for (const overview of manifest.topics) pages.push(...(await topicPages(overview)))
   return pages
 }
 
