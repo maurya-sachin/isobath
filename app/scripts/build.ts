@@ -6,6 +6,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { isStale } from '../src/content/freshness.ts'
 import type {
+  CheatsheetEntry,
   ContentManifest,
   Exercise,
   Flashcard,
@@ -291,6 +292,18 @@ await writeJson(path.join(outDir, 'changelog.json'), changelog)
 
 const topicDir = (slug: string) => path.join(outDir, 'topics', slug)
 for (const topic of topics) await writeJson(path.join(topicDir(topic.slug), 'index.json'), topic)
+
+for (const topic of content.topics) {
+  for (const chapter of topic.chapters) {
+    const entries: CheatsheetEntry[] = []
+    for (const question of chapter.questions) {
+      const meta = metaOf(question)
+      if (hasPage(meta))
+        entries.push({ id: question.id, tldrHtml: (await renderInline(meta.tldr, question.file)).html })
+    }
+    if (entries.length > 0) await writeJson(path.join(topicDir(topic.slug), chapter.slug, 'cheatsheet.json'), entries)
+  }
+}
 
 const allSearchDocs: SearchDoc[] = []
 for (const topic of content.topics) {

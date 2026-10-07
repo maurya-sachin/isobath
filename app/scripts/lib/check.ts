@@ -116,7 +116,7 @@ function checkDecks({ topics, decks }: Content): Problem[] {
 }
 
 /** Topic folders can't take names the app uses for other routes (`paths/` and `flashcards/` are already content folders). */
-const RESERVED_TOPIC_SLUGS = ['practice', 'roadmap', 'changelog']
+const RESERVED_TOPIC_SLUGS = ['practice', 'roadmap', 'changelog', 'cheatsheet']
 
 /** Topic names that clash with app routes, and role paths that don't resolve. */
 function checkRolePaths({ topics, paths }: Content): Problem[] {

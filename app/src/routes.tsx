@@ -5,6 +5,7 @@ import { NotFound } from '@/components/PageShell'
 import { RouteError } from '@/components/RouteError'
 import {
   loadChangelog,
+  loadCheatsheet,
   loadFlashcards,
   loadManifest,
   loadPractice,
@@ -37,6 +38,11 @@ export const routes: RouteObject[] = [
             path: 'changelog',
             lazy: async () => ({ Component: (await import('@/pages/ChangelogPage')).ChangelogPage }),
             loader: loadChangelog,
+          },
+          {
+            path: 'cheatsheet/:topic/:chapter',
+            lazy: async () => ({ Component: (await import('@/pages/CheatsheetPage')).CheatsheetPage }),
+            loader: ({ params }: LoaderFunctionArgs) => loadCheatsheet(params.topic, params.chapter),
           },
           { path: 'roadmap', lazy: async () => ({ Component: (await import('@/pages/RoadmapPage')).RoadmapPage }) },
           {

@@ -79,6 +79,14 @@
   }
 }
 
+/* Paper is white: the theme's tint would otherwise print as a coloured page. */
+@media print {
+  html,
+  body {
+    background: white;
+  }
+}
+
 /* Reduced motion: the system preference or the in-app setting. */
 @media (prefers-reduced-motion: reduce) {
   *,

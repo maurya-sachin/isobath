@@ -195,6 +195,12 @@ export interface SearchDoc {
   hasPage: boolean
 }
 
+/** One entry of `data/topics/<topic>/<chapter>/cheatsheet.json`: a readable question's 30-second answer. Titles come from the topic index. */
+export interface CheatsheetEntry {
+  id: string
+  tldrHtml: string
+}
+
 /** One entry of `data/topics/<slug>/flashcards.json`. */
 export interface Flashcard {
   /** `<topic>/<card id>`; keys the learner's review history. */
