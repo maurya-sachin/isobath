@@ -158,31 +158,32 @@ function checkOrder(headings: string[], allowed: string[], marker: string): stri
   return errors
 }
 
+function checkStrayText(intro: string[], bodyLine: number, file: string): Problem[] {
+  const strayLine = intro.findIndex((line) => line.trim() !== '')
+  return strayLine === -1 ? [] : [{ file, line: bodyLine + strayLine, message: 'text before the first `##` section' }]
+}
+
+function checkRequired(headings: string[], core: boolean, file: string): Problem[] {
+  const required = core ? [...REQUIRED_SECTIONS, 'Deep dive'] : REQUIRED_SECTIONS
+  return required
+    .filter((heading) => !headings.includes(heading))
+    .map((heading) => ({ file, message: `missing \`## ${heading}\`` }))
+}
+
 /** Body problems for draft and published questions; planned stubs have no body to check. */
 export function checkBody(question: Question): Problem[] {
   if (!question.meta || question.meta.status === 'planned') return []
 
   const file = repoRelative(question.file)
-  const problems: Problem[] = []
   const { intro, sections } = splitSections(question.body.split('\n'), 2, question.bodyLine)
   const headings = sections.map((section) => section.heading)
 
-  const strayLine = intro.findIndex((line) => line.trim() !== '')
-  if (strayLine !== -1) {
-    problems.push({ file, line: question.bodyLine + strayLine, message: 'text before the first `##` section' })
-  }
-  for (const message of checkOrder(headings, SECTION_ORDER, '##')) problems.push({ file, message })
-
-  const required = question.meta.core ? [...REQUIRED_SECTIONS, 'Deep dive'] : REQUIRED_SECTIONS
-  for (const heading of required) {
-    if (!headings.includes(heading)) problems.push({ file, message: `missing \`## ${heading}\`` })
-  }
-
-  for (const section of sections) {
-    for (const message of checkSection(section)) {
-      problems.push({ file, line: section.line, message: `${section.heading}: ${message}` })
-    }
-  }
-
-  return problems
+  return [
+    ...checkStrayText(intro, question.bodyLine, file),
+    ...checkOrder(headings, SECTION_ORDER, '##').map((message) => ({ file, message })),
+    ...checkRequired(headings, question.meta.core, file),
+    ...sections.flatMap((section) =>
+      checkSection(section).map((message) => ({ file, line: section.line, message: `${section.heading}: ${message}` })),
+    ),
+  ]
 }

@@ -31,15 +31,18 @@ export function extractExamples(markdown: string): { examples: Example[]; skippe
     if (expected.length === 0) return
     const meta = node.meta?.split(/\s+/) ?? []
     if (meta.includes(OPT_OUT)) skipped++
-    else
-      examples.push({
-        line: node.position?.start.line ?? 0,
-        code: node.value,
-        mode: meta.includes(SCRIPT_MODE) ? 'script' : 'module',
-        expected,
-      })
+    else examples.push(toExample(node, meta, expected))
   })
   return { examples, skipped }
+}
+
+function toExample(node: Code, meta: string[], expected: string[]): Example {
+  return {
+    line: node.position?.start.line ?? 0,
+    code: node.value,
+    mode: meta.includes(SCRIPT_MODE) ? 'script' : 'module',
+    expected,
+  }
 }
 
 function expectedOutput(code: string): string[] {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { contourRings, coverRings, furthestPoint, ringAtLevel, ringPath } from '../../src/lib/contours.ts'
+import { contourRings, coverRings, furthestPoint, ringAtLevel, ringPath, type Ring } from '../../src/lib/contours.ts'
 
 const SEEDS = Array.from({ length: 120 }, (_, index) => `topic-${index}`)
 
@@ -12,21 +12,29 @@ test('different seeds draw different maps', () => {
   assert.notDeepEqual(contourRings({ seed: 'javascript', levels: 6 }), contourRings({ seed: 'typescript', levels: 6 }))
 })
 
+function assertEveryLevelHasRing(rings: Ring[], levels: number, seed: string) {
+  for (let level = 0; level < levels; level++) {
+    assert.ok(
+      rings.some((ring) => ring.level === level),
+      `${seed}: level ${level} of ${levels} has no ring`,
+    )
+  }
+}
+
+function assertRingsInsideFrame(rings: Ring[], seed: string) {
+  for (const { points } of rings) {
+    assert.ok(points.length >= 3, `${seed}: ring with ${points.length} points`)
+    for (const [x, y] of points)
+      assert.ok(x > 0 && x < 100 && y > 0 && y < 100, `${seed}: point (${x}, ${y}) outside the frame`)
+  }
+}
+
 test('every level has a closed ring strictly inside the frame, for any seed and level count', () => {
   for (const seed of SEEDS) {
     for (const levels of [1, 3, 6, 9, 30]) {
       const rings = contourRings({ seed, levels })
-      for (let level = 0; level < levels; level++) {
-        assert.ok(
-          rings.some((ring) => ring.level === level),
-          `${seed}: level ${level} of ${levels} has no ring`,
-        )
-      }
-      for (const { points } of rings) {
-        assert.ok(points.length >= 3, `${seed}: ring with ${points.length} points`)
-        for (const [x, y] of points)
-          assert.ok(x > 0 && x < 100 && y > 0 && y < 100, `${seed}: point (${x}, ${y}) outside the frame`)
-      }
+      assertEveryLevelHasRing(rings, levels, seed)
+      assertRingsInsideFrame(rings, seed)
     }
   }
 })
