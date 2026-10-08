@@ -139,7 +139,7 @@ Truthiness checks fail at boundaries where the data is a *string* or a *number t
 - **Environment variables and query strings are strings.** `FEATURE_X=false` gives the string `"false"`, which is truthy, so `if (process.env.FEATURE_X)` enables the feature. Parse explicitly.
 - **React renders `0`.** React's docs warn against `messageCount && <p>…</p>`: when `messageCount` is `0`, the expression evaluates to `0`, and React renders it. Compare explicitly (`messageCount > 0 && …`) or use a ternary.
 
-```js no-run
+```js env=FEATURE_X=false
 const rawFlag = process.env.FEATURE_X; // run with FEATURE_X=false
 console.log(Boolean(rawFlag), rawFlag === 'true'); // → true false
 
