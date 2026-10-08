@@ -1,8 +1,8 @@
-import { Link, useParams } from 'react-router'
+import { Link, useLoaderData, useParams } from 'react-router'
 import { NotFound, PageShell } from '@/components/PageShell'
 import { DiagramLegend, RouteDiagram, type DiagramNode } from '@/components/RouteDiagram'
 import { Button } from '@/components/ui/button'
-import { useManifest } from '@/content/index-data'
+import type { ContentManifest } from '@/content/types'
 import { topicBranches } from '@/lib/diagram'
 import { readingHours } from '@/lib/effort'
 import { describePath, readyQuestionCount, stepKey, stepLabel, stepPath, stepProgress } from '@/lib/paths'
@@ -11,7 +11,7 @@ import { SITE_NAME } from '@/lib/site'
 
 export function PathPage() {
   const { slug } = useParams()
-  const { paths, topics } = useManifest()
+  const { paths, topics } = useLoaderData<ContentManifest>()
   const { read } = useProgress()
   const path = paths.find((candidate) => candidate.slug === slug)
   if (!path) return <NotFound what="Path" />

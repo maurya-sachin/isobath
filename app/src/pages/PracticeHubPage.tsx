@@ -1,12 +1,11 @@
-import { Link } from 'react-router'
+import { Link, useLoaderData } from 'react-router'
 import { PageShell } from '@/components/PageShell'
 import { ProgressBackup } from '@/components/ProgressBackup'
 import { TopicCover } from '@/components/TopicCover'
 import { Button } from '@/components/ui/button'
-import { useManifest } from '@/content/index-data'
 import { deckStatus, NEW_CARDS_PER_SESSION, nextDue, type Reviews } from '@/content/review'
 import { useReviews } from '@/content/reviewStore'
-import type { TopicOverview } from '@/content/types'
+import type { ContentManifest, TopicOverview } from '@/content/types'
 import { SITE_NAME } from '@/lib/site'
 import { formatUntil } from '@/lib/time'
 import { useHydrated } from '@/lib/useHydrated'
@@ -79,7 +78,7 @@ function NextUp({ decks, reviews, now }: { decks: Deck[]; reviews: Reviews; now:
 }
 
 export function PracticeHubPage() {
-  const { topics } = useManifest()
+  const { topics } = useLoaderData<ContentManifest>()
   const reviews = useReviews()
   const practisable = topics.filter((topic) => topic.stats.readable > 0)
   const hydrated = useHydrated()

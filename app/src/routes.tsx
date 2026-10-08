@@ -10,8 +10,9 @@ import {
   loadManifest,
   loadPractice,
   loadQuestion,
+  loadSiteIndex,
   loadTopic,
-  MANIFEST_ROUTE_ID,
+  SITE_ROUTE_ID,
   TOPIC_ROUTE_ID,
 } from '@/content/index-data'
 
@@ -20,20 +21,32 @@ import {
 // paths, so their loaders return the topic alongside their data.
 export const routes: RouteObject[] = [
   {
-    id: MANIFEST_ROUTE_ID,
+    id: SITE_ROUTE_ID,
     path: '/',
     element: <Layout />,
     errorElement: <RouteError standalone />,
     HydrateFallback: LoadingShell,
-    loader: loadManifest,
+    loader: loadSiteIndex,
     children: [
       // Pages sit under a pathless route so a failed load renders inside the layout, keeping the header.
       {
         errorElement: <RouteError />,
         children: [
-          { index: true, lazy: async () => ({ Component: (await import('@/pages/HomePage')).HomePage }) },
-          { path: 'paths', lazy: async () => ({ Component: (await import('@/pages/PathsPage')).PathsPage }) },
-          { path: 'paths/:slug', lazy: async () => ({ Component: (await import('@/pages/PathPage')).PathPage }) },
+          {
+            index: true,
+            lazy: async () => ({ Component: (await import('@/pages/HomePage')).HomePage }),
+            loader: loadManifest,
+          },
+          {
+            path: 'paths',
+            lazy: async () => ({ Component: (await import('@/pages/PathsPage')).PathsPage }),
+            loader: loadManifest,
+          },
+          {
+            path: 'paths/:slug',
+            lazy: async () => ({ Component: (await import('@/pages/PathPage')).PathPage }),
+            loader: loadManifest,
+          },
           {
             path: 'changelog',
             lazy: async () => ({ Component: (await import('@/pages/ChangelogPage')).ChangelogPage }),
@@ -44,10 +57,15 @@ export const routes: RouteObject[] = [
             lazy: async () => ({ Component: (await import('@/pages/CheatsheetPage')).CheatsheetPage }),
             loader: ({ params }: LoaderFunctionArgs) => loadCheatsheet(params.topic, params.chapter),
           },
-          { path: 'roadmap', lazy: async () => ({ Component: (await import('@/pages/RoadmapPage')).RoadmapPage }) },
+          {
+            path: 'roadmap',
+            lazy: async () => ({ Component: (await import('@/pages/RoadmapPage')).RoadmapPage }),
+            loader: loadManifest,
+          },
           {
             path: 'practice',
             lazy: async () => ({ Component: (await import('@/pages/PracticeHubPage')).PracticeHubPage }),
+            loader: loadManifest,
           },
           {
             path: 'practice/:topic',

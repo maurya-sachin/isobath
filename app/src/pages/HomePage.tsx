@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { Link, useLoaderData } from 'react-router'
 import { DifficultyMix } from '@/components/DifficultyMix'
 import { PageShell } from '@/components/PageShell'
 import { InlineHtml } from '@/components/question/InlineHtml'
@@ -8,15 +8,15 @@ import { RoleList } from '@/components/RoleList'
 import { StrataFigure } from '@/components/StrataFigure'
 import { TopicCover } from '@/components/TopicCover'
 import { Button } from '@/components/ui/button'
-import { questionPath, useManifest } from '@/content/index-data'
-import type { TopicOverview } from '@/content/types'
+import { questionPath } from '@/content/index-data'
+import type { ContentManifest, TopicOverview } from '@/content/types'
 import { useProgress } from '@/lib/progress'
 import { SITE_NAME, TAGLINE } from '@/lib/site'
 
 const INLINE_CODE = '[&_code]:font-mono [&_code]:text-[0.9em]'
 
 export function HomePage() {
-  const { topics, paths } = useManifest()
+  const { topics, paths } = useLoaderData<ContentManifest>()
   // Topics with something to read: published or draft questions.
   const available = topics.filter((topic) => topic.stats.readable > 0)
   const draftsInReview = available.length === 0 ? topics.reduce((sum, topic) => sum + topic.stats.drafted, 0) : 0
@@ -68,7 +68,7 @@ export function HomePage() {
   )
 }
 
-type StartQuestion = NonNullable<ReturnType<typeof useManifest>['paths'][number]['start']>
+type StartQuestion = NonNullable<ContentManifest['paths'][number]['start']>
 
 function ContinueReading() {
   const { last, lastTitleHtml } = useProgress()

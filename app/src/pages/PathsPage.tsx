@@ -1,13 +1,14 @@
+import { useLoaderData } from 'react-router'
 import { PageShell } from '@/components/PageShell'
 import { StationLegend } from '@/components/RouteLine'
 import { RoleList } from '@/components/RoleList'
-import { useManifest } from '@/content/index-data'
+import type { ContentManifest } from '@/content/types'
 import { SITE_NAME } from '@/lib/site'
 
 const LEGEND_STATES = ['done', 'written', 'in-progress', 'planned'] as const
 
 export function PathsPage() {
-  const { paths } = useManifest()
+  const { paths } = useLoaderData<ContentManifest>()
   return (
     <PageShell crumbs={[]} wide>
       <title>{`Paths · ${SITE_NAME}`}</title>

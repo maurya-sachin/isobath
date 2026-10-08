@@ -10,13 +10,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { useManifest } from '@/content/index-data'
+import { useSiteIndex } from '@/content/index-data'
 import { groupByTrack } from '@/lib/tracks'
 
 /** A header menu to jump to any topic, grouped by track; planned topics are listed and marked. */
 export function TopicSwitcher() {
   const navigate = useNavigate()
-  const { topics } = useManifest()
+  const { topics } = useSiteIndex()
   const [open, setOpen] = useState(false)
 
   return (
