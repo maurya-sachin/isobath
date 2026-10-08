@@ -7,7 +7,7 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
 - On `dev`, unmerged (maintainer merges at EOD): 6.1 rewrite fix (then curl `/flashcards/react` live), 6.2 example runner (272 JS examples run, 48 `no-run`), 6.3 og cards (412 PNGs, +13 s build; check a shared link with a card validator after deploy), 6.4 giscus comments (built-in light/dark theme; `giscus.json` origins apply once merged to `main`), 6.6 Anki decks (`/data/topics/<slug>/anki.txt`; import into Anki once to confirm).
 - Repo renamed `isobath` (2026-11-05); `dev` not yet pushed since. Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); publish the dev.to draft "I rebuilt my interview prep repo…" (update counts if React ships first); pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
-- Now: 6A built and verified (palette, Appearance panel, fonts, a11y; settings checked on 1,854 text elements); left: T3 no-drafts build check, T5 manual passes, T6 after deploy. 6B Q1 and the complexity pass (6C; lint fails above 10) done; Q2 done (Lighthouse 99–100 on five page types, mobile and desktop; pages are lazy chunks; Vite warns past 470 kB); 6.5 cheat sheet built (`/cheatsheet/:topic/:chapter`; Firefox and Safari print are maintainer checks); next 6.10 (spec drafted, awaiting OK), then the rest of Tier 2. Phase 7 (`nextjs`) waits until Phase 6 tier 1 and 6.10 ship; tier 2–3 then alternate with content.
+- Now: 6A built and verified (palette, Appearance panel, fonts, a11y; settings checked on 1,854 text elements); left: T3 no-drafts build check, T5 manual passes, T6 after deploy. 6B Q1 and the complexity pass (6C; lint fails above 10) done; Q2 done (Lighthouse 99–100 on five page types, mobile and desktop; pages are lazy chunks; Vite warns past 470 kB); 6.5 cheat sheet built (`/cheatsheet/:topic/:chapter`; Firefox and Safari print are maintainer checks); 6.10 done (question pages embed 35% less data); next the rest of Tier 2 (each needs a spec and OK). Phase 7 (`nextjs`) waits until Phase 6 tier 1 and 6.10 ship; tier 2–3 then alternate with content.
 - Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
 
 ## Goal
@@ -61,7 +61,6 @@ Tier 2:
 - [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
 - [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
 - [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`)
-- [ ] 6.10 Slim hydration data: the manifest (44 kB) leaves every page that only needs the header's topic list (spec `docs/superpowers/specs/2026-11-06-slim-hydration-design.md`, awaiting OK)
 - [ ] 6.11 Weekly source link check (lychee) opening an issue
 - [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews
 Tier 3:
