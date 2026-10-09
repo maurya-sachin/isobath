@@ -199,7 +199,7 @@ Running the official suite, `promises-aplus-tests` 2.1.2 (installed with `npx` i
 
 Timing differs from the native promise when a handler returns a promise. The native `resolve` schedules a separate job to call `then` on the returned promise, which costs extra ticks. `MyPromise` calls `then` immediately, which A+ allows. The result is observable:
 
-```js no-run
+```js continues
 for (const [name, P] of [['native', Promise], ['MyPromise', MyPromise]]) {
   const log = [];
   new P((r) => r()).then(() => { log.push('a1'); return new P((r) => r('x')); }).then(() => log.push('a2'));
