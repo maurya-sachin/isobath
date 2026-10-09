@@ -42,7 +42,7 @@ The fix is usually structural: move the shared code into a third module, or read
 
 ## Example
 
-```js no-run
+```js files run=a.mjs
 // a.mjs (entry point)
 import { b } from './b.mjs';
 
@@ -92,7 +92,7 @@ Link-time and run-time are separate. During linking, `InitializeEnvironment` cre
 
 CommonJS has no TDZ, so the same program behaves differently. In Node.js 24:
 
-```js no-run
+```js files run=a.cjs
 // a.cjs (entry point)
 exports.done = false;
 const b = require('./b.cjs');

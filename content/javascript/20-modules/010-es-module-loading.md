@@ -41,7 +41,7 @@ Import declarations are hoisted: they are processed at link time, so a dependenc
 
 ## Example
 
-```js no-run
+```js files run=main.mjs
 // counter.mjs
 console.log('counter evaluated');
 export let count = 0;
