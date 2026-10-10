@@ -50,7 +50,7 @@ Three things interviewers want to hear:
 
 ## Example
 
-```js no-run
+```js node=--expose-gc
 // gc-cycle.mjs, run with: node --expose-gc gc-cycle.mjs
 const heapMB = () => {
   global.gc(); // collect first so heapUsed reflects live objects only
