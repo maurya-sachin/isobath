@@ -18,6 +18,10 @@
 - **`continues`** on the fence: the code of the nearest preceding `js` fence of the same question is placed before this block in the same file, with `console.log` silenced while it runs, so only this block's output is compared. If the earlier fence is itself `continues`, its prefix comes first. Limit: output from timers or promises in the earlier block is not silenced; such blocks stay `no-run`.
 - Meta tokens do not change rendering (the build already checks that meta is stripped from output).
 
+## Result (built 2026-11-06)
+- 295 ran, 25 skipped, 0 failed (was 272 and 48). Converted: `node=` 8, `env=` 1, `continues` 6, `files`/`run=` 7, stale 1 = 23 blocks, in nine per-chapter commits that change only the fence line; the rendered pages and question JSON are byte-identical.
+- The estimate of about 38 was too high. 25 stay `no-run`: about 11 refer to files or earlier fences the block never shows (`./counter.mjs`, `./state.mjs`, a self-importing `ns.mjs`, `bind` and `runTasks` defined in a block that is not the nearest one), 4 timings, 2 racy values, 4 `@js-temporal/polyfill`, 1 iterator helper missing from this Node, 3 needing a flag outside the allow-list or output the run can't reproduce (`--no-lazy-feedback-allocation`, `| grep`, GC timing). Running the first group would need a way to name the files or earlier fences to include; that is a separate design.
+
 ## Not doing
 - Running TypeScript, browser or Temporal examples (they wait for 6.13) or installing packages.
 - Changing an example's text to make it runnable; where a run exposes a wrong claim, the question is fixed in its own `content:` commit.
