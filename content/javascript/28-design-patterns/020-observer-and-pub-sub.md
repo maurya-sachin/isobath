@@ -123,7 +123,7 @@ Observer versus pub/sub is a question of *where the list lives*. In observer it 
 
 **Removing a listener during an emit.** Implementations disagree on whether a listener removed mid-emit still runs:
 
-```js no-run
+```js continues
 import { EventEmitter } from 'node:events';
 // Emitter is the class from the Example
 
