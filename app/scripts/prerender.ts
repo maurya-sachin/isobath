@@ -10,6 +10,7 @@ import type { ContentManifest, SearchDoc, TopicSummary } from '../src/content/ty
 import { SITE_NAME, SITE_URL, TAGLINE } from '../src/lib/site.ts'
 import { faviconSvg, touchIconSvg } from '../src/theme/icons.ts'
 import { hex } from '../src/theme/palette.ts'
+import { withContentSecurityPolicy } from './lib/csp.ts'
 import { CARD_HEIGHT, CARD_WIDTH, type CardData } from './lib/ogCard.ts'
 import { renderCard, svgToPng } from './lib/ogImage.ts'
 import {
@@ -298,7 +299,7 @@ for (const placeholder of ['<!--app-head-->', '<!--app-html-->']) {
     )
 }
 const fillTemplate = (head: string, markup: string) =>
-  template.replace('<!--app-head-->', () => head).replace('<!--app-html-->', () => markup)
+  withContentSecurityPolicy(template.replace('<!--app-head-->', () => head).replace('<!--app-html-->', () => markup))
 
 const fontPreloads = await fontPreloadTags()
 serveDataFromDisk()
