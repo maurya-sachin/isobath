@@ -52,7 +52,7 @@ export function ChapterPage() {
         <span>{stats.total} questions</span>
         <DifficultyMix counts={stats.byDifficulty} className="w-32" />
         {stats.readable > 0 && (
-          <span className="ml-auto flex gap-2">
+          <span className="ml-auto flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm">
               <Link to={`/cheatsheet/${topic.slug}/${chapter.slug}`}>Cheat sheet</Link>
             </Button>
