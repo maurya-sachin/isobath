@@ -337,7 +337,7 @@ await writePage(
       ...iconTags,
     ].join('\n    '),
     notFoundParts.markup,
-  ),
+  ).replace('<div id="root">', '<div id="root" data-client-render>'), // see src/main.tsx
 )
 
 for (const page of pages) {
