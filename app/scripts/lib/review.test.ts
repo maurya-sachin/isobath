@@ -1,10 +1,29 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { fsrs, Rating, type Grade } from 'ts-fsrs'
-import { deckStatus, dueQueue, isValidCard, NEW_CARDS_PER_SESSION, nextDue, parseReviews, previewIntervals, type Reviews } from '../../src/content/review.ts'
+import {
+  deckStatus,
+  dueQueue,
+  isValidCard,
+  NEW_CARDS_PER_SESSION,
+  nextDue,
+  parseReviews,
+  previewIntervals,
+  type Reviews,
+} from '../../src/content/review.ts'
 
 const now = new Date('2026-10-14T12:00:00Z')
-const card = (due: string) => ({ due, state: 2, stability: 1, difficulty: 5, elapsed_days: 0, scheduled_days: 1, learning_steps: 0, reps: 1, lapses: 0 })
+const card = (due: string) => ({
+  due,
+  state: 2,
+  stability: 1,
+  difficulty: 5,
+  elapsed_days: 0,
+  scheduled_days: 1,
+  learning_steps: 0,
+  reps: 1,
+  lapses: 0,
+})
 
 const reviews = {
   'javascript/a': card('2026-10-13T00:00:00Z'), // overdue
@@ -32,7 +51,11 @@ test('next due is the soonest future review in the topic', () => {
 
 test('a session takes every overdue card, oldest first, then at most 20 new ones', () => {
   const cards = ['a', 'b', 'c', ...Array.from({ length: 30 }, (_, index) => `new-${index}`)].map((id) => ({
-    id: `javascript/${id}`, topic: 'javascript', frontHtml: '', backHtml: '', question: 'javascript/c/q',
+    id: `javascript/${id}`,
+    topic: 'javascript',
+    frontHtml: '',
+    backHtml: '',
+    question: 'javascript/c/q',
   }))
   const queue = dueQueue(cards, reviews, now).map((card) => card.id)
   assert.equal(NEW_CARDS_PER_SESSION, 20)

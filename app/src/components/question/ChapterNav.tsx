@@ -7,7 +7,15 @@ import type { ChapterSummary } from '@/content/types'
 import { questionPath } from '@/content/index-data'
 import { cn } from '@/lib/utils'
 
-export function ChapterNav({ topicSlug, chapter, currentId }: { topicSlug: string; chapter: ChapterSummary; currentId: string }) {
+export function ChapterNav({
+  topicSlug,
+  chapter,
+  currentId,
+}: {
+  topicSlug: string
+  chapter: ChapterSummary
+  currentId: string
+}) {
   const hasPublished = chapter.questions.some((question) => question.hasPage)
   return (
     <nav aria-label="Questions in this chapter" className="text-sm">

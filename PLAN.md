@@ -3,11 +3,13 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1), `archive/improvements` (unmerged v1 fixes).
-- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851. Limits are labelled in the text (browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
-- Bug, awaiting OK to fix and deploy: direct loads of non-prerendered routes (`/flashcards/<topic>`, `/practice/…`, unknown paths) get Vercel's NOT_FOUND, because `cleanUrls` 308s the `/app-shell.html` rewrite. Likely fix: destination `/app-shell`; confirm in Vercel docs, curl live.
-- Next: Phase 7 next topic — recommended `react` (Frontend track); plan chapters + stubs from its **Not yet mapped** list, then the same writer/cards loop (briefs and harness setup in memory).
-- Awaiting maintainer: Phase 5 reviews; wordmark redraw.
+- Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
+- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
+- On `dev`, unmerged (maintainer merges at EOD): 6.1 rewrite fix (then curl `/flashcards/react` live), 6.2 example runner (272 JS examples run, 48 `no-run`), 6.3 og cards (412 PNGs, +13 s build; check a shared link with a card validator after deploy), 6.4 giscus comments (built-in light/dark theme; `giscus.json` origins apply once merged to `main`), 6.6 Anki decks (`/data/topics/<slug>/anki.txt`; import into Anki once to confirm).
+- Repo renamed `isobath` (2026-11-05); `dev` not yet pushed since. Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); publish the dev.to draft "I rebuilt my interview prep repo…" (update counts if React ships first); pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
+- Now: Phase 6 tier 1 is done except 6.1 (on `dev`, waits for your merge to `main`); then Phase 7 (`nextjs`) can start. Done since the last merge: 6A theme and a11y, 6B Q1–Q4 (SEO, Lighthouse 99–100, security headers and CSP, browser smoke test), 6C complexity, 6.2b, 6.5, 6.10. Left in 6A: T3 no-drafts build check, T5 manual passes, T6 after deploy.
+- After the next deploy (maintainer): `curl -I` for the new headers; the first CI run of the `smoke` job (runner browser paths unconfirmed); Rich Results and Search Console checks. Tier 2 items each need a spec and OK.
+- Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
@@ -26,13 +28,15 @@ Non-goals: backend service, accounts, paid AI.
 - R11 Coverage lives in READMEs: each chapter sub-topic points to its questions or ends `→ —` (gap); topic READMEs list areas with no chapter under **Not yet mapped**. New content goes through `templates/README.md` → Adding content.
 - R12 One topic per subject, grouped into tracks; each topic README has a `> **Track:**` line directly above its status line. A topic with no chapters keeps its planned structure in **Not yet mapped**. Track membership: `templates/README.md` → README status lines.
 - R13 Brand: **isobath, by Sachin Maurya**, "engineering interviews, in depth". Wordmark = "isobath" with a contour ring as its "o"; the favicon is that ring; topic covers are generated from slug + data (`app/src/lib/contours.ts`); depth scale = `--depth-1..4`. Type: Geist, Geist Mono, Newsreader (SIL OFL); accent #2F4FD8 / #9DAEF7; prose column 720px. Originals only.
-- R14 Hosting: Vercel, host `learn.sachinmaurya.com`, production from `main`. Project root = repo root (Vercel's Root Directory can't reach `../content`); `vercel.json` builds `app/`, sets `cleanUrls`, rewrites unknown paths to `/app-shell.html` and redirects `/portfolio`. v1 stays on `gh-pages` until v2 has published content.
+- R14 Hosting: Vercel, host `learn.sachinmaurya.com`, production from `main`. Project root = repo root (Vercel's Root Directory can't reach `../content`); `vercel.json` builds `app/`, sets `cleanUrls`, rewrites unknown paths to `/app-shell` (with `cleanUrls`, the `.html` destination is 308-redirected and 404s) and redirects `/portfolio`. The old GitHub Pages site is retired.
 - R15 Data: `manifest.json` + `topics/<slug>/{index,search,flashcards}.json`; a topic's shard loads on demand, never one big file.
 - R16 Licence: code MIT (`LICENSE`); questions and flashcards in `content/` CC BY-NC-SA 4.0 (`content/LICENSE`).
 - R17 Paths: `content/paths/<role>.yaml` (ordered `<topic>` or `<topic>/<chapter>` entries with a one-line `why`, unique `order`, optional `start` question), validated by `content:check`; format in `templates/README.md` → Paths.
 - R18 Progress backup: JSON `isobath-progress` v1; import merges and never carries HTML; max 20 new flashcards per session.
 - R19 Prerender: every content page ships as `dist/<path>.html` and hydrates; no module touches `window`/`document`/`localStorage` at import time; browser-only state renders neutral on the server; unknown paths fall back to `app-shell.html`.
 - R20 Freshness: stale = verified 12+ months before the build month; labels Draft/Reviewed/Legacy come from `status` and `legacy`; `Covers` is authored in topic READMEs directly above Track; the changelog lists published questions only.
+- R23 Colour has one source: `src/theme/palette.ts`; never hard-code a colour elsewhere. Users pick a hue only; lightness is fixed so contrast holds.
+- R22 JS examples with `// →` run in CI (`examples:check`, spec `docs/superpowers/specs/2026-11-05-example-runner-design.md`); fence meta `script`/`no-run`; a new example must pass or say why it can't.
 - R21 Content accuracy work (writing questions, audits) runs on Opus; Sonnet only for mechanical work such as flashcards from finished text.
 
 ## Phases
@@ -40,9 +44,34 @@ Non-goals: backend service, accounts, paid AI.
 ### 5 — Review and publish
 - [ ] Per question: maintainer review → `published`; update README status lines
 
+### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`; before 6.5)
+- [ ] T3 Verify in a no-drafts build (Chrome and Firefox, four widths, light/dark and 145 % text checked on the full build)
+- [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer)
+- [ ] T6 Giscus custom theme from the palette (after deploy)
+
+### 6B — Quality gate: SEO, accessibility, performance (after 6A; each item gets a short spec first)
+- [ ] Q1 SEO: JSON-LD (`BreadcrumbList` everywhere, `LearningResource` on questions), real 404 status for unknown paths (today `app-shell` answers 200 with `noindex`), `og:image` for home/topic/chapter pages, `theme-color` and apple-touch-icon, sitemap `lastmod` from `verified`, unique titles/descriptions check; Rich Results and Search Console checks after deploy (maintainer)
+
+### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
+Tier 1:
+- [ ] 6.1 Fix NOT_FOUND on direct loads (`vercel.json` rewrite)
+- [ ] 6.2c TypeScript examples on the runner (6.13 for browser topics); 28 JS blocks stay `no-run` (reasons in the 6.2b spec)
+Tier 2:
+- [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
+- [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
+- [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`)
+- [ ] 6.11 Weekly source link check (lychee) opening an issue
+- [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews
+Tier 3:
+- [ ] 6.13 "Run" for JS examples in a sandboxed Web Worker (replaces parked Sandpack)
+- [ ] 6.14 Build-time SVG diagrams (Mermaid) for event loop, rendering pipeline, Fiber
+- [ ] 6.15 DSA problems with tests on the 6.13 runner
+- [ ] 6.16 Script that opens a `good first issue` per planned stub / `→ —` gap
+Skip: AI features, accounts/sync, company tags, i18n (until traffic).
+
 ### 7 — Next topics
 - [ ] Per topic: chapters + stubs from its **Not yet mapped** list, then content
   - Browser-run examples (HTML, CSS, DOM and Web APIs) run in the installed Chrome and Firefox via puppeteer-core in the scratchpad, never in the repo; browser-specific behaviour names the browser and version.
 
 ## Parked (don't start without maintainer)
-Supabase sync/votes · in-browser AI (WebLLM + retrieval; no paid APIs, no fine-tuning) · PWA offline · runnable challenges (Sandpack)
+Supabase sync/votes · in-browser AI (WebLLM + retrieval; no paid APIs, no fine-tuning)

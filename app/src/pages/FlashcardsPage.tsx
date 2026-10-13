@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type Ref } from 'react'
 import { Link, useLoaderData } from 'react-router'
 import { InlineHtml } from '@/components/question/InlineHtml'
 import { NotFound, PageShell } from '@/components/PageShell'
@@ -26,120 +26,203 @@ const RATINGS: { label: string; key: string; grade: Grade; count: keyof Counts; 
   { label: 'Easy', key: '4', grade: Rating.Easy, count: 'easy', bar: 'bg-depth-4' },
 ]
 
-function Session({ topic, cards, isLaterRound, onNextRound }: { topic: string; cards: Flashcard[]; isLaterRound: boolean; onNextRound: () => void }) {
+type Reviews = ReturnType<typeof loadReviews>
+type RateCard = (grade: Grade, count: keyof Counts) => void
+
+/** Space or Enter shows the answer; once shown, 1–4 rate the card. A finished session has no shortcuts. */
+function shortcutsFor(hasCard: boolean, revealed: boolean, rate: RateCard, reveal: () => void) {
+  if (!hasCard) return {}
+  if (!revealed) return { ' ': reveal, Enter: reveal }
+  return Object.fromEntries(RATINGS.map(({ key, grade, count }) => [key, () => rate(grade, count)]))
+}
+
+function Session({
+  topic,
+  cards,
+  isLaterRound,
+  onNextRound,
+}: {
+  topic: string
+  cards: Flashcard[]
+  isLaterRound: boolean
+  onNextRound: () => void
+}) {
   const [reviews, setReviews] = useState(loadReviews)
   const [queue, setQueue] = useState(() => dueQueue(cards, reviews, new Date()))
   const [revealed, setRevealed] = useState(false)
   const [counts, setCounts] = useState<Counts>({ again: 0, hard: 0, good: 0, easy: 0 })
   const rated = counts.again + counts.hard + counts.good + counts.easy
   const card = queue[0]
-  const { promptRef, answerRef, doneRef } = useSessionFocus<HTMLHeadingElement, HTMLElement>(rated, revealed, !card, isLaterRound)
+  const { promptRef, answerRef, doneRef } = useSessionFocus<HTMLHeadingElement, HTMLElement>(
+    rated,
+    revealed,
+    !card,
+    isLaterRound,
+  )
 
-  function rate(grade: Grade, count: keyof Counts) {
+  const rate: RateCard = (grade, count) => {
     setReviews(recordRating(reviews, card.id, grade, new Date()))
     // A card you missed comes round again in this sitting.
     setQueue(grade === Rating.Again ? [...queue.slice(1), card] : queue.slice(1))
     setCounts({ ...counts, [count]: counts[count] + 1 })
     setRevealed(false)
   }
+  const reveal = () => setRevealed(true)
 
-  useShortcuts(
-    !card ? {} : revealed ? Object.fromEntries(RATINGS.map(({ key, grade, count }) => [key, () => rate(grade, count)])) : { ' ': () => setRevealed(true), Enter: () => setRevealed(true) },
-  )
+  useShortcuts(shortcutsFor(Boolean(card), revealed, rate, reveal))
 
   if (!card) {
-    const now = new Date()
-    const next = nextDue(topic, reviews, now)
-    const { unseen } = deckStatus(topic, cards.length, reviews, now)
     return (
-      <>
-        <SessionHeader title="Flashcards" />
-        <SessionProgress done={rated} total={rated} label="Cards reviewed" />
-        <SessionCard>
-          <h1 ref={doneRef} tabIndex={-1} className="font-serif text-2xl leading-snug outline-none sm:text-3xl">
-            {rated === 0 ? 'Nothing is due' : 'Session done'}
-          </h1>
-          {rated > 0 && (
-            <>
-              <p className="mt-3 text-muted-foreground">
-                You did {rated} {rated === 1 ? 'review' : 'reviews'}.
-              </p>
-              <div className="mt-5">
-                <SegmentBar
-                  label={`${counts.again} again, ${counts.hard} hard, ${counts.good} good, ${counts.easy} easy`}
-                  segments={RATINGS.map(({ count, bar }) => ({
-                    count: counts[count],
-                    className: bar,
-                  }))}
-                />
-                <p className="mt-2 text-sm text-muted-foreground" aria-hidden="true">
-                  {counts.again} again · {counts.hard} hard · {counts.good} good · {counts.easy} easy
-                </p>
-              </div>
-            </>
-          )}
-          <p className="mt-5 text-muted-foreground">{next ? `The next card is due ${formatUntil(next, now)}.` : 'No cards are scheduled.'}</p>
-          {unseen > 0 && (
-            <p className="mt-1 text-muted-foreground">
-              {unseen} new {unseen === 1 ? 'card' : 'cards'} left.
-            </p>
-          )}
-          <div className="mt-auto flex flex-wrap gap-3 pt-8">
-            {unseen > 0 && <Button onClick={onNextRound}>Study {Math.min(unseen, NEW_CARDS_PER_SESSION)} more</Button>}
-            <Button asChild variant="outline">
-              <Link to="/practice">Back to practice</Link>
-            </Button>
-          </div>
-        </SessionCard>
-      </>
+      <SessionSummary
+        topic={topic}
+        cardCount={cards.length}
+        reviews={reviews}
+        counts={counts}
+        rated={rated}
+        doneRef={doneRef}
+        onNextRound={onNextRound}
+      />
     )
   }
 
-  const now = new Date()
-  const intervals = revealed ? previewIntervals(reviews, card.id, now) : null
   return (
     <>
       <SessionHeader title="Flashcards" status={`${rated + 1} of ${rated + queue.length}`} />
       <SessionProgress done={rated} total={rated + queue.length} label="Cards reviewed" />
-      <SessionCard>
-        <h1 ref={promptRef} tabIndex={-1} className="font-serif text-2xl leading-snug outline-none sm:text-3xl">
-          <InlineHtml html={card.frontHtml} className={CODE_STYLE} />
-        </h1>
-        {revealed && (
-          <>
-            <hr className="my-6" />
-            <section ref={answerRef} tabIndex={-1} aria-label="Answer" className="font-serif text-lg leading-relaxed outline-none">
-              <InlineHtml html={card.backHtml} className={CODE_STYLE} />
-            </section>
-            <Link to={`/${card.question}`} className="mt-4 self-start text-sm text-link hover:text-link-hover">
-              Read the full question
-            </Link>
-          </>
-        )}
-      </SessionCard>
-      {intervals ? (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {RATINGS.map(({ label, key, grade, count }) => (
-            <Button key={label} variant="outline" className="h-auto flex-col gap-0.5 py-2.5" aria-keyshortcuts={key} onClick={() => rate(grade, count)}>
-              <span>
-                {label}
-                <Kbd>{key}</Kbd>
-              </span>
-              <span className="text-xs font-normal text-muted-foreground">
-                <span className="sr-only">, next in </span>
-                {formatInterval(intervals[grade], now)}
-              </span>
-            </Button>
-          ))}
-        </div>
+      <CardFace card={card} revealed={revealed} promptRef={promptRef} answerRef={answerRef} />
+      {revealed ? (
+        <RatingButtons intervals={previewIntervals(reviews, card.id, new Date())} onRate={rate} />
       ) : (
-        <Button className="mt-4 w-full sm:w-auto" aria-keyshortcuts="Space" onClick={() => setRevealed(true)}>
+        <Button className="mt-4 w-full sm:w-auto" aria-keyshortcuts="Space" onClick={reveal}>
           Show answer
           <Kbd>Space</Kbd>
         </Button>
       )}
       <p className="mt-4 hidden text-xs text-muted-foreground sm:block">Space shows the answer · 1–4 rate it</p>
     </>
+  )
+}
+
+interface SessionSummaryProps {
+  topic: string
+  cardCount: number
+  reviews: Reviews
+  counts: Counts
+  rated: number
+  doneRef: Ref<HTMLHeadingElement>
+  onNextRound: () => void
+}
+
+function SessionSummary({ topic, cardCount, reviews, counts, rated, doneRef, onNextRound }: SessionSummaryProps) {
+  const now = new Date()
+  const next = nextDue(topic, reviews, now)
+  const { unseen } = deckStatus(topic, cardCount, reviews, now)
+  return (
+    <>
+      <SessionHeader title="Flashcards" />
+      <SessionProgress done={rated} total={rated} label="Cards reviewed" />
+      <SessionCard>
+        <h1 ref={doneRef} tabIndex={-1} className="font-serif text-2xl leading-snug outline-none sm:text-3xl">
+          {rated === 0 ? 'Nothing is due' : 'Session done'}
+        </h1>
+        {rated > 0 && <ReviewTally rated={rated} counts={counts} />}
+        <p className="mt-5 text-muted-foreground">
+          {next ? `The next card is due ${formatUntil(next, now)}.` : 'No cards are scheduled.'}
+        </p>
+        {unseen > 0 && (
+          <p className="mt-1 text-muted-foreground">
+            {unseen} new {unseen === 1 ? 'card' : 'cards'} left.
+          </p>
+        )}
+        <div className="mt-auto flex flex-wrap gap-3 pt-8">
+          {unseen > 0 && <Button onClick={onNextRound}>Study {Math.min(unseen, NEW_CARDS_PER_SESSION)} more</Button>}
+          <Button asChild variant="outline">
+            <Link to="/practice">Back to practice</Link>
+          </Button>
+        </div>
+      </SessionCard>
+    </>
+  )
+}
+
+function ReviewTally({ rated, counts }: { rated: number; counts: Counts }) {
+  return (
+    <>
+      <p className="mt-3 text-muted-foreground">
+        You did {rated} {rated === 1 ? 'review' : 'reviews'}.
+      </p>
+      <div className="mt-5">
+        <SegmentBar
+          label={`${counts.again} again, ${counts.hard} hard, ${counts.good} good, ${counts.easy} easy`}
+          segments={RATINGS.map(({ count, bar }) => ({
+            count: counts[count],
+            className: bar,
+          }))}
+        />
+        <p className="mt-2 text-sm text-muted-foreground" aria-hidden="true">
+          {counts.again} again · {counts.hard} hard · {counts.good} good · {counts.easy} easy
+        </p>
+      </div>
+    </>
+  )
+}
+
+interface CardFaceProps {
+  card: Flashcard
+  revealed: boolean
+  promptRef: Ref<HTMLHeadingElement>
+  answerRef: Ref<HTMLElement>
+}
+
+function CardFace({ card, revealed, promptRef, answerRef }: CardFaceProps) {
+  return (
+    <SessionCard>
+      <h1 ref={promptRef} tabIndex={-1} className="font-serif text-2xl leading-snug outline-none sm:text-3xl">
+        <InlineHtml html={card.frontHtml} className={CODE_STYLE} />
+      </h1>
+      {revealed && (
+        <>
+          <hr className="my-6" />
+          <section
+            ref={answerRef}
+            tabIndex={-1}
+            aria-label="Answer"
+            className="font-reading text-lg leading-relaxed outline-none"
+          >
+            <InlineHtml html={card.backHtml} className={CODE_STYLE} />
+          </section>
+          <Link to={`/${card.question}`} className="mt-4 self-start text-sm text-link hover:text-link-hover">
+            Read the full question
+          </Link>
+        </>
+      )}
+    </SessionCard>
+  )
+}
+
+function RatingButtons({ intervals, onRate }: { intervals: ReturnType<typeof previewIntervals>; onRate: RateCard }) {
+  const now = new Date()
+  return (
+    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {RATINGS.map(({ label, key, grade, count }) => (
+        <Button
+          key={label}
+          variant="outline"
+          className="h-auto flex-col gap-0.5 py-2.5"
+          aria-keyshortcuts={key}
+          onClick={() => onRate(grade, count)}
+        >
+          <span>
+            {label}
+            <Kbd>{key}</Kbd>
+          </span>
+          <span className="text-xs font-normal text-muted-foreground">
+            <span className="sr-only">, next in </span>
+            {formatInterval(intervals[grade], now)}
+          </span>
+        </Button>
+      ))}
+    </div>
   )
 }
 
@@ -161,7 +244,13 @@ export function FlashcardsPage() {
       ) : (
         // Keyed so moving between topics, or starting the next round, begins a fresh session.
         <div className="mx-auto max-w-2xl">
-          <Session key={`${topic.slug}-${round}`} topic={topic.slug} cards={cards} isLaterRound={round > 0} onNextRound={() => setRound(round + 1)} />
+          <Session
+            key={`${topic.slug}-${round}`}
+            topic={topic.slug}
+            cards={cards}
+            isLaterRound={round > 0}
+            onNextRound={() => setRound(round + 1)}
+          />
         </div>
       )}
     </PageShell>

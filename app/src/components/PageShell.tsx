@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { StatusPage } from '@/components/StatusPage'
 import { cn } from '@/lib/utils'
 
 export interface Crumb {
@@ -22,9 +23,17 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
   )
 }
 
-export function PageShell({ crumbs, wide = false, children }: { crumbs: Crumb[]; wide?: boolean; children: ReactNode }) {
+export function PageShell({
+  crumbs,
+  wide = false,
+  children,
+}: {
+  crumbs: Crumb[]
+  wide?: boolean
+  children: ReactNode
+}) {
   return (
-    <main className={cn('mx-auto px-6 py-8', wide ? 'max-w-5xl' : 'max-w-180')}>
+    <main id="main" tabIndex={-1} className={cn('mx-auto px-6 py-8', wide ? 'max-w-5xl' : 'max-w-180')}>
       {crumbs.length > 0 && <Breadcrumbs crumbs={crumbs} />}
       {children}
     </main>
@@ -33,12 +42,15 @@ export function PageShell({ crumbs, wide = false, children }: { crumbs: Crumb[];
 
 export function NotFound({ what }: { what: string }) {
   return (
-    <PageShell crumbs={[]}>
-      <h1 className="text-2xl font-bold">{what} not found</h1>
-      <Link to="/" className="mt-4 inline-block text-link hover:text-link-hover">
+    <StatusPage
+      eyebrow="404"
+      title={`${what} not found`}
+      message="This address doesn't match anything here. It may have moved, or the link has a typo."
+    >
+      <Link to="/" className="text-link underline underline-offset-4 hover:text-link-hover">
         Back to all topics
       </Link>
-    </PageShell>
+    </StatusPage>
   )
 }
 

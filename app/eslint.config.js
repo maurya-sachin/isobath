@@ -6,7 +6,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dist-server']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -15,6 +15,10 @@ export default defineConfig([
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
+    rules: {
+      // Functions are written to 8; lint fails above 10.
+      complexity: ['error', 10],
+    },
     languageOptions: {
       globals: globals.browser,
       parserOptions: {

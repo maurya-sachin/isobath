@@ -139,6 +139,13 @@ export interface Changelog {
   days: ChangelogDay[]
 }
 
+/** What the header needs of every topic; the root route's loader data, so every page embeds only this. */
+export type SiteTopic = Pick<TopicOverview, 'slug' | 'title' | 'track' | 'chapterCount'>
+
+export interface SiteIndex {
+  topics: SiteTopic[]
+}
+
 /** `data/manifest.json` */
 export interface ContentManifest {
   topics: TopicOverview[]
@@ -193,6 +200,12 @@ export interface SearchDoc {
   /** Plain-text TL;DR; empty until the question has a page. */
   tldr: string
   hasPage: boolean
+}
+
+/** One entry of `data/topics/<topic>/<chapter>/cheatsheet.json`: a readable question's 30-second answer. Titles come from the topic index. */
+export interface CheatsheetEntry {
+  id: string
+  tldrHtml: string
 }
 
 /** One entry of `data/topics/<slug>/flashcards.json`. */

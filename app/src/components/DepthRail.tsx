@@ -17,7 +17,9 @@ export function DepthRail({ stops }: { stops: DepthStop[] }) {
   useEffect(() => {
     function update() {
       const anchor = window.innerHeight * 0.3
-      const passed = stops.filter((stop) => (document.getElementById(stop.id)?.getBoundingClientRect().top ?? Infinity) <= anchor)
+      const passed = stops.filter(
+        (stop) => (document.getElementById(stop.id)?.getBoundingClientRect().top ?? Infinity) <= anchor,
+      )
       setActiveId(passed.at(-1)?.id ?? stops[0]?.id)
       const scrollable = document.documentElement.scrollHeight - window.innerHeight
       setProgress(scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0)
@@ -33,7 +35,7 @@ export function DepthRail({ stops }: { stops: DepthStop[] }) {
 
   return (
     <nav aria-label="Depth of this answer" className="h-full text-sm">
-      <div className="sticky top-8 flex gap-3">
+      <div className="sticky top-[calc(var(--header-height)+2rem)] flex gap-3">
         <div className="relative w-1.5 shrink-0 rounded-full bg-border" aria-hidden="true">
           <div
             className="absolute inset-x-0 top-0 rounded-full bg-linear-to-b from-depth-from to-depth-to"
@@ -55,7 +57,10 @@ export function DepthRail({ stops }: { stops: DepthStop[] }) {
                 >
                   <span
                     aria-hidden="true"
-                    className={cn('size-2 rounded-full border', stop.id === activeId ? 'border-link bg-link' : 'border-muted-foreground/50')}
+                    className={cn(
+                      'size-2 rounded-full border',
+                      stop.id === activeId ? 'border-link bg-link' : 'border-muted-foreground/50',
+                    )}
                   />
                   {stop.title}
                 </a>

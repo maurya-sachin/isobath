@@ -40,7 +40,10 @@ export function readyQuestionCount({ steps }: RolePath): number {
 }
 
 /** Questions read under this step, out of the step's total. Ids are `<topic>/<chapter>/<question>`. */
-export function stepProgress({ topic, chapter, questionCount }: PathStep, read: readonly string[]): { read: number; total: number } {
+export function stepProgress(
+  { topic, chapter, questionCount }: PathStep,
+  read: readonly string[],
+): { read: number; total: number } {
   const prefix = chapter ? `${topic}/${chapter}/` : `${topic}/`
   // Ids of renamed or removed questions can linger in saved progress; never report more read than exist.
   return { read: Math.min(read.filter((id) => id.startsWith(prefix)).length, questionCount), total: questionCount }

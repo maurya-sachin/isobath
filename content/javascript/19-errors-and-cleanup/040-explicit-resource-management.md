@@ -152,7 +152,7 @@ The disposal list is per block, so a `using` inside a loop body runs at the end 
 
 A constructor acquires two resources. If the second step throws, the first must be released, but if everything works, ownership moves to the new object. A `DisposableStack` expresses both:
 
-```js
+```js no-run
 class Connection {
   #cleanup;
   constructor(failAfterSocket) {

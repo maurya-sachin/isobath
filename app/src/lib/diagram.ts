@@ -24,8 +24,20 @@ export function topicBranches(topic: TopicOverview, read: readonly string[]): Di
   const chapters = topic.chapters.map((chapter): DiagramBranch => {
     const readCount = chapterReadCount(topic.slug, chapter, read)
     const state = readCount > 0 && readCount === chapter.questionCount ? 'done' : readCount > 0 ? 'started' : 'unread'
-    return { key: chapter.slug, labelHtml: chapter.titleHtml, number: chapter.number, to: `/${topic.slug}/${chapter.slug}`, state }
+    return {
+      key: chapter.slug,
+      labelHtml: chapter.titleHtml,
+      number: chapter.number,
+      to: `/${topic.slug}/${chapter.slug}`,
+      state,
+    }
   })
-  const planned = topic.plannedAreasHtml.map((labelHtml, index): DiagramBranch => ({ key: `planned-${index}`, labelHtml, number: null, to: null, state: 'planned' }))
+  const planned = topic.plannedAreasHtml.map((labelHtml, index): DiagramBranch => ({
+    key: `planned-${index}`,
+    labelHtml,
+    number: null,
+    to: null,
+    state: 'planned',
+  }))
   return [...chapters, ...planned]
 }

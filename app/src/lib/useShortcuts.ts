@@ -3,6 +3,15 @@ import { useEffect, useEffectEvent } from 'react'
 const TEXT_FIELDS_AND_DIALOGS = 'input, textarea, select, [contenteditable="true"], [role="dialog"]'
 const ACTIVATABLE = 'a[href], button, summary, [role="button"], [role="link"]'
 
+const hasModifierOrRepeat = (event: KeyboardEvent) => event.metaKey || event.ctrlKey || event.altKey || event.repeat
+
+/** True when the key belongs to a field, a dialog, or (Enter and Space) a link or button. */
+function keepsNativeBehaviour(event: KeyboardEvent): boolean {
+  const target = event.target instanceof Element ? event.target : null
+  if (target?.closest(TEXT_FIELDS_AND_DIALOGS)) return true
+  return (event.key === 'Enter' || event.key === ' ') && Boolean(target?.closest(ACTIVATABLE))
+}
+
 /**
  * Runs `handlers[event.key]` on keydown (`' '` for Space). Ignored while typing in a field, inside a dialog,
  * with a modifier held, or when the key auto-repeats, so a held key never acts twice.
@@ -14,10 +23,7 @@ export function useShortcuts(handlers: Record<string, () => void>) {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return
-      const target = event.target instanceof Element ? event.target : null
-      if (target?.closest(TEXT_FIELDS_AND_DIALOGS)) return
-      if ((event.key === 'Enter' || event.key === ' ') && target?.closest(ACTIVATABLE)) return
+      if (hasModifierOrRepeat(event) || keepsNativeBehaviour(event)) return
       const handler = handlerFor(event.key)
       if (!handler) return
       event.preventDefault() // stops Space scrolling the page

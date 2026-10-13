@@ -10,14 +10,13 @@ const question = (topic: string, id: string, title = id): [string, ChangelogQues
   `content/${id}.md`,
   { id, title, topic, topicTitle: topic.toUpperCase() },
 ]
-const known = new Map([
-  question('js', 'js/a/010-x'),
-  question('js', 'js/a/020-y'),
-  question('ts', 'ts/a/010-z'),
-])
+const known = new Map([question('js', 'js/a/010-x'), question('js', 'js/a/020-y'), question('ts', 'ts/a/010-z')])
 
 test('parses the committer date and the changed files of each commit', () => {
-  const commits = parseGitLog(record('a1', '2026-10-02', ['content/js/a/010-x.md', 'content/js/README.md']) + record('b2', '2026-10-01', ['content/ts/README.md']))
+  const commits = parseGitLog(
+    record('a1', '2026-10-02', ['content/js/a/010-x.md', 'content/js/README.md']) +
+      record('b2', '2026-10-01', ['content/ts/README.md']),
+  )
   assert.deepEqual(commits, [
     { date: '2026-10-02', files: ['content/js/a/010-x.md', 'content/js/README.md'] },
     { date: '2026-10-01', files: ['content/ts/README.md'] },
@@ -29,12 +28,33 @@ test('empty output gives no commits', () => {
 })
 
 test('drops files that are not published questions', () => {
-  const changes = summarizeChanges([{ date: '2026-10-02', files: ['content/js/README.md', 'content/flashcards/js.yaml', 'content/js/a/999-gone.md', 'content/js/a/010-x.md'] }], known)
-  assert.deepEqual(changes.days, [{ date: '2026-10-02', topics: [{ slug: 'js', title: 'JS', questions: [{ id: 'js/a/010-x', title: 'js/a/010-x' }] }] }])
+  const changes = summarizeChanges(
+    [
+      {
+        date: '2026-10-02',
+        files: [
+          'content/js/README.md',
+          'content/flashcards/js.yaml',
+          'content/js/a/999-gone.md',
+          'content/js/a/010-x.md',
+        ],
+      },
+    ],
+    known,
+  )
+  assert.deepEqual(changes.days, [
+    {
+      date: '2026-10-02',
+      topics: [{ slug: 'js', title: 'JS', questions: [{ id: 'js/a/010-x', title: 'js/a/010-x' }] }],
+    },
+  ])
 })
 
 test('a day with no question changes is left out', () => {
-  assert.deepEqual(summarizeChanges([{ date: '2026-10-02', files: ['content/js/README.md'] }], known), { complete: true, days: [] })
+  assert.deepEqual(summarizeChanges([{ date: '2026-10-02', files: ['content/js/README.md'] }], known), {
+    complete: true,
+    days: [],
+  })
 })
 
 test('lists a question once per day and topic, even when several commits touch it', () => {
@@ -45,7 +65,10 @@ test('lists a question once per day and topic, even when several commits touch i
     ],
     known,
   )
-  assert.deepEqual(changes.days[0].topics[0].questions.map((q) => q.id), ['js/a/010-x', 'js/a/020-y'])
+  assert.deepEqual(
+    changes.days[0].topics[0].questions.map((q) => q.id),
+    ['js/a/010-x', 'js/a/020-y'],
+  )
 })
 
 test('groups by day then topic, newest day first', () => {
@@ -57,14 +80,23 @@ test('groups by day then topic, newest day first', () => {
     ],
     known,
   )
-  assert.deepEqual(changes.days.map((day) => day.date), ['2026-10-03', '2026-10-02', '2026-10-01'])
-  assert.deepEqual(changes.days[0].topics.map((topic) => topic.slug), ['ts', 'js'])
+  assert.deepEqual(
+    changes.days.map((day) => day.date),
+    ['2026-10-03', '2026-10-02', '2026-10-01'],
+  )
+  assert.deepEqual(
+    changes.days[0].topics.map((topic) => topic.slug),
+    ['ts', 'js'],
+  )
 })
 
 test('keeps the newest days and reports incomplete past the cap', () => {
   const commits = ['2026-10-03', '2026-10-02', '2026-10-01'].map((date) => ({ date, files: ['content/js/a/010-x.md'] }))
   const changes = summarizeChanges(commits, known, 2)
-  assert.deepEqual(changes.days.map((day) => day.date), ['2026-10-03', '2026-10-02'])
+  assert.deepEqual(
+    changes.days.map((day) => day.date),
+    ['2026-10-03', '2026-10-02'],
+  )
   assert.equal(changes.complete, false)
   assert.equal(summarizeChanges(commits, known, 3).complete, true)
 })

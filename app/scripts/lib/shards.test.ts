@@ -20,14 +20,32 @@ const topic: TopicSummary = {
       titleHtml: 'C',
       summaryHtml: '',
       summaryText: '',
-      questions: [{ id: 'javascript/c/q', number: '010', title: 'Q', titleHtml: 'Q', status: 'draft', difficulty: 'easy', frequency: 3, core: true, hasPage: true, verified: '2026-10', stale: false, legacy: null }],
+      questions: [
+        {
+          id: 'javascript/c/q',
+          number: '010',
+          title: 'Q',
+          titleHtml: 'Q',
+          status: 'draft',
+          difficulty: 'easy',
+          frequency: 3,
+          core: true,
+          hasPage: true,
+          verified: '2026-10',
+          stale: false,
+          legacy: null,
+        },
+      ],
     },
   ],
 }
 
 test('keeps the topic fields and lists chapters without their questions', () => {
   const overview = toOverview(topic)
-  assert.equal(overview.chapters.some((chapter) => 'questions' in chapter), false)
+  assert.equal(
+    overview.chapters.some((chapter) => 'questions' in chapter),
+    false,
+  )
   assert.equal(overview.slug, 'javascript')
   assert.equal(overview.flashcardCount, 2)
   assert.equal(overview.chapterCount, 1)

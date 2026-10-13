@@ -43,7 +43,7 @@ How Node.js decides which one a file is: `.mjs` is ESM, `.cjs` is CommonJS, and 
 
 ## Example
 
-```js
+```js files run=main.mjs,main.cjs
 // lib.cjs
 exports.greet = (name) => `hi ${name}`;
 exports.version = '1.0';
@@ -93,7 +93,7 @@ An ES module goes through separate phases. After loading the graph, the `Link` p
 
 A CommonJS module has no link phase. `require` runs the file's wrapper function on first use, takes whatever is in `module.exports` when it returns, caches it in `require.cache`, and hands every caller that same object. Reading `exports.count` later reads a property on that object, and a primitive copied into it (`count`) was copied at that moment.
 
-```js
+```js files run=live.mjs
 // counter.mjs
 export let count = 0;
 export function increment() { count++; }
@@ -126,7 +126,7 @@ The ESM import saw the update because it is an alias for the exporter's `count`;
 - **Caches differ.** CommonJS exposes `require.cache`, so `delete require.cache[path]` forces a reload. ESM has no equivalent: a module instance is keyed by its resolved URL and lives for the process. A different query string is a different URL, so `import('./state.mjs?v=2')` loads a second instance and the original stays cached.
 - **A missing export is a link error in ESM** (`SyntaxError`, nothing runs), but just `undefined` in CommonJS.
 
-```js
+```js files run=a.cjs
 // a.cjs (run: node a.cjs)
 exports.early = 'a-early';
 const b = require('./b.cjs');
@@ -141,7 +141,7 @@ module.exports = { fromB: true };
 // → a sees b: true
 ```
 
-```js
+```js files run=ca.mjs
 // ca.mjs (run: node ca.mjs)
 import { fromB } from './cb.mjs';
 export const fromA = 'a';
@@ -159,7 +159,7 @@ try {
 // → a sees b
 ```
 
-```js
+```js no-run
 // bust.mjs
 const a = await import('./state.mjs');
 const b = await import('./state.mjs');
@@ -175,7 +175,7 @@ A typical CommonJS-to-ESM migration breaks in a few predictable places, and each
 - **JSON can't be `require`d.** Node.js requires an import attribute: `import data from './data.json' with { type: 'json' }`. Without `with { type: 'json' }`, Node throws `ERR_IMPORT_ATTRIBUTE_MISSING`. JSON modules only expose a default export.
 - **Singletons with `delete require.cache` hacks** (test isolation, hot reload) need a different approach, such as the query-string trick above, which leaves the original cached, or a fresh process or worker.
 
-```js
+```js no-run
 // migrated.mjs
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

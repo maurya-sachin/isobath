@@ -41,7 +41,7 @@ The result is the same in both cases: whether a name refers to a local, an outer
 
 ## Example
 
-```js
+```js script
 // Run as sloppy code: CommonJS (.cjs) or a classic script, not a module.
 var x = 'outer';
 function inject(code) {
@@ -95,7 +95,7 @@ with ([10, 20]) { console.log(length, values); } // → 2 outer values
 
 Every free identifier is resolved by `GetIdentifierReference`, which calls `HasBinding` on each record outward. For a `with` record that call is user-observable: `HasProperty` can hit a Proxy `has` trap, and when the property exists, `Get(obj, @@unscopables)` can run a getter. A spy shows that every free name in the block is checked against the object at run time:
 
-```js
+```js script
 const seen = [];
 const spy = new Proxy({}, { has(target, key) { seen.push(key); return false; } });
 with (spy) { Math.max(1, 2); }

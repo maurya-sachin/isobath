@@ -46,7 +46,7 @@ Rules of thumb:
 
 ## Example
 
-```js
+```js no-run
 // Same output natively in Node 26.11.1 and Chrome 155, and with @js-temporal/polyfill 0.5.1 on Node 24.19.0
 import { Temporal } from '@js-temporal/polyfill';
 

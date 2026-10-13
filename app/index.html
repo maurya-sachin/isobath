@@ -11,6 +11,18 @@
         var dark = stored === 'dark' || (stored !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.classList.toggle('dark', dark)
       } catch (error) {}
+      // Appearance settings, applied before first paint. Keep in sync with rootSettings in src/lib/appearance.ts.
+      try {
+        var saved = JSON.parse(localStorage.getItem('appearance') || '{}')
+        var root = document.documentElement
+        if (isFinite(saved.hueLight)) root.style.setProperty('--hue-light', Math.round(saved.hueLight))
+        if (isFinite(saved.hueDark)) root.style.setProperty('--hue-dark', Math.round(saved.hueDark))
+        if (saved.textSize === 120 || saved.textSize === 145) root.style.fontSize = saved.textSize + '%'
+        if (saved.contrast === 'high') root.setAttribute('data-contrast', 'high')
+        if (saved.motion === 'reduce') root.setAttribute('data-motion', 'reduce')
+        if (saved.readingFont === 'sans') root.setAttribute('data-reading-font', 'sans')
+        if (saved.spacing === 'relaxed') root.setAttribute('data-spacing', 'relaxed')
+      } catch (error) {}
     </script>
     <!--app-head-->
   </head>
