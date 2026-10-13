@@ -2,7 +2,7 @@
 
 Every prerendered page embeds its route loader data so the browser can hydrate without refetching. Today the root route embeds the whole manifest on every page, and the header uses four fields of it.
 
-## Measured (production build, 2026-11-06)
+## Measured (production build, 2026-11-05)
 | Page | HTML | Hydration data | Of which |
 |---|---|---|---|
 | Question | 149 kB (27 kB gzip) | 104 kB | manifest 44, topic index 25, question 20 |
