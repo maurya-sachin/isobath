@@ -99,11 +99,12 @@ export function SearchDialog() {
       <Button
         variant="outline"
         onClick={() => setOpen(true)}
-        aria-label="Search questions"
+        aria-keyshortcuts="Control+K Meta+K"
         className="w-9 px-0 sm:w-64 sm:justify-start sm:px-2.5 md:w-40 lg:w-64"
       >
         <Search />
-        <span className="hidden flex-1 text-left text-muted-foreground sm:inline">Search questions</span>
+        {/* The visible words are the button's name (WCAG 2.5.3); under sm they are for screen readers only. */}
+        <span className="sr-only flex-1 text-left text-muted-foreground sm:not-sr-only">Search questions</span>
         <kbd className="hidden rounded border px-1.5 font-mono text-xs lg:inline">⌘K</kbd>
       </Button>
 
