@@ -152,7 +152,7 @@ export function RouteDiagram({ nodes, label }: { nodes: DiagramNode[]; label: st
                   FOCUS,
                 )}
               >
-                <span className="row-span-2 font-mono text-xs opacity-70">{node.index}</span>
+                <span className="row-span-2 font-mono text-xs">{node.index}</span>
                 <span className="font-semibold">{node.title}</span>
                 <span className="text-xs">{node.meta}</span>
               </Link>
