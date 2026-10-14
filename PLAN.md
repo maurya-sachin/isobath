@@ -3,7 +3,7 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
+- Branch `dev`; production `main` is the release that added React, cheat sheets, security headers and the CI smoke test. Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
 - Released: `main` has React, the cheat sheets, security headers and CSP, the example runner and the browser smoke test in CI. Next: Phase 7 (`nextjs`); Tier 2 items each need a spec and OK; 6A left: T3 no-drafts build check, T5 manual passes.
 - Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); create the starter issues (drafted, six, none open yet); Rich Results and Search Console checks; check a shared link with a card validator; import one Anki deck; pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
