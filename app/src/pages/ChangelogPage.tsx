@@ -55,18 +55,21 @@ export function ChangelogPage() {
                     <Link to={`/${topic.slug}`} className="font-medium text-link hover:text-link-hover">
                       {topic.title}
                     </Link>
-                    <p className="mt-1 flex flex-wrap gap-x-3 text-sm">
+                    {/* One link per line, each 24px tall: WCAG 2.5.8 target size. Titles can hold long identifiers. */}
+                    <ul className="mt-1 text-sm wrap-break-word">
                       {topic.questions.slice(0, VISIBLE_QUESTIONS).map((question) => (
-                        <Link key={question.id} to={questionPath(question)} className="hover:text-link">
-                          {question.title}
-                        </Link>
+                        <li key={question.id}>
+                          <Link to={questionPath(question)} className="inline-block max-w-full py-0.5 hover:text-link">
+                            {question.title}
+                          </Link>
+                        </li>
                       ))}
                       {topic.questions.length > VISIBLE_QUESTIONS && (
-                        <span className="text-muted-foreground">
+                        <li className="py-0.5 text-muted-foreground">
                           +{topic.questions.length - VISIBLE_QUESTIONS} more
-                        </span>
+                        </li>
                       )}
-                    </p>
+                    </ul>
                   </div>
                 </li>
               )),
