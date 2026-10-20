@@ -3,11 +3,10 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`; production `main` is the release that added React, cheat sheets, security headers and the CI smoke test. Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
+- Branch `dev`; production `main`. Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
-- Released: `main` has React, the cheat sheets, security headers and CSP, the example runner and the browser smoke test in CI. Next: Phase 7 (`nextjs`); Tier 2 items each need a spec and OK; 6A left: T3 no-drafts build check, T5 manual passes.
-- Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); create the starter issues (six drafts in memory `starter-issues-drafts`; the dev.to and LinkedIn posts are live and point readers at the repo, which has no open issues); Rich Results and Search Console checks; check a shared link with a card validator; import one Anki deck; pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
-- Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
+- Next: Phase 7 (`nextjs`) on Opus, spec first. Starter issues #3–#8 are open; answer contributors there.
+- Awaiting maintainer: Phase 5 chapter passes (R24); Rich Results and Search Console checks; a card-validator check; import one Anki deck; 6A T5; wordmark redraw.
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
@@ -35,20 +34,16 @@ Non-goals: backend service, accounts, paid AI.
 - R20 Freshness: stale = verified 12+ months before the build month; labels Draft/Reviewed/Legacy come from `status` and `legacy`; `Covers` is authored in topic READMEs directly above Track; the changelog lists published questions only.
 - R23 Colour has one source: `src/theme/palette.ts`; never hard-code a colour elsewhere. Users pick a hue only; lightness is fixed so contrast holds.
 - R22 JS examples with `// →` run in CI (`examples:check`, spec `docs/superpowers/specs/2026-11-05-example-runner-design.md`); fence meta `script`/`no-run`; a new example must pass or say why it can't.
+- R24 Publishing is per chapter: once its examples pass CI where a runner exists and the maintainer has read it, the whole chapter goes `published` on the maintainer's OK.
 - R21 Content accuracy work (writing questions, audits) runs on Opus; Sonnet only for mechanical work such as flashcards from finished text.
 
 ## Phases
 
 ### 5 — Review and publish
-- [ ] Per question: maintainer review → `published`; update README status lines
+- [ ] Per chapter (R24): maintainer pass → `published`; `content:sync` updates README status lines
 
-### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`; before 6.5)
-- [ ] T3 Verify in a no-drafts build (Chrome and Firefox, four widths, light/dark and 145 % text checked on the full build)
+### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`)
 - [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer)
-- [ ] T6 Giscus custom theme from the palette (after deploy)
-
-### 6B — Quality gate: SEO, accessibility, performance (after 6A; each item gets a short spec first)
-- [ ] Q1 SEO left: `theme-color` and apple-touch-icon; Rich Results and Search Console checks (maintainer)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
 Tier 1:
