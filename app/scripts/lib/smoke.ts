@@ -21,8 +21,10 @@ export const PAGES: PageSpec[] = [
   { path: '/paths/frontend', status: 200 },
   { path: '/practice', status: 200 },
   { path: '/practice/react', status: 200 },
+  { path: '/practice/react/rendering-model', status: 200 },
   { path: '/flashcards/react', status: 200 },
   { path: '/cheatsheet/react/rendering-model', status: 200 },
+  { path: '/changelog', status: 200 },
   { path: '/does-not-exist', status: 404 },
 ]
 
