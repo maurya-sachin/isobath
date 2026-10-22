@@ -122,3 +122,17 @@ test('adds the uncaught error line only when the process failed', () => {
   assert.equal(printedOutput('out\n', stderr, 1), 'out\nTypeError: bad')
   assert.equal(printedOutput('out\n', stderr, 0), 'out\n')
 })
+
+test('extracts ts blocks as type-stripped modules and keeps languages apart', () => {
+  const markdown = fence('ts', 'const n: number = 1 // → 1') + fence('js', 'x // → 2')
+  const { examples } = extractExamples(markdown, 'ts')
+  assert.deepEqual(
+    [examples.length, examples[0].entries, extractExamples(markdown).examples.length],
+    [1, ['example.mts'], 1],
+  )
+})
+
+test('does not run a ts block that claims a compiler error, and counts it skipped', () => {
+  const { examples, skipped } = extractExamples(fence('ts', 'f() // → 1\nbad\n// Error TS2304: x'), 'ts')
+  assert.deepEqual([examples.length, skipped], [0, 1])
+})
