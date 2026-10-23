@@ -45,7 +45,7 @@ Almost everything TypeScript adds is **erased**: annotations, interfaces, type a
 
 ## Example
 
-```ts
+```ts no-run
 // TypeScript 7.0.2 and 6.0.3, --erasableSyntaxOnly
 enum Dir { Up }
 // Error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.

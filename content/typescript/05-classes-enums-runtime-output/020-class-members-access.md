@@ -40,7 +40,7 @@ Choose `#` when privacy must hold at runtime (libraries, secrets in objects that
 
 ## Example
 
-```ts
+```ts no-run
 // TypeScript 7.0.2 and 6.0.3, --strict --noImplicitOverride --target es2022
 class Account {
   #pin = 1234; // hard private: ECMAScript private field
