@@ -48,7 +48,6 @@ Non-goals: backend service, accounts, paid AI.
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
 Tier 1:
-- [ ] 6.2c TypeScript examples on the runner (6.13 for browser topics); 28 JS blocks stay `no-run` (reasons in the 6.2b spec)
 Tier 2:
 - [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
 - [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
