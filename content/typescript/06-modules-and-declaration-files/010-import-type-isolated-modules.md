@@ -42,7 +42,7 @@ Recommendation: enable `verbatimModuleSyntax` in new projects (`tsc --init` on 6
 
 ## Example
 
-```ts
+```ts no-run
 // TypeScript 7.0.2 and 6.0.3, --module esnext --verbatimModuleSyntax
 // a.ts
 console.log("a.ts loaded");

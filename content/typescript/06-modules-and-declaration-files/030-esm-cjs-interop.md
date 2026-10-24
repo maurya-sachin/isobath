@@ -45,7 +45,7 @@ CommonJS exports **one value** (`module.exports`, often a function). An ES modul
 
 ## Example
 
-```ts
+```ts no-run
 // node_modules/legacy2/index.js:   module.exports = function hello() { return "hi from CJS"; };
 // node_modules/legacy2/index.d.ts: declare function hello(): string;  export = hello;
 // src/def.ts
