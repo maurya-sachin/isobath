@@ -42,7 +42,7 @@ Practical picks: Node runs the output, so `module: nodenext` and a `target` matc
 
 ## Example
 
-```ts
+```ts no-run
 // a.ts, TypeScript 7.0.2 and 6.0.3 (b.ts exports `helper`)
 import { helper } from "./b";
 export const last = [1, 2, 3].at(-1) ?? helper;
