@@ -47,7 +47,7 @@ The Node docs recommend `erasableSyntaxOnly`, `verbatimModuleSyntax`, `rewriteRe
 
 ## Example
 
-```ts
+```ts no-run
 // Node v24.19.0 for the `node` lines; TypeScript 7.0.2 and 6.0.3 for the `tsc` lines (same diagnostics)
 // ok.ts — annotations, interface, generic:        node ok.ts            → runs; prints "hi Adastring"
 // An error thrown on ok.ts line 5 is reported at line 5 (no source map).
