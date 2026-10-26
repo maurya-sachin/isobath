@@ -7,13 +7,14 @@ import { Html } from '@/components/question/Html'
 import { InlineHtml } from '@/components/question/InlineHtml'
 import { MetaRow } from '@/components/question/MetaRow'
 import { Section } from '@/components/question/Section'
+import { SuggestFix } from '@/components/question/SuggestFix'
 import { Breadcrumbs, ComingSoon, NotFound } from '@/components/PageShell'
 import { QuestionComments } from '@/components/QuestionComments'
 import { QuestionTitle } from '@/components/QuestionTitle'
 import { findChapter, neighbours, questionId, questionPath, useTopic } from '@/content/index-data'
 import type { QuestionPage as QuestionData } from '@/content/types'
 import { markRead } from '@/lib/progress'
-import { editUrl, suggestFixUrl } from '@/lib/repo'
+import { editUrl } from '@/lib/repo'
 import { SITE_NAME, SITE_URL } from '@/lib/site'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
@@ -147,32 +148,35 @@ function QuestionBody({ content }: { content: QuestionData }) {
         stale={content.stale}
         legacy={content.legacy}
       />
-      <TldrCard html={content.tldrHtml} />
-      <Section id="answer" title="Answer">
-        <Html html={content.answerHtml} />
-      </Section>
-      <Section id="example" title="Example">
-        <Html html={content.exampleHtml} />
-      </Section>
-      <Section id="pitfalls" title="Pitfalls">
-        <Html html={content.pitfallsHtml} />
-      </Section>
-      {content.followUps.length > 0 && <FollowUps followUps={content.followUps} />}
-      {content.deepDiveHtml && (
-        <div className="mt-14 border-t pt-2">
-          <Section id="deep-dive" title="Deep dive">
-            <Html html={content.deepDiveHtml} />
-          </Section>
-        </div>
-      )}
-      {content.exercises.length > 0 && (
-        <div className="mt-14 border-t pt-2">
-          <Section id="exercises" title="Exercises">
-            {/* Keyed so revealed answers reset when navigating to another question. */}
-            <Exercises key={content.id} exercises={content.exercises} />
-          </Section>
-        </div>
-      )}
+      {/* Text selected in here can be quoted in "Suggest a fix". */}
+      <div data-quotable>
+        <TldrCard html={content.tldrHtml} />
+        <Section id="answer" title="Answer">
+          <Html html={content.answerHtml} />
+        </Section>
+        <Section id="example" title="Example">
+          <Html html={content.exampleHtml} />
+        </Section>
+        <Section id="pitfalls" title="Pitfalls">
+          <Html html={content.pitfallsHtml} />
+        </Section>
+        {content.followUps.length > 0 && <FollowUps followUps={content.followUps} />}
+        {content.deepDiveHtml && (
+          <div className="mt-14 border-t pt-2">
+            <Section id="deep-dive" title="Deep dive">
+              <Html html={content.deepDiveHtml} />
+            </Section>
+          </div>
+        )}
+        {content.exercises.length > 0 && (
+          <div className="mt-14 border-t pt-2">
+            <Section id="exercises" title="Exercises">
+              {/* Keyed so revealed answers reset when navigating to another question. */}
+              <Exercises key={content.id} exercises={content.exercises} />
+            </Section>
+          </div>
+        )}
+      </div>
       <QuestionFooter content={content} />
     </>
   )
@@ -225,24 +229,19 @@ function QuestionFooter({ content }: { content: QuestionData }) {
           </a>
         ))}
       </div>
-      <div className="flex flex-wrap gap-x-5 gap-y-2">
-        <a
-          href={suggestFixUrl(content.id, content.title, SITE_URL + pathname)}
-          target="_blank"
-          rel="noreferrer"
-          className="text-link hover:text-link-hover"
-        >
-          Suggest a fix
-        </a>
+      <SuggestFix key={content.id} questionId={content.id} title={content.title} pageUrl={SITE_URL + pathname}>
         <a
           href={editUrl(content.sourcePath)}
           target="_blank"
           rel="noreferrer"
-          className="text-link hover:text-link-hover"
+          className="inline-flex min-h-6 items-center text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
         >
-          Edit on GitHub
+          Propose an edit as a pull request
         </a>
-      </div>
+      </SuggestFix>
+      <p className="text-xs">
+        Both open GitHub in a new tab and need a GitHub account. Nothing is sent until you submit there.
+      </p>
     </footer>
   )
 }
