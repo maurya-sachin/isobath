@@ -14,11 +14,21 @@ body:
     attributes:
       label: Page address
       description: Filled in automatically when you use "Suggest a fix" on the site.
+  - type: input
+    id: section
+    attributes:
+      label: Section
+      description: Filled in when you select text on the page and use "Suggest a fix".
+  - type: textarea
+    id: quote
+    attributes:
+      label: Quoted text
+      description: Filled in from the text you selected. Edit it if it holds more than the problem.
   - type: textarea
     id: problem
     attributes:
       label: What is wrong?
-      description: Quote the sentence or code, and say what it should be.
+      description: Say what is wrong and what it should be. If the quoted text is empty, quote the sentence here.
     validations:
       required: true
   - type: textarea

@@ -3,11 +3,10 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`, equal to `main` (released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
+- Branch `dev`, ahead of `main` (last released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
-- Built on `dev`, unpushed: TypeScript example check (6.2c), weekly source link check (6.11, `links.yml`, untested until first run on GitHub), `issues:plan`/`issues:open` (6.16; the 5 current gaps are unshipped proposals, so don't open). Reply on issue #7 posted; close it after the release.
+- On `dev`, unreleased: "Suggest a fix" from selected text (spec `2026-11-08-suggest-fix-design.md`). After release, open the form once from the live site and check the section and quote fields fill in (GitHub reads the template from `main` only).
 - Next: Phase 7 (`nextjs`) on Opus, spec first, after the maintainer items below.
-- Decide: publish all chapters at once instead of per chapter (R24)? Then the site's Draft label and the dev.to post's "everything is Draft" paragraph must change with it.
 - Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
 ## Goal
@@ -36,13 +35,13 @@ Non-goals: backend service, accounts, paid AI.
 - R20 Freshness: stale = verified 12+ months before the build month; labels Draft/Reviewed/Legacy come from `status` and `legacy`; `Covers` is authored in topic READMEs directly above Track; the changelog lists published questions only.
 - R23 Colour has one source: `src/theme/palette.ts`; never hard-code a colour elsewhere. Users pick a hue only; lightness is fixed so contrast holds.
 - R22 JS examples with `// →` run in CI (`examples:check`, spec `docs/superpowers/specs/2026-11-05-example-runner-design.md`); fence meta `script`/`no-run`; a new example must pass or say why it can't.
-- R24 Publishing is per chapter: once its examples pass CI where a runner exists and the maintainer has read it, the whole chapter goes `published` on the maintainer's OK.
+- R24 Publishing happens once, at the end, when all phases are complete: every question goes `published` together on the maintainer's OK, and the site's Draft label and the dev.to post's "everything is Draft" paragraph change with it. Until then all content stays `draft`.
 - R21 Content accuracy work (writing questions, audits) runs on Opus; Sonnet only for mechanical work such as flashcards from finished text.
 
 ## Phases
 
 ### 5 — Review and publish
-- [ ] Per chapter (R24): maintainer pass → `published`; `content:sync` updates README status lines
+- [ ] At the end (R24): maintainer pass → all `published`; `content:sync` updates README status lines
 
 ### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`)
 - [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer)
