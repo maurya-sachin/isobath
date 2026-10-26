@@ -5,7 +5,7 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 ## Now
 - Branch `dev`, equal to `main` (released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
-- Next: Phase 7 (`nextjs`) on Opus, spec first, after the maintainer items below.
+- Next: Phase 7 `nextjs`: spec first (Opus agent), then chapters. Maintainer items below run alongside and don't block it. Phase 6 is parked until more topics exist.
 - Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
 ## Goal
@@ -45,20 +45,20 @@ Non-goals: backend service, accounts, paid AI.
 ### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`)
 - [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer)
 
-### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
-Tier 2:
-- [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
-- [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
-- [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`)
-- [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews
-Tier 3:
-- [ ] 6.13 "Run" for JS examples in a sandboxed Web Worker (replaces parked Sandpack)
-- [ ] 6.14 Build-time SVG diagrams (Mermaid) for event loop, rendering pipeline, Fiber
-- [ ] 6.15 DSA problems with tests on the 6.13 runner
+### 6 — Product features (parked until more topics exist; each gets a short spec + OK before code)
+In this order when picked up; model for the build in brackets:
+- [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch) [Sonnet]
+- [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS [Sonnet]
+- [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`) [Opus spec, Sonnet build: cache bugs ship easily]
+- [ ] 6.13 "Run" for JS examples in a sandboxed Web Worker (replaces parked Sandpack) [Opus: runs code in the browser]
+- [ ] 6.14 Build-time SVG diagrams (Mermaid) for event loop, rendering pipeline, Fiber [Sonnet]
+- [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews [Sonnet]
+- [ ] 6.15 DSA problems with tests on the 6.13 runner [Sonnet]
 Skip: AI features, accounts/sync, company tags, i18n (until traffic).
 
 ### 7 — Next topics
-- [ ] Per topic: chapters + stubs from its **Not yet mapped** list, then content
+- [ ] Per topic: chapters + stubs from its **Not yet mapped** list, then content. Next: `nextjs`.
+  - Main session on Sonnet coordinates (briefs, checks hand-backs, commits); the topic spec and the questions go to an Opus agent (`question-writer`, R21); flashcards to the Sonnet `flashcards` agent.
   - Browser-run examples (HTML, CSS, DOM and Web APIs) run in the installed Chrome and Firefox via puppeteer-core in the scratchpad, never in the repo; browser-specific behaviour names the browser and version.
 
 ## Parked (don't start without maintainer)
