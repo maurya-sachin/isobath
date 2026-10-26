@@ -95,6 +95,7 @@ Use exactly these `##` headings, in this order. Leave out optional ones entirely
   - Configs and commands must be run for real (a scratch project, a container, a local database) before you show their output.
   - Show output as `// → value` comments; in CSS use `/* → value */`, in HTML `<!-- → value -->`. Output that wraps continues on `//   …` lines directly below; `…` inside a comment elides output.
   - CI runs every ```` ```js ```` example in `content/javascript/` that has a `// →` comment (`npm run examples:check`), as a strict ES module on Node. Fence meta: `js script` runs it as sloppy-mode CommonJS (sloppy semantics, `process.nextTick` order); `js no-run` skips it when it needs other files, Node flags, environment variables, packages, earlier blocks or timing. Every `// →` line in a runnable block must match the output in order, so mark every logged line.
+  - The same command checks ```` ```ts ```` blocks in `content/typescript/`. A block with `// Error TSnnnn` comments is compiled with the installed TypeScript (`strict`, one file) and must produce exactly those error codes; `ts no-run` skips it when it needs other compiler options, files, packages or a `tsconfig`. A block with `// →` and no error comment runs through Node's type stripping; `node=--experimental-transform-types` runs enums, namespaces and parameter properties. A block that claims a compiler error is checked, not run.
   - HTML and CSS must be run in a real browser; say which browser and version when behaviour differs between engines.
 
 ## Research
@@ -207,7 +208,7 @@ Commands (Node 24, run in `app/`):
 | `npm run content:status [topic]` | Published counts per chapter and every `→ —` gap |
 | `npm run content:status -- --stale [topic]` | Written questions to re-check, oldest first: stale ones and any with `perishable` notes |
 | `npm run content:new -- <topic>/<chapter> <slug> "<title>" --difficulty <d> --frequency <1-5> [--core] [--number NNN]` | Creates a `planned` stub, then syncs READMEs |
-| `npm run examples:check` | Runs the JavaScript examples on Node and fails when a `// →` comment differs from the output |
+| `npm run examples:check` | Runs the JavaScript and TypeScript examples and fails when a `// →` comment or a `// Error TSnnnn` comment differs from the result |
 | `npm run content:build` | Compiles content into `app/public/data/` (draft and published questions; drafts are labelled Draft) |
 | `npm run dev` | Builds content and starts the app |
 
