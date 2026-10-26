@@ -48,7 +48,7 @@ JavaScript projects also check `tsc/CHANGES.md` in the TypeScript repo: JSDoc su
 
 ## Example
 
-```ts
+```ts no-run
 // tsconfig.json (legacy): target es5, moduleResolution node, baseUrl ".", paths {"@/*": ["src/*"]},
 //                         esModuleInterop false, downlevelIteration true
 // tsc 6.0.3 -p .

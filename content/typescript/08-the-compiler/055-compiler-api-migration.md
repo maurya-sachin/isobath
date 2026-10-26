@@ -47,7 +47,7 @@ Per tool:
 
 ## Example
 
-```ts
+```ts no-run
 // check.ts with typescript@7.1.0-beta; node check.ts (Node 24.19 strips types)
 import { API } from "typescript/sync";
 

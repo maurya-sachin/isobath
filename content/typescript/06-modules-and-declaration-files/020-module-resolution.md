@@ -41,7 +41,7 @@ Conditions in `"exports"` are tried in object order, and `tsc` always matches `t
 
 ## Example
 
-```ts
+```ts no-run
 // TypeScript 7.0.2 and 6.0.3. package.json: { "type": "module" }; tsconfig: "module": "nodenext"
 // node_modules/dep/package.json "exports": {
 //   ".":         { "types": "./index.d.ts",   "default": "./index.js" },

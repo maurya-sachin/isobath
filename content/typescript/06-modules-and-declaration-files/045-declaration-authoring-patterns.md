@@ -39,7 +39,7 @@ The shape of a declaration file follows **how the JavaScript is loaded**, so I f
 
 ## Example
 
-```ts
+```ts no-run
 // node_modules/slugify-lite/index.js: UMD wrapper, module.exports = slugify or root.slugify = slugify
 // node_modules/slugify-lite/index.d.ts
 export as namespace slugify;      // UMD: a global for script files
