@@ -58,6 +58,7 @@ Skip: AI features, accounts/sync, company tags, i18n (until traffic).
 
 ### 7 — Next topics
 - [ ] Per topic: chapters + stubs from its **Not yet mapped** list, then content. Next: `nextjs`.
+  - Order: nextjs → state-and-data-fetching → accessibility → react-native → web-performance → web-security → testing → tooling → nodejs → http-and-apis → authentication → databases → caching → backend-patterns → messaging-and-jobs → git → ci-cd → networking → containers-and-kubernetes → cloud-and-iac → observability → data-structures-and-algorithms (after 6.15) → system-design.
   - Main session on Sonnet coordinates (briefs, checks hand-backs, commits); the topic spec and the questions go to an Opus agent (`question-writer`, R21); flashcards to the Sonnet `flashcards` agent.
   - Browser-run examples (HTML, CSS, DOM and Web APIs) run in the installed Chrome and Firefox via puppeteer-core in the scratchpad, never in the repo; browser-specific behaviour names the browser and version.
 
