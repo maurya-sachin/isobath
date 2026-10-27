@@ -31,7 +31,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [What decides whether a route is prerendered at build time or rendered per request?](010-static-or-dynamic-decision.md) | hard | 🔴 planned |
+| 010 | [What decides whether a route is prerendered at build time or rendered per request?](010-static-or-dynamic-decision.md) | hard | 🟡 draft |
 | 020 | [Why are `params`, `searchParams`, `cookies()` and `headers()` async?](020-async-request-apis.md) | medium | 🔴 planned |
 | 030 | [What is Partial Prerendering, and what ends up in the static shell?](030-partial-prerendering-shell.md) | hard | 🔴 planned |
 | 040 | [How do `generateStaticParams` and `dynamicParams` handle paths unknown at build time?](040-generate-static-params-dynamic-params.md) | medium | 🔴 planned |
