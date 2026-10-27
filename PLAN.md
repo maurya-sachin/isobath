@@ -5,7 +5,7 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 ## Now
 - Branch `dev`, equal to `main` (released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
-- Next: Phase 7 `nextjs`: spec first (Opus agent), then chapters. Maintainer items below run alongside and don't block it. Phase 6 is parked until more topics exist.
+- Next: Phase 7 `nextjs` chapters (spec `docs/superpowers/specs/2026-11-08-nextjs-topic-design.md`; 10 chapters, 50 stubs committed). Write chapter 01 first, one Opus writer per chapter; targets Next.js 16.4.5. Phase 6 is parked until more topics exist.
 - Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
 ## Goal
