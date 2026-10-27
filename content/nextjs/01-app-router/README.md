@@ -35,7 +35,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 020 | [Why does a layout keep its state on navigation, and when do you need `template.js`?](020-layout-state-and-template.md) | medium | 🟡 draft |
 | 030 | [How do `loading.js`, `error.js` and `not-found.js` map onto Suspense and error boundaries?](030-loading-error-not-found-boundaries.md) | medium | 🟡 draft |
 | 040 | [What are parallel routes, and why must every slot have `default.js`?](040-parallel-routes-default.md) | hard | 🟡 draft |
-| 050 | [How do intercepting routes give a modal its own URL that survives a refresh?](050-intercepting-routes-modal.md) | hard | 🔴 planned |
+| 050 | [How do intercepting routes give a modal its own URL that survives a refresh?](050-intercepting-routes-modal.md) | hard | 🟡 draft |
 | 060 | [What do route groups and multiple root layouts change about navigation?](060-route-groups-root-layouts.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
