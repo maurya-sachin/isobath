@@ -31,7 +31,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [How does the App Router turn folders and special files into a component tree?](010-app-router-component-tree.md) | medium | 🔴 planned |
+| 010 | [How does the App Router turn folders and special files into a component tree?](010-app-router-component-tree.md) | medium | 🟡 draft |
 | 020 | [Why does a layout keep its state on navigation, and when do you need `template.js`?](020-layout-state-and-template.md) | medium | 🔴 planned |
 | 030 | [How do `loading.js`, `error.js` and `not-found.js` map onto Suspense and error boundaries?](030-loading-error-not-found-boundaries.md) | medium | 🔴 planned |
 | 040 | [What are parallel routes, and why must every slot have `default.js`?](040-parallel-routes-default.md) | hard | 🔴 planned |
