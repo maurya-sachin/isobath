@@ -34,7 +34,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 010 | [What decides whether a route is prerendered at build time or rendered per request?](010-static-or-dynamic-decision.md) | hard | 🟡 draft |
 | 020 | [Why are `params`, `searchParams`, `cookies()` and `headers()` async?](020-async-request-apis.md) | medium | 🟡 draft |
 | 030 | [What is Partial Prerendering, and what ends up in the static shell?](030-partial-prerendering-shell.md) | hard | 🟡 draft |
-| 040 | [How do `generateStaticParams` and `dynamicParams` handle paths unknown at build time?](040-generate-static-params-dynamic-params.md) | medium | 🔴 planned |
+| 040 | [How do `generateStaticParams` and `dynamicParams` handle paths unknown at build time?](040-generate-static-params-dynamic-params.md) | medium | 🟡 draft |
 | 050 | [Where should `"use client"` go in a Next.js page, and what does a high boundary cost?](050-client-boundary-placement.md) | medium | 🔴 planned |
 | 060 | [How do you keep a route static, and how do you find what made it dynamic?](060-keeping-route-static.md) | hard | 🔴 planned |
 <!-- generated:questions:end -->
