@@ -36,7 +36,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 030 | [Why does an effect run twice in development, and how should cleanup work?](030-effect-cleanup.md) | medium | 🟡 draft |
 | 040 | [When do you need `useLayoutEffect` instead of `useEffect`?](040-layout-effects.md) | medium | 🟡 draft |
 | 050 | [Which effects shouldn't be effects?](050-you-might-not-need-an-effect.md) | medium | 🟡 draft |
-| 060 | [What problem does `useEffectEvent` solve?](060-effect-events.md) | hard | 🔴 planned |
+| 060 | [What problem does `useEffectEvent` solve?](060-effect-events.md) | hard | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
