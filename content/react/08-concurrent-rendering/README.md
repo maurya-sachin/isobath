@@ -1,6 +1,6 @@
 # 08 — Fiber and concurrent rendering
 
-> **Status:** 🔴 planned · **Published:** 0/0 · **Last verified:** —
+> **Status:** 🔴 planned · **Published:** 0/6 · **Last verified:** —
 
 How React renders without blocking: the Fiber architecture, interruptible rendering with priorities, transitions, deferred values, the scheduler underneath, and View Transitions driven by React updates.
 
@@ -19,18 +19,24 @@ After this chapter you can:
 
 Coverage checklist: each concept points to the questions covering it; `→ —` marks a gap.
 
-- Fiber: units of work, the work-in-progress tree, double buffering, why the stack reconciler couldn't pause → —
-- Concurrent rendering: interruptible render, priorities (lanes), commit stays synchronous, opting in through features → —
-- Transitions: `useTransition`, `startTransition`, `isPending`, async transitions, what can't be a transition → —
-- Deferred values: `useDeferredValue`, initial value, background re-render, vs debounce and throttle → —
-- Scheduling: the `scheduler` package, time slicing, yielding with `MessageChannel` → —
-- `<ViewTransition>`: which updates animate, enter/exit/update/share, relation to the browser's View Transitions API → —
+- Fiber: units of work, the work-in-progress tree, double buffering, why the stack reconciler couldn't pause → 010
+- Concurrent rendering: interruptible render, priorities (lanes), commit stays synchronous, opting in through features → 020
+- Transitions: `useTransition`, `startTransition`, `isPending`, async transitions, what can't be a transition → 030
+- Deferred values: `useDeferredValue`, initial value, background re-render, vs debounce and throttle → 040
+- Scheduling: the `scheduler` package, time slicing, yielding with `MessageChannel` → 050
+- `<ViewTransition>`: which updates animate, enter/exit/update/share, relation to the browser's View Transitions API → 060
 
 ## Questions
 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
+| 010 | [What is Fiber, and why did React rewrite its reconciler?](010-fiber.md) | hard | 🔴 planned |
+| 020 | [What does concurrent rendering mean in React?](020-interruptible-rendering.md) | hard | 🔴 planned |
+| 030 | [What does `useTransition` change for the user?](030-transitions.md) | medium | 🔴 planned |
+| 040 | [How is `useDeferredValue` different from debouncing?](040-deferred-value.md) | medium | 🔴 planned |
+| 050 | [How does React's scheduler yield to the browser?](050-scheduler.md) | hard | 🔴 planned |
+| 060 | [How does `<ViewTransition>` animate React updates?](060-view-transition.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
 ## Sources
