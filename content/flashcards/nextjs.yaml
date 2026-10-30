@@ -340,3 +340,380 @@
   front: "What did an unknown URL return with two root layouts and no `not-found.js`?"
   back: "`/nope` answered `404` with Next.js's built-in \"This page could not be found.\" page."
   question: nextjs/app-router/route-groups-root-layouts
+# 02 Rendering
+- id: sdd-decider-is-what-render-touches
+  front: "What decides whether `next build` prerenders a route or leaves it for request time?"
+  back: "What the render touches, not the file. Next.js prerenders every route unless rendering needs the request. The answer differs by rendering model: `cacheComponents` off (the framework default in 16.4.5) or on."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-granularity
+  front: "In Next.js 16.4.5 without Cache Components, at what level is the static or dynamic decision made?"
+  back: "Per route, all-or-nothing. One request-time API anywhere in the route's tree, layouts included, makes the whole route render per request (ƒ)."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-dynamic-triggers
+  front: "Without Cache Components, what makes a route render per request (ƒ)?"
+  back: "A request-time API (`cookies()`, `headers()`, `draftMode()`, `connection()`, awaited `searchParams`), a `fetch` with `cache: 'no-store'` or `revalidate: 0`, `dynamic = 'force-dynamic'`, or a dynamic segment with no `generateStaticParams`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-date-now-frozen
+  front: "Without Cache Components in 16.4.5, what happens to `Date.now()` and `Math.random()` in a page?"
+  back: "They run once during the build and their values are frozen into the HTML. They don't make the route dynamic: `/now` served the same build-time timestamp on every request."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-fetch-position
+  front: "Without Cache Components, when does a `fetch` with no options make a route dynamic?"
+  back: "Only if it runs after a request-time API. Reached before one, it runs once at build (the docs' `fetchCache: 'auto'` rule). With Cache Components it is uncached data and must be in `<Suspense>` or `use cache`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-root-layout-cookies
+  front: "What happens to every route when the root layout calls `cookies()` with Cache Components off?"
+  back: "Every route below it becomes ƒ, because a dynamic layout makes all its child routes dynamic. The CDN then gets `private, no-store`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-on-three-kinds
+  front: "With `cacheComponents: true`, which three kinds of work count as not known at build time?"
+  back: "Request data (`cookies()`, `headers()`, `searchParams`, unlisted `params`, `connection()`), uncached I/O (`fetch` outside `use cache`), and unstable values (`Date.now()`, `Math.random()`, `crypto.randomUUID()`)."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-on-handle-it
+  front: "With Cache Components on, where must each request-time or uncached read sit, and what happens to one that sits nowhere?"
+  back: "Inside `<Suspense>` (fallback joins the static shell, content streams per request) or inside `use cache` (result joins the shell). A read with neither fails the build."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-instant-false
+  front: "How do you accept a blocking route (ƒ) when Cache Components is on?"
+  back: "`export const instant = false`. It is the third fix, after `<Suspense>` and `use cache`, offered in the build error."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-route-table-symbols
+  front: "Which route table symbols does `next build` 16.4.5 print with Cache Components off, and with it on?"
+  back: "Off: ○ static, ● SSG (uses `generateStaticParams`), ƒ dynamic. On, the legend shows only ○ static, ◐ Partial Prerender and ƒ dynamic."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-gsp-marker-cc-on
+  front: "How did the 16.4.5 route table list `generateStaticParams` output with Cache Components on?"
+  back: "Listed paths (`/blog/a`, `/blog/b`) showed as ○, not ●. A `◐ /blog/[slug]` row was the shell used by unlisted slugs."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cache-control-tells
+  front: "In 16.4.5, which response headers showed a static, a dynamic, and a partial result?"
+  back: "Static: `Cache-Control: s-maxage=31536000` and `x-nextjs-cache: HIT`. Dynamic: `private, no-cache, no-store, max-age=0, must-revalidate`. Partial ones add `x-nextjs-postponed: 1`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-suspense-without-cc
+  front: "Does wrapping `cookies()` in `<Suspense>` keep a route static with Cache Components off?"
+  back: "No. In 16.4.5 the route stayed ƒ. Only Cache Components turns the boundary into a static/dynamic split."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-segment-config-rejected
+  front: "What does the 16.4.5 build do with `dynamic`, `revalidate` or `dynamicParams` exports when Cache Components is on?"
+  back: "It rejects each: `Route segment config \"dynamic\" is not compatible with nextConfig.cacheComponents. Please remove it.`"
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-edge-suspense-not-marker
+  front: "Does a `<Suspense>` boundary by itself make work dynamic?"
+  back: "No. The docs say a boundary around purely synchronous work still completes during prerendering. What is inside it decides."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-edge-sync-db-driver
+  front: "When do synchronous database drivers such as `better-sqlite3` or `node:sqlite` run, and how do you make them per request?"
+  back: "Their queries complete at build time in both models. Call `connection()` first if the data must be per request."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-future-default
+  front: "What do the docs say will happen to Cache Components in the next major release?"
+  back: "It will be enabled everywhere, with the option removed. `create-next-app` 16.4 already enables `cacheComponents` and `partialPrefetching`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: ara-why-promises
+  front: "Why did Next.js 15 make `cookies()`, `headers()`, `params` and `searchParams` async?"
+  back: "So it can prepare as much as possible before a request arrives. The promise makes explicit when a component waits for the request; synchronous access forced the request to exist before the render started."
+  question: nextjs/rendering/async-request-apis
+- id: ara-which-apis
+  front: "Which APIs became promises in Next.js 15?"
+  back: "`cookies()`, `headers()`, `draftMode()`, `params` (layouts, pages, route handlers, `default.js`, image metadata files) and `searchParams` (pages)."
+  question: nextjs/rendering/async-request-apis
+- id: ara-sync-removed-16
+  front: "What happened to synchronous access to request APIs in Next.js 14, 15 and 16?"
+  back: "Up to 14 they were synchronous. 15 kept synchronous access with warnings. 16.0 removed it."
+  question: nextjs/rendering/async-request-apis
+- id: ara-pass-down-unawaited
+  front: "What does the promise let a layout or page do that a plain object didn't?"
+  back: "Pass `params` or `searchParams` down without awaiting it. Only the child that awaits waits for the request."
+  question: nextjs/rendering/async-request-apis
+- id: ara-cc-on-shell
+  front: "With Cache Components, what is prerendered when a page awaits `searchParams` inside a `<Suspense>` boundary?"
+  back: "Everything outside that boundary goes into the static shell. Only the awaiting subtree streams per request."
+  question: nextjs/rendering/async-request-apis
+- id: ara-cc-off-await-dynamic
+  front: "Without Cache Components, what makes a route dynamic with respect to `searchParams`?"
+  back: "The `await`. In 16.4.5 a page that received `searchParams` but never awaited it stayed static (○)."
+  question: nextjs/rendering/async-request-apis
+- id: ara-client-use
+  front: "How does a Client Component page read `params`, versus a Server Component?"
+  back: "A Server Component uses `await`. A Client Component page reads the same promises with React's `use(params)`."
+  question: nextjs/rendering/async-request-apis
+- id: ara-sync-failure-modes
+  front: "What did synchronous reads do at request time in Next.js 16.4.5?"
+  back: "`cookies().get('theme')` failed with `TypeError: … .get is not a function` (a 500). `params.slug` and `searchParams.q` were silently `undefined`, and the page reading `searchParams.q` was even prerendered as static."
+  question: nextjs/rendering/async-request-apis
+- id: ara-ts-error
+  front: "Which TypeScript error flags synchronous `searchParams.q` access?"
+  back: "`Property 'q' does not exist on type 'Promise<…>'` (TS2339)."
+  question: nextjs/rendering/async-request-apis
+- id: ara-stale-reference-pages
+  front: "Which docs still describe synchronous access as working in Next.js 15, and who is right about 16?"
+  back: "The reference pages for `cookies`, `headers` and `page`. The version 16 upgrade guide and the 16.4.5 runtime agree synchronous access is gone."
+  question: nextjs/rendering/async-request-apis
+- id: ara-await-params-top-layout
+  front: "Why is awaiting `params` at the top of a layout a pitfall?"
+  back: "Everything under it then waits for the request. Pass the promise down and await it inside `<Suspense>`."
+  question: nextjs/rendering/async-request-apis
+- id: ara-gsp-params-sync
+  front: "Why is the `params` argument of `generateStaticParams` still synchronous?"
+  back: "It runs during the build, not for a request. It only receives parent segments' params that a parent `generateStaticParams` already produced."
+  question: nextjs/rendering/async-request-apis
+- id: ara-codemod-typegen
+  front: "Which commands help migrate to async request APIs?"
+  back: "`npx @next/codemod@canary next-async-request-api .` (from the 15 release), and `npx next typegen`, which generates global `PageProps` and `LayoutProps` helpers whose `params` and `searchParams` are promises."
+  question: nextjs/rendering/async-request-apis
+- id: ara-await-params-listed
+  front: "Does awaiting `params` always make a route dynamic?"
+  back: "No. A value listed by `generateStaticParams` is known at build time, so awaiting it still prerenders (`/shop/shoes` built as ◐ with Cache Components). Only unlisted values are request data."
+  question: nextjs/rendering/async-request-apis
+- id: ara-no-cc-gsp-ignored
+  front: "In the example page with Cache Components off, what did 16.4.5 build `/shop/[slug]` as?"
+  back: "`ƒ /shop/[slug]`, and `generateStaticParams` produced nothing. With Cache Components on, `/shop/shoes` built as ◐."
+  question: nextjs/rendering/async-request-apis
+- id: pps-what-is-ppr
+  front: "What does Partial Prerendering split a route into, and how is it enabled in Next.js 16?"
+  back: "A part rendered at build time and a part rendered per request. In 16 it is what `cacheComponents: true` does; there is no separate flag."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-legacy-flag
+  front: "What was the PPR flag before Next.js 16?"
+  back: "`experimental.ppr` in Next.js 15 canaries. 16.0 removed it in favour of `cacheComponents`."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-postpone
+  front: "How does the build handle a subtree that needs the request or uncached data?"
+  back: "React renders the nearest `<Suspense>` fallback instead and postpones that boundary, saving where it stopped."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-shell-contents
+  front: "What does the static shell contain?"
+  back: "Layouts and static markup, results of `use cache` functions and components (unless their lifetime is short), content for `params` values listed by `generateStaticParams`, and the fallbacks of postponed boundaries."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-not-in-shell
+  front: "What is not in the static shell and must sit inside `<Suspense>`?"
+  back: "Anything reading `cookies()`, `headers()`, `searchParams`, unlisted `params` or `connection()`, uncached I/O, or `Date.now()`/`Math.random()` outside a cache. Otherwise the build fails."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-request-flow
+  front: "What happens on a request to a partial route?"
+  back: "The server sends the stored shell immediately, resumes the postponed boundaries with the real request, and streams each result as hidden HTML plus a script that swaps it in for its fallback. It is one HTTP response (`x-nextjs-postponed: 1`)."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-vs-streaming
+  front: "How does PPR differ from plain streaming server rendering?"
+  back: "Streaming alone still renders the static parts on every request. PPR rendered them once at build."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-shell-rsc-payload
+  front: "What else does the shell exist as, and what is it used for?"
+  back: "An RSC payload, used for client navigations and prefetches."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-suspense-not-dynamic
+  front: "Does `<Suspense>` mean \"dynamic\" in PPR?"
+  back: "No. A boundary around work that completes at build time is just prerendered. Only request-time or uncached work inside it is postponed."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-cachelife-seconds-outside
+  front: "What happened in 16.4.5 to `cacheLife('seconds')` outside `<Suspense>`, and inside one?"
+  back: "Outside, it failed the build with the \"uncached or runtime data\" error, because `seconds` is excluded from prerenders. Inside a boundary it became a hole."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-cachelife-thresholds
+  front: "Which `cacheLife` values are excluded from prerenders, and which are left out of the App Shell?"
+  back: "`revalidate: 0`, `expire` under 5 minutes, or `stale` under 30 seconds are excluded (a dynamic hole). `stale` between 30 seconds and 5 minutes is prerendered but left out of the App Shell used for prefetching. Of the presets, only `seconds` is affected."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-await-params-top
+  front: "What is the shell for an unlisted param when the page awaits `params` at its top?"
+  back: "Empty. In 16.4.5 the `[slug].html` fallback shell was 0 bytes. Await `params` inside `<Suspense>` instead."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-app-shell-unknown-params
+  front: "What does Next.js prerender for a dynamic segment besides listed params?"
+  back: "A URL-independent App Shell (`◐ /blog/[slug]` in the route table) whose param-dependent parts are fallbacks."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-build-artifacts
+  front: "What does the build store per partial route?"
+  back: "The shell HTML (`ppr.html`), its RSC segments for navigation, and a `.meta` file whose `postponed` field holds React's serialized resume state."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-response-cache-control
+  front: "Why was a PPR response `private, no-cache, no-store, max-age=0, must-revalidate` under `next start`?"
+  back: "The full response contains per-user content. So a generic CDN in front cannot cache the shell; edge serving relies on a platform that stores the shell and resumes the render separately."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-swap-protocol
+  front: "Which markers does the streamed swap use, and whose protocol is it?"
+  back: "A `B:0` template marks the hole, `S:0` carries its content, and a `$RC(\"B:0\",\"S:0\")` call swaps them. It is React's streaming protocol, not something Next.js adds."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-browsers-paint-shell
+  front: "When did headless Chrome 156 and Firefox 159 see the fallback and the real content in the PPR example?"
+  back: "The fallback `Loading cart…` at 27 ms (Chrome) and 16 ms (Firefox); `cart empty` at 2301 ms in both."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-bots-skip-shell
+  front: "Which crawlers get no shell in Next.js 16.4.5, and what is the risk?"
+  back: "HTML-limited bots matched by user agent (`Twitterbot`, `facebookexternalhit`, `Slackbot`, `Bingbot` and others; not `Googlebot`, which got the shell). Data the shell needs at build time must also be reachable at request time, or the page fails only for crawlers."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-shell-data-age
+  front: "How old is the shell's data?"
+  back: "As old as the build until revalidated: `prices v7` stayed in the shell while the API's counter moved on."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-proxy-buffering
+  front: "Why can a buffering proxy break PPR streaming, and what do the docs suggest?"
+  back: "Nginx and some CDNs collect the whole response, so the shell arrives together with the holes. The docs suggest `X-Accel-Buffering: no`."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: gsp-what-it-does
+  front: "When does `generateStaticParams` run, and what does each listed value become?"
+  back: "Once during the build, before the page renders; it is not called again on revalidation. Each listed value becomes a prerendered page (● in the route table). Without the function the route renders per request (ƒ)."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-dp-true
+  front: "With Cache Components off, what does `dynamicParams = true` (the default) do for an unlisted value?"
+  back: "The first request renders the page, the response is cached, and later requests get the cached copy. That is on-demand ISR, the App Router's version of `getStaticPaths` with `fallback: 'blocking'`."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-dp-false
+  front: "With Cache Components off, what does `dynamicParams = false` do for an unlisted value?"
+  back: "Returns 404 immediately without running the page. In 16.4.5, `/products/2` returned 404 in 7 ms without calling `getProduct`."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-empty-array-cc-off
+  front: "What does returning `[]` from `generateStaticParams` do with Cache Components off?"
+  back: "It prerenders nothing at build time but keeps the route ●, so every path is generated on its first visit."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-dynamicparams-rejected
+  front: "What happens to `dynamicParams` and to an empty `generateStaticParams` array with `cacheComponents: true`?"
+  back: "Both fail the build. `dynamicParams` is \"not compatible with `nextConfig.cacheComponents`\"; an empty array fails because Next.js needs at least one real value to check the route for request-time access."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-unlisted
+  front: "How is an unlisted value served with Cache Components on?"
+  back: "It gets the route's App Shell (param-dependent parts behind `<Suspense>` fallbacks), its content streams in, and the completed page is cached for the next visit."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-notfound
+  front: "How do you reject unknown values with Cache Components on, where `dynamicParams = false` is unavailable?"
+  back: "Call `notFound()` when the data lookup fails."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-status-200
+  front: "What status does the first visit to a bad id get with Cache Components on, and what do the docs suggest?"
+  back: "`200` plus `<meta name=\"robots\" content=\"noindex\">`, because the shell starts the response before `notFound()` runs. The second visit got 404 from the cache. The docs suggest Proxy for a request-time 404."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-observed-isr-timing
+  front: "With Cache Components off, `dynamicParams = true` and a 500 ms `getProduct`, how did `/products/2` behave in 16.4.5?"
+  back: "0.57 s with `x-nextjs-cache: MISS`, then 0.003 s with `HIT`. `/products/9` returned 404 and that 404 was cached too."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-not-authorization
+  front: "Why is `dynamicParams = false` not authorization?"
+  back: "It only checks the URL against the build-time list; it says nothing about who may see the page."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-false-new-item
+  front: "When `dynamicParams` is `false`, when does a newly created item appear?"
+  back: "Not without a rebuild. It returns 404 until the next build lists it."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cache-growth
+  front: "What is the cache-growth risk of `dynamicParams = true`?"
+  back: "Every distinct unknown value, including a bot's random slugs, became its own cached page, 404s included."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-nested-segments
+  front: "How do nested segments share `generateStaticParams` work?"
+  back: "A child's function receives each parent's params (synchronously) and runs once per parent value. A page can also return all segments itself, e.g. `[{ category: 'a', product: 'x' }]`."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-placeholder-trick
+  front: "What is the docs' placeholder trick for Cache Components, and its cost?"
+  back: "Return `[{ slug: '__placeholder__' }]` to satisfy \"at least one result\" when no real values are known, then call `notFound()` for it. The docs warn it weakens build-time validation."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-route-handlers
+  front: "Does `generateStaticParams` work in route handlers?"
+  back: "Yes. `route.js` can export it to generate GET responses at build time for each listed value."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: cbp-where-directive
+  front: "Where should `\"use client\"` go in a page?"
+  back: "On the smallest component that needs state, effects, handlers or browser APIs (the leaf). Keep `page.js` and `layout.js` on the server."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-module-boundary
+  front: "What does `\"use client\"` mark, and what ships to the browser?"
+  back: "The entry of the client module graph: that file, every module it imports, and the components it renders directly are bundled for the browser."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-still-server-rendered
+  front: "Does `\"use client\"` mean a component renders only in the browser?"
+  back: "No. It is still rendered to HTML on the server; the directive adds client JavaScript and hydration. `/high` was prerendered with all 40 list items in its HTML."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-children-stay-server
+  front: "What happens to Server Components passed as `children` into a Client Component?"
+  back: "They stay on the server. The client component receives their rendered output."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-high-boundary-costs
+  front: "What are the three costs of a `\"use client\"` boundary at the top of a page?"
+  back: "Code (libraries used only to render are downloaded, parsed and executed in the browser), hydration of the whole subtree, and no server access (no `next/headers`, secrets or direct database queries)."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-not-seo
+  front: "Is a boundary at the top of a page an SEO cost?"
+  back: "No. The HTML is still server-rendered."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-measured-chunks
+  front: "In the 16.4.5 Turbopack `next start` experiment, how did `/low` and `/high` differ in scripts?"
+  back: "`/low` loaded 7 scripts, 174,752 B gzip, with a 303-byte `LikeButton` as its only page-specific chunk. `/high` loaded an 8th chunk, 47,274 B (14,593 B gzip), containing js-yaml."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-wrapper-pattern
+  front: "How do you wrap server-rendered content in an interactive component?"
+  back: "Make the wrapper a `'use client'` component that takes `children` (a modal, collapsible, provider) and render it as deep as it can go. The `/slot` Collapsible added 240 bytes of uncompressed JavaScript over `/low`; js-yaml stayed on the server."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-theme-provider
+  front: "Where should a theme provider go?"
+  back: "In a `'use client'` provider file that takes `children`, rendered around `{children}` in the layout, not around `<html>`. The docs advise placing providers as deep as possible."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-not-always-more-bytes
+  front: "Is a high boundary always more bytes?"
+  back: "No. With 1,500 items of plain data, `/high` shipped a 9,412 B gzip data chunk, but `/low`'s HTML grew to 498 KB (26 KB gzip) because rendered output travelled twice, as HTML and inlined RSC payload. Code and hydration are the dependable costs."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-server-import-failure
+  front: "What happens in 16.4.5 when a client page imports `cookies`, and when it uses a plain secret?"
+  back: "The build fails with `You're importing a module that depends on \"next/headers\" into a React Client Component module.` Secrets fail silently: non-`NEXT_PUBLIC_` variables become empty strings. Import `server-only` to turn that into a build error."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-directive-every-file
+  front: "Why not add `\"use client\"` to every client-side file?"
+  back: "Only entry points need it. Everything they import is already client code."
+  question: nextjs/rendering/client-boundary-placement
+- id: krs-usual-causes
+  front: "What are the usual causes of a route going dynamic?"
+  back: "`cookies()` or `headers()` in a layout (auth state, theme, locale), awaited `searchParams`, unlisted `params`, and uncached data."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-fixes
+  front: "How do you keep a route static despite per-user UI, URL variants and shared data?"
+  back: "Move per-user UI to the client (or behind `<Suspense>` with Cache Components). Give URL variants a segment plus `generateStaticParams` (`/[locale]/pricing`). Cache shared data: `fetch` with `cache: 'force-cache'` or `next.revalidate` without Cache Components, `use cache` with them."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-dynamic-error
+  front: "How do you turn a dynamic regression into a failed build without Cache Components?"
+  back: "`export const dynamic = 'error'`. In 16.4.5 a header reading cookies failed with `Route /err-cookies with `dynamic = \"error\"` couldn't be rendered statically because it used `cookies()``; a `no-store` fetch was reported as `revalidate: 0 fetch <url>`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-ensure-static
+  front: "How do you guard a route with Cache Components on, and since which version?"
+  back: "`export const ensureStatic = 'navigation'` on a page or layout, stable since 16.4.0. It requires the whole server-rendered route to prerender, so request data fails the build even inside `<Suspense>`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-ensure-static-levels
+  front: "What do the `'shell'` and `'prefetch'` values of `ensureStatic` cover?"
+  back: "Only the prefetch stages, unlike `'navigation'`, which requires the whole server-rendered route to prerender."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-ensure-static-no-cc
+  front: "What happens if `ensureStatic` is exported without `cacheComponents`?"
+  back: "The export itself fails the build."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-child-cannot-loosen
+  front: "Can a child segment loosen a parent's `ensureStatic`?"
+  back: "No. A child may set a stricter level; a weaker one fails the build (\"A child segment cannot override a parent segment with a less-constrained `ensureStatic`\"), per the docs."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-table-says-that-not-why
+  front: "What do the route table and the `next dev` indicator menu tell you about a dynamic route?"
+  back: "That it is dynamic (ƒ, or ◐ with Cache Components; `Route Dynamic` in the menu), but not why. The guard errors name the API."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-dev-indicator-observed
+  front: "What did the 16.4.5 dev indicator menu show in Chrome 156 and Firefox 159?"
+  back: "`Route | Dynamic` for `/cookies` and `Route | Static` for `/`. Route Info listed only the segment files. With Cache Components, the dev overlay shows blocking-route insights with source."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-debug-prerender
+  front: "What does `next build --debug-prerender` add?"
+  back: "It disables server minification and enables source maps. With Cache Components the build stack can otherwise be component names only (`at Suspense (<anonymous>)`); this gave `at Header (app/lib/Header.jsx:3:30)` with a code frame."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-debug-prerender-deploy
+  front: "Should you deploy a `--debug-prerender` build?"
+  back: "No. The docs warn it is unminified and not optimized for production."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-debug-build-paths
+  front: "How do you check a big app faster when debugging prerender errors?"
+  back: "`next build --debug-build-paths=<patterns>` builds only matching routes, and combines with `--debug-prerender`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-force-static-pitfall
+  front: "What does `dynamic = 'force-static'` do to `cookies()` and `headers()`?"
+  back: "It forces them to return empty values. With a `user=sachin` cookie the forced page still said `Hi guest`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-dynamic-error-names-api
+  front: "Does `dynamic = 'error'` name the component that caused the problem?"
+  back: "No. It names the API (`cookies()`), not where it was called, so search for the call, layouts included."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-partial-not-failure
+  front: "Is ◐ a failure with Cache Components on?"
+  back: "No. A partial route is expected there. Use `ensureStatic` only where per-request server work is truly unwanted."
+  question: nextjs/rendering/keeping-route-static
