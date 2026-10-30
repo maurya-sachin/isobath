@@ -30,7 +30,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 010 | [How does context reach consumers, and why do they all re-render?](010-context-propagation.md) | medium | 🟡 draft |
 | 020 | [How do you stop context changes from re-rendering too much?](020-context-performance.md) | hard | 🟡 draft |
 | 030 | [How do children, render props, compound components, and HOCs compare?](030-composition-patterns.md) | medium | 🟡 draft |
-| 040 | [What do custom hooks share between components, and what don't they?](040-custom-hooks.md) | medium | 🔴 planned |
+| 040 | [What do custom hooks share between components, and what don't they?](040-custom-hooks.md) | medium | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
