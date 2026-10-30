@@ -32,7 +32,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 010 | [Why does state still hold the old value right after you set it?](010-state-as-snapshot.md) | medium | 🟡 draft |
 | 020 | [How does React batch state updates, and when do you need an updater function?](020-batching-and-updater-functions.md) | medium | 🟡 draft |
 | 030 | [When should you use `useReducer` instead of `useState`?](030-use-reducer.md) | medium | 🟡 draft |
-| 040 | [Why must React state be updated immutably?](040-immutable-updates.md) | medium | 🔴 planned |
+| 040 | [Why must React state be updated immutably?](040-immutable-updates.md) | medium | 🟡 draft |
 | 050 | [How do you decide where state lives and what not to store?](050-structuring-state.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
