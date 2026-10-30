@@ -33,7 +33,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 020 | [Why does React need keys, and what goes wrong with index keys?](020-list-keys.md) | medium | 🟡 draft |
 | 030 | [When does React keep a component's state, and when does it reset it?](030-preserving-and-resetting-state.md) | hard | 🟡 draft |
 | 040 | [How do Portals render outside the parent DOM node, and how do their events bubble?](040-portals.md) | medium | 🟡 draft |
-| 050 | [How does `<Activity>` hide UI without losing its state?](050-activity.md) | medium | 🔴 planned |
+| 050 | [How does `<Activity>` hide UI without losing its state?](050-activity.md) | medium | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
