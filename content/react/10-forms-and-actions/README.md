@@ -1,6 +1,6 @@
 # 10 — Forms and Actions
 
-> **Status:** 🔴 planned · **Published:** 0/0 · **Last verified:** —
+> **Status:** 🔴 planned · **Published:** 0/4 · **Last verified:** —
 
 Handling input and submissions: controlled and uncontrolled inputs, Actions as async transitions, `<form action>`, `useFormStatus`, `useActionState`, and optimistic updates with `useOptimistic`.
 
@@ -17,16 +17,20 @@ After this chapter you can:
 
 Coverage checklist: each concept points to the questions covering it; `→ —` marks a gap.
 
-- Controlled vs uncontrolled: `value` vs `defaultValue`, switching between them, caret jumps with async updates → —
-- Actions: async functions in transitions, `<form action>`, `formAction`, form reset after success, `useFormStatus` → —
-- `useActionState`: action signature, previous state, pending flag, progressive enhancement with a permalink → —
-- `useOptimistic`: optimistic state during a transition, reverting on finish or error → —
+- Controlled vs uncontrolled: `value` vs `defaultValue`, switching between them, caret jumps with async updates → 010
+- Actions: async functions in transitions, `<form action>`, `formAction`, form reset after success, `useFormStatus` → 020
+- `useActionState`: action signature, previous state, pending flag, progressive enhancement with a permalink → 030
+- `useOptimistic`: optimistic state during a transition, reverting on finish or error → 040
 
 ## Questions
 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
+| 010 | [What is the difference between controlled and uncontrolled inputs?](010-controlled-vs-uncontrolled.md) | medium | 🔴 planned |
+| 020 | [What are Actions, and how does `<form action>` differ from `onSubmit`?](020-actions.md) | medium | 🔴 planned |
+| 030 | [How does `useActionState` manage a form's result and pending state?](030-use-action-state.md) | medium | 🔴 planned |
+| 040 | [How does `useOptimistic` show a result before the server confirms it?](040-use-optimistic.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
 ## Sources
