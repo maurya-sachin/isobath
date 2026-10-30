@@ -34,7 +34,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 010 | [When does `useEffect` run, and what is it for?](010-effect-timing.md) | medium | 🟡 draft |
 | 020 | [How do effect dependencies work, and how do you fix a stale closure?](020-effect-dependencies.md) | hard | 🟡 draft |
 | 030 | [Why does an effect run twice in development, and how should cleanup work?](030-effect-cleanup.md) | medium | 🟡 draft |
-| 040 | [When do you need `useLayoutEffect` instead of `useEffect`?](040-layout-effects.md) | medium | 🔴 planned |
+| 040 | [When do you need `useLayoutEffect` instead of `useEffect`?](040-layout-effects.md) | medium | 🟡 draft |
 | 050 | [Which effects shouldn't be effects?](050-you-might-not-need-an-effect.md) | medium | 🔴 planned |
 | 060 | [What problem does `useEffectEvent` solve?](060-effect-events.md) | hard | 🔴 planned |
 <!-- generated:questions:end -->
