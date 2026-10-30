@@ -29,7 +29,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [How does a Server Action update the page in a single round trip?](010-server-action-single-round-trip.md) | hard | 🔴 planned |
+| 010 | [How does a Server Action update the page in a single round trip?](010-server-action-single-round-trip.md) | hard | 🟡 draft |
 | 020 | [What is the difference between `revalidatePath`, `revalidateTag`, `updateTag` and `refresh`?](020-revalidation-apis-compared.md) | hard | 🔴 planned |
 | 030 | [How does ISR serve a stale page, and what does on-demand revalidation do across instances?](030-isr-and-on-demand-revalidation.md) | hard | 🔴 planned |
 | 040 | [Why must every Server Action check authorization itself?](040-server-action-authorization.md) | hard | 🔴 planned |
