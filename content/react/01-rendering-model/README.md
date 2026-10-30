@@ -32,7 +32,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 010 | [What does JSX compile to, and what is a React element?](010-jsx-and-elements.md) | medium | 🟡 draft |
 | 020 | [What happens between a state update and the screen changing?](020-render-and-commit.md) | medium | 🟡 draft |
 | 030 | [Why must rendering be pure, and how does Strict Mode catch impure components?](030-purity-and-strict-mode.md) | medium | 🟡 draft |
-| 040 | [Why can't hooks be called conditionally?](040-rules-of-hooks.md) | medium | 🔴 planned |
+| 040 | [Why can't hooks be called conditionally?](040-rules-of-hooks.md) | medium | 🟡 draft |
 | 050 | [When does a React component re-render?](050-when-components-rerender.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
