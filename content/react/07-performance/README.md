@@ -25,7 +25,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [When do `memo`, `useMemo`, and `useCallback` actually help?](010-memoization.md) | medium | 🔴 planned |
+| 010 | [When do `memo`, `useMemo`, and `useCallback` actually help?](010-memoization.md) | medium | 🟡 draft |
 | 020 | [What does the React Compiler do, and what does it require of your code?](020-react-compiler.md) | medium | 🔴 planned |
 | 030 | [How do you find out why a component rendered?](030-profiling.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
