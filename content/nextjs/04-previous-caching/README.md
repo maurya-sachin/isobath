@@ -28,7 +28,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | # | Question | Difficulty | Status |
 |---|---|---|---|
 | 010 | [Without Cache Components, what does Next.js cache, and where?](010-default-cache-locations.md) | hard | 🟡 draft |
-| 020 | [How did caching defaults change from Next.js 14 to 15 to 16, and why?](020-caching-defaults-14-to-16.md) | medium | 🔴 planned |
+| 020 | [How did caching defaults change from Next.js 14 to 15 to 16, and why?](020-caching-defaults-14-to-16.md) | medium | 🟡 draft |
 | 030 | [What do `dynamic`, `revalidate` and `fetchCache` segment configs do?](030-segment-config-options.md) | medium | 🔴 planned |
 | 040 | [When are two `fetch` calls deduplicated, and when are they not?](040-fetch-request-deduplication.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
