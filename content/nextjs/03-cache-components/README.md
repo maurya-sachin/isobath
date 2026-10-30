@@ -33,7 +33,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 020 | [Why can't a cached function read `cookies()`, and how do you pass request data into one?](020-cached-functions-and-request-data.md) | hard | 🟡 draft |
 | 030 | [How do `cacheLife` profiles map to stale, revalidate and expire times?](030-cachelife-profiles.md) | medium | 🟡 draft |
 | 040 | [When do you need `use cache: private` or `use cache: remote`?](040-private-and-remote-cache.md) | hard | 🟡 draft |
-| 050 | [How does `use cache` differ from React's `cache` and from `unstable_cache`?](050-use-cache-vs-other-caches.md) | medium | 🔴 planned |
+| 050 | [How does `use cache` differ from React's `cache` and from `unstable_cache`?](050-use-cache-vs-other-caches.md) | medium | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
