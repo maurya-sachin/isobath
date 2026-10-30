@@ -6,7 +6,7 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 - Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1), `archive/improvements` (unmerged v1 fixes).
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851. Limits are labelled in the text (browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
 - Bug, awaiting OK to fix and deploy: direct loads of non-prerendered routes (`/flashcards/<topic>`, `/practice/…`, unknown paths) get Vercel's NOT_FOUND, because `cleanUrls` 308s the `/app-shell.html` rewrite. Likely fix: destination `/app-shell`; confirm in Vercel docs, curl live.
-- Next: Phase 7 next topic — recommended `react` (Frontend track); plan chapters + stubs from its **Not yet mapped** list, then the same writer/cards loop (briefs and harness setup in memory).
+- Doing: `react` — 12 chapters, 54 stubs; writer/cards loop chapter by chapter (briefs and harness setup in memory). Examples run on React 19.3.1 (esbuild dev/prod bundles in Chrome 156 + Firefox 159; server APIs on Node 24).
 - Awaiting maintainer: Phase 5 reviews; wordmark redraw.
 
 ## Goal
