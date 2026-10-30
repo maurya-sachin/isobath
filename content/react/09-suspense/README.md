@@ -1,6 +1,6 @@
 # 09 — Suspense, `use`, and error boundaries
 
-> **Status:** 🔴 planned · **Published:** 0/0 · **Last verified:** —
+> **Status:** 🔴 planned · **Published:** 0/5 · **Last verified:** —
 
 Declarative loading and error states: what suspending means, how `use` reads promises and context, how Suspense interacts with transitions, code splitting with `lazy`, and what error boundaries catch.
 
@@ -18,17 +18,22 @@ After this chapter you can:
 
 Coverage checklist: each concept points to the questions covering it; `→ —` marks a gap.
 
-- Suspense mechanics: suspending, nearest boundary, fallback, revealing together, nested boundaries, sibling pre-rendering → —
-- `use`: reading promises and context, conditional calls, promise identity and caching → —
-- Suspense with transitions: keeping already-revealed content, `useTransition` and `useDeferredValue` with Suspense, resetting with `key` → —
-- `lazy`: dynamic `import()`, default exports, where to declare it → —
-- Error boundaries: class components, `getDerivedStateFromError`, `componentDidCatch`, what they don't catch, `onCaughtError` and `onUncaughtError` → —
+- Suspense mechanics: suspending, nearest boundary, fallback, revealing together, nested boundaries, sibling pre-rendering → 010
+- `use`: reading promises and context, conditional calls, promise identity and caching → 020
+- Suspense with transitions: keeping already-revealed content, `useTransition` and `useDeferredValue` with Suspense, resetting with `key` → 030
+- `lazy`: dynamic `import()`, default exports, where to declare it → 040
+- Error boundaries: class components, `getDerivedStateFromError`, `componentDidCatch`, what they don't catch, `onCaughtError` and `onUncaughtError` → 050
 
 ## Questions
 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
+| 010 | [What happens when a component suspends?](010-suspense-mechanics.md) | hard | 🔴 planned |
+| 020 | [How does `use` read a promise, and why must the promise be cached?](020-use-api.md) | medium | 🔴 planned |
+| 030 | [How do transitions stop Suspense from showing a fallback again?](030-suspense-and-transitions.md) | hard | 🔴 planned |
+| 040 | [How does `lazy` split code, and where should you declare it?](040-lazy.md) | medium | 🔴 planned |
+| 050 | [What do error boundaries catch, and what slips past them?](050-error-boundaries.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
 
 ## Sources
