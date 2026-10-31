@@ -4,9 +4,9 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 
 ## Now
 - Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1), `archive/improvements` (unmerged v1 fixes).
-- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851. Limits are labelled in the text (browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
+- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
 - Bug, awaiting OK to fix and deploy: direct loads of non-prerendered routes (`/flashcards/<topic>`, `/practice/…`, unknown paths) get Vercel's NOT_FOUND, because `cleanUrls` 308s the `/app-shell.html` rewrite. Likely fix: destination `/app-shell`; confirm in Vercel docs, curl live.
-- Doing: `react` flashcards — 54 questions drafted (12 chapters; React 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24); Sonnet card agents, 3 chapters each (briefs in memory).
+- Next: release the React drafts (gate + `dev` → `main`, needs OK); then Phase 7 next topic — recommended `nextjs` (Frontend track; builds on React ch 11–12).
 - Awaiting maintainer: Phase 5 reviews; wordmark redraw.
 
 ## Goal
