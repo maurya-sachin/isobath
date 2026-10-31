@@ -817,3 +817,482 @@
   front: "Which kinds of state have their own tools rather than plain component state?"
   back: "Server data, URL state and form libraries."
   question: react/state/structuring-state
+
+# 03 Effects
+- id: efftime-purpose
+  front: "What is an effect for, and where do interaction-caused logic and computed values belong instead?"
+  back: "Keeping the component synchronized with an external system while it is on screen (a chat connection, a browser event subscription, a non-React widget, `document.title`). Logic caused by one interaction belongs in its event handler; values computed from props and state belong in render."
+  question: react/effects/effect-timing
+- id: efftime-when-runs
+  front: "When does `useEffect` run relative to render, commit and layout effects, and what does it see?"
+  back: "Never during rendering. React renders, commits the DOM, runs layout effects, then `useEffect` setups, children before parents. The effect sees the committed DOM and the props and state of the render that created it."
+  question: react/effects/effect-timing
+- id: efftime-non-discrete
+  front: "When is a `useEffect` flushed after a non-discrete update (initial `root.render`, a timer, a network response)?"
+  back: "React schedules effects in a separate task, so the browser can paint between the commit and the effect: the documented \"usually after paint\"."
+  question: react/effects/effect-timing
+- id: efftime-discrete
+  front: "When do effects run after a discrete input such as a click or key press?"
+  back: "At the end of the same task, before paint, so their result is observable straight away. `flushSync`, or a layout effect that sets state, also flush pending effects synchronously."
+  question: react/effects/effect-timing
+- id: efftime-after-paint-tendency
+  front: "Is \"effects run after paint\" a guarantee?"
+  back: "No, it is a tendency. Visual work that must not flicker goes in `useLayoutEffect`."
+  question: react/effects/effect-timing
+- id: efftime-deps-frequency
+  front: "How often does an effect run with no array, with `[]`, and with `[a, b]`?"
+  back: "No array: after every commit. `[]`: only after mount. `[a, b]`: after commits where `a` or `b` changed by `Object.is`. Before re-running, React calls the previous cleanup."
+  question: react/effects/effect-timing
+- id: efftime-not-lifecycle
+  front: "Should you read an effect as a lifecycle method, and where do effects not run?"
+  back: "No: read it as \"keep this in sync with these values\", not \"run on mount\"; Strict Mode tests that in development with an extra setup and cleanup. Effects never run during server rendering, so they are the place for browser-only APIs."
+  question: react/effects/effect-timing
+- id: efftime-example-order
+  front: "In the Inbox example, what order do render, layout effect, its microtask and the effect run on mount, and does a re-render with the same `unread` run the effect?"
+  back: "Render, layout effect, microtask, then effect: the effect ran in a later task. A re-render with the same `unread` skips the effect. Same in Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/effects/effect-timing
+- id: efftime-empty-deps-stale
+  front: "What goes wrong when `[]` is read as \"on mount\" while the effect uses props?"
+  back: "The effect keeps the first render's values forever. List every value it reads."
+  question: react/effects/effect-timing
+- id: efftime-ssr-window
+  front: "Why is touching `window` or `document` during render \"because effects don't run on the server\" wrong?"
+  back: "Render runs on the server too. Browser-only code goes in the effect."
+  question: react/effects/effect-timing
+- id: efftime-order-tree
+  front: "In what order do effects run across a tree?"
+  back: "Children before parents, siblings in order. A parent's effect can rely on its children's effects having already run."
+  question: react/effects/effect-timing
+- id: efftime-no-dom-change
+  front: "Does an effect run when the render produced no DOM change?"
+  back: "Yes, if its dependencies changed: effects follow dependencies, not DOM output. A component that did not render at all runs no effects."
+  question: react/effects/effect-timing
+- id: efftime-not-in-body
+  front: "Why not put the side effect in the component body?"
+  back: "Render must be pure: React can call it twice, discard it, or run it on the server. An effect runs only after a committed render, once per commit."
+  question: react/effects/effect-timing
+- id: efftime-passive-flag
+  front: "How does React 19.3.1 mark and flush passive effects (implementation detail)?"
+  back: "`useEffect` flags the effect passive when its dependencies changed; passive effects are outside the synchronous commit passes. At the end of commit: if the committed lanes include the sync lane (discrete events, `flushSync`), React calls `flushPendingEffects()` \"so that the result is immediately observable\"; otherwise it schedules `flushPassiveEffects` as a normal-priority Scheduler task."
+  question: react/effects/effect-timing
+- id: efftime-flush-order
+  front: "How does `flushPassiveEffects` order cleanups and setups, and what happens to pending effects before another commit?"
+  back: "It runs every pending cleanup in the tree first, then every setup. Before React commits another update it flushes any effects still pending from the previous commit, so they never pile up or run out of order."
+  question: react/effects/effect-timing
+- id: efftime-layout-sets-state
+  front: "When a layout effect sets state, what happens to pending `useEffect` callbacks?"
+  back: "React finishes them first, synchronously: both effects logged before the first microtask. This is what the `useLayoutEffect` caveats describe. Chrome 156 and Firefox 159, development and production builds."
+  question: react/effects/effect-timing
+- id: efftime-raf-race
+  front: "How reliable is \"usually after paint\" in the separate-task case?"
+  back: "It is a race. A `requestAnimationFrame` registered in a layout effect ran before the effect in 10 of 10 headless Firefox 159 runs (both builds), but in only 2 of 10 headless Chrome 156 runs (development build; 0 of 10 in production)."
+  question: react/effects/effect-timing
+- id: efftime-alert
+  front: "Why can an `alert()` in an effect from a discrete event block the screen?"
+  back: "Such effects may run before paint, so the alert can appear before the update shows. Defer it with `setTimeout`."
+  question: react/effects/effect-timing
+- id: efftime-render-to-string
+  front: "Do effects run in `renderToString`?"
+  back: "No effect of any kind ran and no warning printed (Node 24, React 19.3.1)."
+  question: react/effects/effect-timing
+- id: efftime-title-vs-buy
+  front: "Which is an effect: setting `document.title` or sending an order on \"Buy\"?"
+  back: "`document.title` and page-view reporting synchronize the outside world with what is on screen. Sending the order belongs to the click; in an effect it would rerun on remount and be sent twice in development."
+  question: react/effects/effect-timing
+- id: efftime-tradeoff
+  front: "What does deferring effects trade?"
+  back: "A short commit, so the browser can show the new screen sooner, against a possible frame without the effect applied, which for visual corrections is a flicker (use `useLayoutEffect`). Synchronous effects after discrete events trade paint latency for predictability."
+  question: react/effects/effect-timing
+
+- id: effdeps-reactive-values
+  front: "What does the dependency array list?"
+  back: "Every reactive value the effect reads: props, state and anything declared in the component body, functions included. It is not a \"when to run\" switch; it describes the code."
+  question: react/effects/effect-dependencies
+- id: effdeps-three-forms
+  front: "What do no array, `[]` and `[a, b]` mean for dependencies?"
+  back: "No array: runs after every commit. `[]`: reads nothing reactive, runs after mount only. `[a, b]`: React compares each item with the previous render's using `Object.is` and re-runs if any differs."
+  question: react/effects/effect-dependencies
+- id: effdeps-new-each-render
+  front: "Why do objects and functions created during render always trigger the effect?"
+  back: "They are new every render, so `Object.is` always sees a difference."
+  question: react/effects/effect-dependencies
+- id: effdeps-stale-closure
+  front: "What is a stale closure in an effect?"
+  back: "Every render creates a new effect function closed over that render's values. When dependencies are unchanged React does not run the new effect, so what the old one set up keeps running with the values it saw: omit `count` from an interval effect and it reads the first render's `count` forever."
+  question: react/effects/effect-dependencies
+- id: effdeps-dont-silence-lint
+  front: "How should you respond to a `react-hooks/exhaustive-deps` warning?"
+  back: "Do not silence it; change the code so it no longer needs the value."
+  question: react/effects/effect-dependencies
+- id: effdeps-fix-list-it
+  front: "What is the usual fix for a missing dependency?"
+  back: "List it, when the effect should re-sync when the value changes."
+  question: react/effects/effect-dependencies
+- id: effdeps-fix-updater
+  front: "What do you do if a value is only used to compute the next state?"
+  back: "Use an updater, `setCount(c => c + 1)`. The effect no longer reads `count`."
+  question: react/effects/effect-dependencies
+- id: effdeps-fix-object
+  front: "How do you handle an object or function made during render as a dependency?"
+  back: "Create it inside the effect, depend on its primitive parts, or move static ones out of the component. `useMemo`/`useCallback` work but move the problem to their own dependencies."
+  question: react/effects/effect-dependencies
+- id: effdeps-fix-effect-event
+  front: "What if the effect needs the latest value without re-syncing on it?"
+  back: "Read it in an Effect Event, `useEffectEvent` (for example a theme in a \"connected\" notification)."
+  question: react/effects/effect-dependencies
+- id: effdeps-stable-identities
+  front: "Which values can be omitted from dependencies, and when?"
+  back: "`useRef` objects and `useState` setters have stable identities, so they can be omitted; the linter knows that when it can see where they come from. A ref passed as a prop must be listed."
+  question: react/effects/effect-dependencies
+- id: effdeps-ref-current
+  front: "Should `ref.current` be a dependency?"
+  back: "No. Mutating it does not re-render, so React never compares a new value. The linter warns that mutable values like `ref.current` are not valid dependencies."
+  question: react/effects/effect-dependencies
+- id: effdeps-ticker-example
+  front: "A `StaleTicker` calls `setCount(count + 1)` every 100ms with `[]`, and a `Ticker` uses `setCount(c => c + 1)`. What do they show after 550ms?"
+  back: "Stale: `1`; fresh: `5`. The stale interval sets `0 + 1` every tick, and after the first React bails out because the state is already `1`. 10 of 10 runs each in Chrome 156 and Firefox 159, development and production builds of React 19.3.1."
+  question: react/effects/effect-dependencies
+- id: effdeps-suppress-comment
+  front: "Why is `// eslint-disable-next-line` on the dependency rule risky?"
+  back: "The bug may not exist yet, but the next edit to the effect will not be checked."
+  question: react/effects/effect-dependencies
+- id: effdeps-object-loop
+  front: "What happens when an object or function created in render is a dependency?"
+  back: "The effect re-runs every render, and loops forever if it also sets state."
+  question: react/effects/effect-dependencies
+- id: effdeps-no-deep-compare
+  front: "Does the dependency comparison go deep?"
+  back: "No. `{ id: 1 }` and `{ id: 1 }` differ under `Object.is`; `NaN` and `NaN` do not. Also `0` to `-0` does re-run the effect (confirmed in the test)."
+  question: react/effects/effect-dependencies
+- id: effdeps-updater-two-values
+  front: "Does an updater work when the effect needs two state values?"
+  back: "Only for computing one state from its own previous value. When the next state depends on several values, move the logic into a reducer with `useReducer` and dispatch an action; `dispatch` is stable too."
+  question: react/effects/effect-dependencies
+- id: effdeps-impl-compare
+  front: "How does React 19.3.1 compare dependencies (implementation detail)?"
+  back: "`updateEffectImpl` compares the arrays in `areHookInputsEqual`, a loop of `Object.is`. If all match, the new effect is stored without the `HasEffect` flag, so the commit skips it and the last run's cleanup stays. If any differs, the commit runs the old cleanup, then the new setup. Without an array, `deps` is `null` and nothing is compared."
+  question: react/effects/effect-dependencies
+- id: effdeps-size-change-warning
+  front: "What does a development build log if the dependency array length changes between renders?"
+  back: "\"The final argument passed to useEffect changed size between renders\"."
+  question: react/effects/effect-dependencies
+- id: effdeps-stale-not-cache
+  front: "Is \"stale\" a React cache?"
+  back: "No. The interval callback is still the function created by the first render's effect, and closures keep the bindings they were created with. React has a newer effect function each render; it just never runs it."
+  question: react/effects/effect-dependencies
+- id: effdeps-chatroom-options
+  front: "In ChatRoom, `options` is built in render and listed as a dependency. What happens over three renders with the same `roomId`?"
+  back: "Connect, disconnect, connect, disconnect, connect: it reconnects every render (production build, Chrome 156 and Firefox 159). Creating the object inside the effect with `[roomId]` connected once. The linter says to move the object inside the effect callback."
+  question: react/effects/effect-dependencies
+- id: effdeps-filters-scenario
+  front: "A dashboard fetches with `[filters]` where the parent builds `filters` as an object literal. What is the fix?"
+  back: "Depend on the primitives, `[filters.status, filters.page]`, and build the request inside the effect, or have the parent memoize the object. Removing `filters` from the array stops the refetching and also stops refetching when filters really change."
+  question: react/effects/effect-dependencies
+- id: effdeps-tradeoff-lint-rules
+  front: "What does the `recommended` preset of eslint-plugin-react-hooks 7.1.1 add besides `exhaustive-deps`?"
+  back: "Compiler-based rules such as `react-hooks/set-state-in-effect`, which flags calling a setter synchronously in an effect body."
+  question: react/effects/effect-dependencies
+
+- id: effclean-why-twice
+  front: "Why does Strict Mode run an effect's setup, cleanup, setup in development?"
+  back: "React may unmount and remount a component without the user noticing (navigating away and back, `<Activity>` hiding a tree, saving the file in development), and an effect with no teardown leaks a connection, listener or timer each time. State is kept, so only effects (and, since React 19, ref callbacks) repeat. Production builds run setup once."
+  question: react/effects/effect-cleanup
+- id: effclean-right-question
+  front: "What is the right question about the Strict Mode double run?"
+  back: "Not \"how do I run it once?\" but \"does my effect survive a remount?\" A user should not be able to tell one setup from setup, cleanup, setup."
+  question: react/effects/effect-cleanup
+- id: effclean-what-it-does
+  front: "What should a cleanup function do, and when does React call it?"
+  back: "Stop or undo the setup: disconnect, remove the listener, clear the interval, destroy the widget, ignore or abort the request. React calls it before re-running the effect because a dependency changed (the closure from the previous render, so it sees the previous values) and once on unmount."
+  question: react/effects/effect-cleanup
+- id: effclean-cleanups-before-setups
+  front: "Within one commit, how do pending cleanups and new setups order?"
+  back: "React runs every pending cleanup in the tree before any new setup."
+  question: react/effects/effect-cleanup
+- id: effclean-fetch-race
+  front: "What is the data-fetching race in an effect?"
+  back: "When `query` changes from `r` to `re`, two requests are in flight and the older may answer last; without cleanup its `setResults` overwrites the newer result. Set an `ignore` flag in cleanup, or abort with an `AbortController`, so only the latest effect's response is applied."
+  question: react/effects/effect-cleanup
+- id: effclean-no-hasrun-ref
+  front: "Why is a `hasRun` ref or module flag the wrong way to stop the double run?"
+  back: "It hides the missing cleanup in development, and the leak still happens on real remounts. Work that must happen once per page load belongs outside components, at module level."
+  question: react/effects/effect-cleanup
+- id: effclean-search-example
+  front: "In the SearchResults example under Strict Mode (query `r` answers in 300ms, `re` in 100ms), what ends on screen, and what without the ignore check?"
+  back: "`results for \"re\"`: Strict Mode fetched `r` twice and the first effect was cleaned up immediately; both `r` responses were ignored. Without `if (!ignore)` the screen ended on `results for \"r\"`. Development build of React 19.3.1, Chrome 156 and Firefox 159; the production build logs one `r` line."
+  question: react/effects/effect-cleanup
+- id: effclean-mirror-setup
+  front: "What is a common mistake in cleanup that does not mirror setup?"
+  back: "Removing a listener with a different function than the one added, or clearing a different timer."
+  question: react/effects/effect-cleanup
+- id: effclean-previous-closure
+  front: "Does cleanup read the new props?"
+  back: "No. It is the previous render's closure, which lets it disconnect from the old room."
+  question: react/effects/effect-cleanup
+- id: effclean-dev-fetch-twice
+  front: "Is \"fetched twice in development\" a production problem?"
+  back: "No. It is one extra request in development; fix it with cleanup or a caching layer."
+  question: react/effects/effect-cleanup
+- id: effclean-ignore-vs-abort
+  front: "How do an ignore flag and `AbortController` differ?"
+  back: "An ignore flag lets the request finish and drops its result. `controller.abort()` in cleanup cancels the request; `fetch` then rejects with an `AbortError`, which you must catch. Abort also frees the network."
+  question: react/effects/effect-cleanup
+- id: effclean-partial-strictmode
+  front: "Does wrapping only part of the app in `<StrictMode>` double its effects on the initial mount?"
+  back: "Not on the initial mount: React only does what can happen in production, and a child cannot remount without its parent. Components mounted inside it later do get the extra cycle."
+  question: react/effects/effect-cleanup
+- id: effclean-layout-insertion-doubled
+  front: "Are layout effects and insertion effects doubled by Strict Mode?"
+  back: "Layout effects yes, in the same cycle. `useInsertionEffect` did not repeat in the test (React 19.3.1)."
+  question: react/effects/effect-cleanup
+- id: effclean-impl-double-invoke
+  front: "How does React 19.3.1's development build double-invoke effects (implementation detail)?"
+  back: "After the first commit of a tree inside `<StrictMode>` it walks the newly mounted fibers and, for each, disconnects its layout effects, refs and passive effects, then reconnects them (`doubleInvokeEffectsOnFiber`). Nothing re-renders, so state and DOM survive."
+  question: react/effects/effect-cleanup
+- id: effclean-strict-sequence
+  front: "For a component with a layout effect, an effect and a ref callback, what is the development Strict Mode order?"
+  back: "First mount: ref callback, layout effect, effect. Simulated unmount: layout cleanup, ref cleanup, effect cleanup. Simulated mount: ref callback, layout effect, effect. Chrome 156 and Firefox 159."
+  question: react/effects/effect-cleanup
+- id: effclean-update-two-passes
+  front: "On a normal update, in which order do passive cleanups and setups run for Parent with children A and B?"
+  back: "Two passes over the whole tree: every cleanup (A, B, Parent, carrying the old `v=1`), then every setup (A, B, Parent, `v=2`). The cleanups are the functions the previous render's effects returned. Same in both browsers and builds."
+  question: react/effects/effect-cleanup
+- id: effclean-unmount-order
+  front: "In what order do cleanups run when the whole tree unmounts, and can you depend on it?"
+  back: "Observed: `cleanup Parent` before `cleanup A`, also in Strict Mode's simulated unmount; updates ran children's cleanups first. These orders are observations, not documented guarantees, so do not let cleanups depend on each other."
+  question: react/effects/effect-cleanup
+- id: effclean-abort-strict
+  front: "What happens with `AbortController` in Strict Mode when the query then changes?"
+  back: "The first `r` request was aborted by the simulated unmount and the second by the query change: two `AbortError` rejections, and the server saw both requests closed early."
+  question: react/effects/effect-cleanup
+- id: effclean-analytics-twice
+  front: "Should you disable Strict Mode because an analytics page view is sent twice in development?"
+  back: "No. It is development only and acceptable."
+  question: react/effects/effect-cleanup
+- id: effclean-chat-scenario
+  front: "A chat effect has no disconnect cleanup. How does the bug show in development versus production?"
+  back: "Development shows two \"Connecting…\" logs. In production it appears only after the user goes to Settings and back, and two connections receive every message. `() => connection.disconnect()` fixes both."
+  question: react/effects/effect-cleanup
+- id: effclean-tradeoff
+  front: "What does the double cycle cost and buy, and what avoids fetch-in-effect problems?"
+  back: "It costs development time (duplicate requests, louder logs) but makes missing cleanup fail on the first mount instead of after an untested navigation pattern. Fetching in effects leaves caching, deduplication and races to you; a framework's data layer, or a cached promise read with `use`, avoids most of it."
+  question: react/effects/effect-cleanup
+
+- id: efflayout-same-api
+  front: "How do `useLayoutEffect` and `useEffect` differ?"
+  back: "Only in timing; they take the same arguments and follow the same dependency and cleanup rules."
+  question: react/effects/layout-effects
+- id: efflayout-timing
+  front: "When does `useLayoutEffect` run, and what happens to state updates it schedules?"
+  back: "Inside the commit: after React has changed the DOM and attached refs, before the browser can paint. Updates it schedules are rendered and committed synchronously, still before paint, and React runs pending `useEffect` callbacks first. The user only sees the final result."
+  question: react/effects/layout-effects
+- id: efflayout-useeffect-flicker
+  front: "Why can `useEffect` cause a flicker?"
+  back: "It usually runs in a later task and the browser may paint in between; if the effect corrects something visible, that painted frame is the flicker."
+  question: react/effects/layout-effects
+- id: efflayout-use-cases
+  front: "When should you use `useLayoutEffect`?"
+  back: "When you must read layout and render based on it before the user sees anything: measure a tooltip or popover and place it above or below its anchor; restore or adjust a scroll position after new content renders; synchronise DOM state that must never be shown half-done."
+  question: react/effects/layout-effects
+- id: efflayout-cost
+  front: "What is the cost of `useLayoutEffect`?"
+  back: "The browser cannot paint until the layout effect and its updates finish, so slow work delays every frame of that update. Measuring also forces the browser to compute style and layout synchronously. Prefer `useEffect`; switch only for a visible flicker."
+  question: react/effects/layout-effects
+- id: efflayout-server
+  front: "What happens with `useLayoutEffect` on the server in React 19?"
+  back: "Neither hook runs on the server, and React 19 removed the old server warning. The problem remains: server HTML cannot contain the measured result, so it jumps after hydration. Render such components only on the client, or accept `useEffect`."
+  question: react/effects/layout-effects
+- id: efflayout-insertion-effect
+  front: "What is `useInsertionEffect` for and what are its limits?"
+  back: "It runs before any layout effect, for CSS-in-JS libraries that inject `<style>` tags at runtime so styles are in place before layout effects read layout. Refs are not attached yet, it cannot schedule updates, and it may run before or after the DOM is updated. Application code should not need it."
+  question: react/effects/layout-effects
+- id: efflayout-tooltip-example
+  front: "In the Tooltip example, what is logged and what does the next frame show, with `useLayoutEffect` and with `useEffect`?"
+  back: "Render `top = 100`, render `top = 60`, next frame shows `60px`, in 10 of 10 headless runs each in Chrome 156 and Firefox 159, development and production builds of React 19.3.1. With `useEffect` the next frame showed `top = 100px` first in 3 of 10 Chrome runs (both builds) and 0 of 10 Firefox runs: a race."
+  question: react/effects/layout-effects
+- id: efflayout-not-default
+  front: "Why not make `useLayoutEffect` the default \"to be safe\"?"
+  back: "It delays paint for every update that triggers it."
+  question: react/effects/layout-effects
+- id: efflayout-test-fast-machine
+  front: "Why is testing a measuring `useEffect` on a fast machine misleading?"
+  back: "Whether the wrong frame shows depends on frame timing."
+  question: react/effects/layout-effects
+- id: efflayout-read-then-write
+  front: "How should you order reads and writes in a layout effect?"
+  back: "Read first, then write. Alternating style writes and geometry reads forces another synchronous layout on each read."
+  question: react/effects/layout-effects
+- id: efflayout-ssr-fix
+  front: "Does a layout effect fix content before display in a server-rendered component?"
+  back: "No. The server HTML shows the unmeasured state until the client runs it."
+  question: react/effects/layout-effects
+- id: efflayout-ref-current
+  front: "Is `ref.current` set inside `useLayoutEffect` and `useInsertionEffect`?"
+  back: "Inside `useLayoutEffect` yes: React attaches refs in the same commit phase before layout effects run. In `useInsertionEffect`, `ref.current` was still `null` on mount."
+  question: react/effects/layout-effects
+- id: efflayout-insertion-sets-state
+  front: "What happens if `useInsertionEffect` sets state?"
+  back: "It is unsupported. React 19.3.1's development build logged \"useInsertionEffect must not schedule updates.\" Do not rely on what happens next."
+  question: react/effects/layout-effects
+- id: efflayout-server-warning-removed
+  front: "Does `renderToString` still warn about `useLayoutEffect`?"
+  back: "No. React 19.0's changelog lists \"Remove layout effect warning on server\". In Node 24 with React 19.3.1, rendering a component with all three effect hooks printed nothing and ran none of them."
+  question: react/effects/layout-effects
+- id: efflayout-insertion-cleanup
+  front: "How do insertion effects clean up compared with other effects?"
+  back: "One component at a time: cleanup then setup per component, interleaved. Other effect types run every cleanup in the tree before any setup."
+  question: react/effects/layout-effects
+
+- id: noeffect-purpose
+  front: "What are effects for, and when is an effect usually in the wrong place?"
+  back: "Synchronizing with an external system: the network, a browser API, a non-React widget. When an effect only reads React state and sets other React state, it is usually in the wrong place."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-derived
+  front: "What goes wrong when a derived value is computed in an effect and stored in state?"
+  back: "It renders once with the stale value, commits, then renders again. Compute it during render; wrap an expensive calculation in `useMemo`."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-reset-key
+  front: "How do you reset state when a prop changes, instead of `useEffect(() => setComment(''), [userId])`?"
+  back: "Render the component with `key={userId}` so React gives it fresh state. To adjust only part of the state, store an id and derive the rest."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-event-logic
+  front: "Where does event-specific logic, such as a POST on submit or a toast after \"Buy\", belong?"
+  back: "In the handler, because a click is its cause. In an effect it also fires on remount, and twice in development."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-chains
+  front: "What is wrong with chains of effects that set state to trigger other effects?"
+  back: "They re-render the tree once per link. Compute all the next state in the handler and derive what you can."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-notify-parent
+  front: "Why is calling a parent's `onChange` from an effect worse than calling it in the handler?"
+  back: "The effect runs after the child already committed, so the parent renders in a second pass. Call it in the same handler as the child's own `setState`; React batches both. Or lift the state up."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-init-once
+  front: "Where does initialization once per app load belong?"
+  back: "At module level, not in an effect."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-external-store
+  front: "What replaces an effect that copies an external store's values into state?"
+  back: "`useSyncExternalStore`."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-fetch-fine
+  front: "Can data fetching be an effect?"
+  back: "Yes, it is synchronization, with cleanup for races. Frameworks and caching libraries, or `use` with a cached promise, do it better."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-lint-rule
+  front: "Which rule flags the most common wrong effect in eslint-plugin-react-hooks 7?"
+  back: "The recommended `react-hooks/set-state-in-effect`, which flags a setter called synchronously in an effect body."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-todos-example
+  front: "In the Todos example, what is logged when an effect-derived list and a render-derived list mount?"
+  back: "`with effect: 0 open`, `derived: 2 open`, then `with effect: 2 open`: the effect version committed \"0 open\" to the DOM first, then rendered again. Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-copy-prop
+  front: "Why is copying a prop into state with an effect a mistake?"
+  back: "It is always one render behind. Read the prop."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-submitted-flag
+  front: "What goes wrong sending a request from an effect that watches a `submitted` flag?"
+  back: "Strict Mode sends it twice in development, and a remount re-sends it."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-key-vs-effect-reset
+  front: "Why is resetting state with an effect worse than a `key`?"
+  back: "The subtree renders with stale state first, and nested state is not reset."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-setstate-ok
+  front: "When is `setState` in an effect fine?"
+  back: "When the value comes from outside React: a DOM measurement in a layout effect, a subscription callback, a fetch response. The `set-state-in-effect` docs accept a value read from a ref; only synchronous calls in the effect body are flagged."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-event-vs-effect
+  front: "How do you tell an event from an effect?"
+  back: "Say why the code should run. \"The user clicked Buy\" names an interaction: handler. \"The chat is visible, so stay connected\" names a state of the screen: effect. A notification shown after connecting is an event fired from an effect: an Effect Event."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-compute-slower
+  front: "Is computing during render slower than caching in state?"
+  back: "Usually not: the effect version computes it too, then renders twice. If the calculation is expensive, `useMemo` caches it between renders without an extra pass."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-second-render-steps
+  front: "What are the steps of the extra render caused by an effect that sets state, and when can the browser paint?"
+  back: "Render with the stale value and commit; run the effect, whose `setState` schedules another update; render the component and its whole subtree again and commit again. After a timer or initial render the browser can paint the stale commit; after a click React flushes the effect before paint, so the cost is the extra render and commit."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-toggle-passes
+  front: "In the Toggle example, how many render passes does a click take with `onChange` called from an effect versus from the handler?"
+  back: "From an effect: `render Toggle true`, `render Settings true`, `render Toggle true` (three). From the handler next to `setIsOn`: `render Settings true`, `render Toggle true`, one pass, because React batched both updates. Chrome 156 and Firefox 159, development and production builds, trusted clicks."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-adjust-during-render
+  front: "How can you adjust state during render when it must change with a prop?"
+  back: "Store the previous prop and call the setter during render: `if (items !== prevItems) { setPrevItems(items); setSelection(null); }`. React re-renders that component immediately, before its children or the DOM see the stale value. Prefer deriving: store `selectedId` and compute the selection."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-key-remount-cost
+  front: "What does resetting with `key` cost?"
+  back: "A changed key remounts the subtree: state, DOM and effects start over. That is a feature for \"different entity\" and a cost for large trees."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-once-per-app
+  front: "How do you run something once per app, not per component lifecycle?"
+  back: "Module-level code runs once per page load, and so does a top-level `didInit` flag checked in an effect. Both are outside the component's lifecycle on purpose."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-toast-scenario
+  front: "A toast \"Added to cart\" is shown from an effect watching `product.isInCart`. What goes wrong, and what stays an effect?"
+  back: "Reloading the page with the item already in the cart shows the toast again, and so does navigating back. The toast belongs in the \"Add to cart\" handler. A \"page viewed\" analytics call stays an effect: it is caused by the page being displayed."
+  question: react/effects/you-might-not-need-an-effect
+- id: noeffect-tradeoff
+  front: "What does removing unneeded effects give, and what does it cost?"
+  back: "One render per update, data that cannot drift out of sync, and code that reads top to bottom. The cost is restructuring: lifting state up, splitting a component to put a `key` on it, writing handlers that compute several values at once. Real synchronization still needs effects."
+  question: react/effects/you-might-not-need-an-effect
+
+- id: effev-reactive-vs-event
+  front: "How do code in an effect and code in an event handler differ in reactivity?"
+  back: "Effect code is reactive: every prop, state or render-scope value it reads is a dependency, and a change re-runs the effect. Handler code is not: it runs when the user acts and reads the latest values."
+  question: react/effects/effect-events
+- id: effev-theme-problem
+  front: "A chat effect keyed on `roomId` shows a notification in the current `theme` on connect. What goes wrong if `theme` is listed, and if it is omitted?"
+  back: "Listed: every theme switch disconnects and reconnects. Omitted: `react-hooks/exhaustive-deps` warns, and the notification uses the theme from when the effect ran, a stale closure."
+  question: react/effects/effect-events
+- id: effev-what-it-does
+  front: "What does `useEffectEvent` do, and since which React version is it stable?"
+  back: "It wraps event-like logic so that, when called from the effect, it runs the callback from the latest committed render and sees current values without being a dependency. It is stable since React 19.2."
+  question: react/effects/effect-events
+- id: effev-where-callable
+  front: "Where may an Effect Event be called?"
+  back: "Only inside `useEffect`, `useLayoutEffect`, `useInsertionEffect`, or another Effect Event in the same component. Not from handlers, not during render (that throws), not passed to children or other hooks. Enforced by eslint-plugin-react-hooks."
+  question: react/effects/effect-events
+- id: effev-not-dependency
+  front: "Should an Effect Event be listed as a dependency, and why is its identity unstable?"
+  back: "Never. Its identity changes on every render, deliberately, so misuse shows up as an effect re-running each render. The linter warns that functions returned from `useEffectEvent` must not be in the dependency array."
+  question: react/effects/effect-events
+- id: effev-only-for-events
+  front: "When is `useEffectEvent` the wrong tool?"
+  back: "When used only to drop a dependency the effect should react to. It hides bugs: a visit logged without `url` in its dependencies misses page changes. Use it only for logic that really is an event fired by the effect."
+  question: react/effects/effect-events
+- id: effev-before-it-existed
+  front: "What did most code do before `useEffectEvent` existed?"
+  back: "Disabled the lint rule and left the value out, as the React 19.2 announcement notes; the linter then stopped checking that effect."
+  question: react/effects/effect-events
+- id: effev-chatroom-example
+  front: "In the ChatRoom example, `theme` changes from light to dark before the connection opens. What is logged with `useEffectEvent`, with `theme` listed, and with `theme` read directly but not listed?"
+  back: "Effect Event: `connect general`, `connected, notify in dark`. Listed: connect, disconnect, connect, then `dark`. Not listed: `light`. Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode; ESLint 7.1.1 recommended preset reported nothing for the Effect Event version."
+  question: react/effects/effect-events
+- id: effev-silence-lint
+  front: "Why is using `useEffectEvent` to silence `exhaustive-deps` for a value that should re-sync the effect a mistake?"
+  back: "The linter goes quiet and the bug stays."
+  question: react/effects/effect-events
+- id: effev-pass-to-child
+  front: "What does the linter do when an Effect Event is passed to a child or a custom hook?"
+  back: "It reports an error. Declare the Effect Event next to the effect that uses it."
+  question: react/effects/effect-events
+- id: effev-call-in-render
+  front: "What happens when an Effect Event is called during render?"
+  back: "React throws \"A function wrapped in useEffectEvent can't be called during rendering.\""
+  question: react/effects/effect-events
+- id: effev-unstable-identity-impl
+  front: "How does React 19.3.1 implement the unstable identity of the returned function (implementation detail)?"
+  back: "Each render returns a new wrapper that calls a shared, internal ref, updated during the commit; identity checks between renders were `false`. A stable identity would let misuse go unnoticed."
+  question: react/effects/effect-events
+- id: effev-call-from-handler
+  front: "What happens if you call an Effect Event from a click handler?"
+  back: "The linter reports it can only be called from Effects and Effect Events in the same component. At runtime in React 19.3.1 a call outside render did not throw, but that is unsupported; use a normal function."
+  question: react/effects/effect-events
+- id: effev-layout-effect-values
+  front: "Which values does an Effect Event see inside a layout effect?"
+  back: "The latest committed render's. In the test, a layout effect and an effect both saw the current render's props through it."
+  question: react/effects/effect-events
