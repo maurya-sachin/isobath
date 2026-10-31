@@ -2066,3 +2066,344 @@
   front: "Why prefer Activity over lifting state up?"
   back: "Lifting up keeps data but not DOM: scroll position, uncontrolled inputs, media playback and focus are lost on remount. Activity keeps both, at the cost of memory."
   question: react/reconciliation/activity
+# 06 Context and composition
+- id: create-context-key
+  front: "What does `createContext(defaultValue)` return?"
+  back: "A context object that holds no value of its own. It is a key that ties providers to readers."
+  question: react/context-and-composition/context-propagation
+- id: context-provide-read-syntax
+  front: "How do you provide and read a context in React 19?"
+  back: "Provide with `<ThemeContext value={theme}>` (the older `<ThemeContext.Provider>` still works); read with `useContext(ThemeContext)` or `use(ThemeContext)`."
+  question: react/context-and-composition/context-propagation
+- id: use-vs-use-context-conditional
+  front: "How does `use(Context)` differ from `useContext`, and when do you need it?"
+  back: "`use` can be called inside a condition or loop, such as after an early return. Both find the nearest provider the same way. `use` also reads Promises, which is a separate question."
+  question: react/context-and-composition/context-propagation
+- id: context-lookup-nearest-above
+  front: "Which provider does a reader get, and does its own provider count?"
+  back: "The nearest provider above it; nested providers override outer ones for their subtree, like CSS inheritance. A provider rendered by the reading component itself does not count."
+  question: react/context-and-composition/context-propagation
+- id: context-default-only-no-provider
+  front: "When is the `createContext` default value used?"
+  back: "Only when there is no provider at all. `<ThemeContext value={undefined}>` gives readers `undefined`, not the default."
+  question: react/context-and-composition/context-propagation
+- id: context-skips-intermediate
+  front: "What does context do to the components between provider and reader?"
+  back: "Nothing. Context skips the intermediate layers, which is the point compared with prop drilling. They render only for their own reasons, like a parent render."
+  question: react/context-and-composition/context-propagation
+- id: context-object-is-rerender
+  front: "How does React decide whether context readers must re-render?"
+  back: "It compares the provider's new `value` with the previous one using `Object.is`. If it changed, React schedules a render for every component below that read this context."
+  question: react/context-and-composition/context-propagation
+- id: context-bypasses-memo
+  front: "Does `memo` stop a context change from re-rendering a reader?"
+  back: "No. The reader gets its own pending update and renders even inside a `memo` parent that skipped rendering. In the example `memo` skipped `Panel`, yet the `Label` inside it re-rendered."
+  question: react/context-and-composition/context-propagation
+- id: context-no-partial-subscription
+  front: "Can a reader subscribe to just one field of an object context value?"
+  back: "No. It re-renders as a whole even if it uses one field; there is no built-in way to subscribe to part of the value."
+  question: react/context-and-composition/context-propagation
+- id: context-is-channel-not-state
+  front: "Is context state?"
+  back: "No, it is a channel. Keep state in the provider's component and pass it as `value`."
+  question: react/context-and-composition/context-propagation
+- id: context-when-to-use
+  front: "What do the React docs suggest trying before context?"
+  back: "Passing props or JSX as `children` first. Use context when distant parts of the tree need the same data: theme, current user, router."
+  question: react/context-and-composition/context-propagation
+- id: context-undefined-provider-pitfall
+  front: "Why does a provider passing not-yet-loaded state `undefined` surprise people?"
+  back: "Readers get `undefined`, not the default. The default applies only with no provider above."
+  question: react/context-and-composition/context-propagation
+- id: context-own-provider-pitfall
+  front: "What does `useContext` see in the component that renders the provider?"
+  back: "The provider above it, not the one it returns."
+  question: react/context-and-composition/context-propagation
+- id: context-duplicate-module
+  front: "What happens with two copies of the module that calls `createContext`?"
+  back: "Provider and reader must use the same object by `===`; otherwise readers silently get the default (duplicated packages, symlinks)."
+  question: react/context-and-composition/context-propagation
+- id: context-provider-deprecated
+  front: "Is `<Context.Provider>` deprecated?"
+  back: "Not yet. The React 19 post says a codemod will convert providers and \"In future versions we will deprecate `<Context.Provider>`.\" In React 19.3.1 it works without a warning and `Theme.Provider === Theme` is `true`."
+  question: react/context-and-composition/context-propagation
+- id: context-server-component
+  front: "Can a Server Component provide context?"
+  back: "It cannot create or read context. Since React 19.3 it can render a `<Context value>` imported from a `'use client'` module, without a client wrapper component."
+  question: react/context-and-composition/context-propagation
+- id: context-value-stack
+  front: "How does React 19.3.1 track the current context value during the tree walk?"
+  back: "`pushProvider` saves the context's current value on a stack and sets `context._currentValue` to the provider's `value`; `popProvider` restores it. With no provider, `_currentValue` is the `createContext` default. Implementation detail."
+  question: react/context-and-composition/context-propagation
+- id: context-dependency-list
+  front: "What does `useContext` record on the reading fiber?"
+  back: "It reads `_currentValue` and appends `{ context, memoizedValue }` to the fiber's dependency list (React 19.3.1, implementation detail)."
+  question: react/context-and-composition/context-propagation
+- id: context-lazy-propagation
+  front: "How does React 19.3.1 propagate a changed provider value to readers?"
+  back: "Lazily. When about to skip a subtree, it collects ancestor providers whose `value` changed by `Object.is`, searches the subtree for fibers with a matching dependency, and gives each match an update lane plus `childLanes` markers on its ancestors. Implementation detail."
+  question: react/context-and-composition/context-propagation
+- id: context-missing-value-prop
+  front: "What happens with `<Theme>` and no `value` prop?"
+  back: "It provides `undefined`; development builds log \"The `value` prop is required for the `<Context.Provider>`…\", even for the new syntax."
+  question: react/context-and-composition/context-propagation
+- id: context-consumer-legacy
+  front: "What is `<Context.Consumer>`?"
+  back: "A render-prop way to read context: `<Theme.Consumer>{(theme) => …}</Theme.Consumer>`. The docs call it the legacy way."
+  question: react/context-and-composition/context-propagation
+- id: context-portal-unchanged
+  front: "Does a portal change which context a reader sees?"
+  back: "No. A reader inside a portal still sees providers above the portal in the React tree."
+  question: react/context-and-composition/context-propagation
+- id: context-equal-value-no-rerender
+  front: "What happens when a provider re-renders with an `Object.is`-equal value?"
+  back: "Nothing through context: a `memo` reader below it did not log when the provider's component re-rendered."
+  question: react/context-and-composition/context-propagation
+- id: context-nested-provider-rerender
+  front: "In 19.3.1, toggling the outer theme: do buttons under an inner `<Theme value=\"dark\">` re-render?"
+  back: "Yes, though they still read `dark`: the subtree search matches any reader of the context and does not stop at the inner provider. The output is correct; only the render count is higher."
+  question: react/context-and-composition/context-propagation
+- id: context-implicit-dependency
+  front: "What is the cost of context compared with props?"
+  back: "An implicit dependency: a component's output depends on where it is rendered, so tests and stories need the provider (a sensible default helps). Updates are coarse, at the granularity of the whole value."
+  question: react/context-and-composition/context-propagation
+- id: context-level-exercise
+  front: "A `Section` reads `Level` then renders `<Level value={level + 1}>`. What does a nested `Section` see, and does its own provider affect its own read?"
+  back: "Outer sees the default `0`, inner `1`, headings `1` and `2`. Its own provider does not affect its own `useContext` call."
+  question: react/context-and-composition/context-propagation
+- id: context-three-causes
+  front: "What are the three causes of excess context re-renders?"
+  back: "A new value every render, no selectors (readers subscribe to the whole value), and a provider re-rendering too much of the tree."
+  question: react/context-and-composition/context-performance
+- id: context-inline-object-value
+  front: "Why does `<Auth value={{ user, setUser }}>` re-render all readers on unrelated state?"
+  back: "It builds a new object every time the provider's component renders, so `Object.is` fails. Wrap the object in `useMemo` with the data as dependencies, and functions in `useCallback`."
+  question: react/context-and-composition/context-performance
+- id: context-stable-setters
+  front: "Which values need no memoizing in a context value?"
+  back: "State setters and `dispatch` are already stable, and a primitive value needs nothing."
+  question: react/context-and-composition/context-performance
+- id: context-split-state-dispatch
+  front: "What is the standard context split, and why does it help?"
+  back: "A reducer's state in one context and its `dispatch` in another. Components that only dispatch never re-render on state changes, because `dispatch` never changes."
+  question: react/context-and-composition/context-performance
+- id: context-split-by-change
+  front: "How should contexts be split to avoid theme readers re-rendering on `lang` changes?"
+  back: "By what changes together. A reader of `theme` from `{ theme, lang }` re-renders when `lang` changes, so give them separate contexts."
+  question: react/context-and-composition/context-performance
+- id: context-provider-children
+  front: "How do you stop a provider with state from re-rendering the whole page?"
+  back: "Move the state into a small provider component that takes `children`. An update re-renders the provider and the readers; the `children` elements, created by its parent, are skipped. Keep providers as low as the readers allow."
+  question: react/context-and-composition/context-performance
+- id: context-memo-no-help
+  front: "Does `memo` on components between provider and readers reduce context re-renders?"
+  back: "No. Readers get their own update and render anyway; `memo` only stops renders that come from a parent rendering."
+  question: react/context-and-composition/context-performance
+- id: context-compiler-limits
+  front: "What can the React Compiler fix for context, and what can it not?"
+  back: "It memoizes values like the inline object automatically; with `babel-plugin-react-compiler` 1.0.0 it cached `{ user, setUser }` keyed on `user` and readers stopped re-rendering. It cannot split a coarse context: a `theme` reader still re-rendered on `lang`."
+  question: react/context-and-composition/context-performance
+- id: context-external-store
+  front: "When is an external store better than context?"
+  back: "When many components each need a slice of data that changes often. A store read through `useSyncExternalStore`, typically via a state library with selectors, re-renders each component only when its own slice changes."
+  question: react/context-and-composition/context-performance
+- id: context-measure-first
+  front: "What do React's docs say about re-rendering context readers in smaller apps?"
+  back: "It is not a problem there. Measure first."
+  question: react/context-and-composition/context-performance
+- id: context-memo-rebuilt-dep
+  front: "Why does `useMemo` on a context value fail with an `options` object literal as a dependency?"
+  back: "The dependency is rebuilt every render, so the memo recomputes every time and fixes nothing."
+  question: react/context-and-composition/context-performance
+- id: context-split-single-hook-pitfall
+  front: "Why does reading both split contexts in one `useTodos()` hook defeat the split?"
+  back: "A component subscribes to every context it reads, so it re-renders on both."
+  question: react/context-and-composition/context-performance
+- id: context-fast-changing-value
+  front: "What should you do with a value that changes on every keystroke or pointer move?"
+  back: "Do not put it in a context read across the app. Keep it local, or use a store with selectors."
+  question: react/context-and-composition/context-performance
+- id: dispatch-stable-identity
+  front: "Why does the `dispatch` context need no `useMemo`?"
+  back: "`dispatch` from `useReducer` has a stable identity, documented in its reference. The provider passes the same function each render, so `Object.is` always matches and the context never notifies readers."
+  question: react/context-and-composition/context-performance
+- id: reducer-context-vs-library
+  front: "Is reducer plus context a replacement for a state library?"
+  back: "For app-level state read in a few places, often yes; the docs scale it with many context-reducer pairs. It still re-renders every reader of a context on each change, which is where libraries with selectors differ."
+  question: react/context-and-composition/context-performance
+- id: context-no-field-tracking
+  front: "Why can React not skip a reader that destructured an unchanged field?"
+  back: "React stores what each reader saw as the whole context value and compares by `Object.is`. It has no record of which fields a component used. Fixes change when the value changes (memoize) or which components read it (split)."
+  question: react/context-and-composition/context-performance
+- id: context-split-add-todo
+  front: "In the split-context todo demo, what logged on clicking \"add\" with one combined context versus split contexts?"
+  back: "One context: `AddTodo`, then `Count 1`. Split: only `Count 1`, since `AddTodo` reads only the stable `dispatch` context."
+  question: react/context-and-composition/context-performance
+- id: context-fix-tradeoffs
+  front: "What does each context-performance fix leave unsolved?"
+  back: "`useMemo` fixes identity but every field still notifies every reader. Splitting is the nearest thing to selectors, at the cost of more providers and hooks. Moving state down or composing with `children` reduces what re-renders around the provider, not who reads it. An external store lives outside React's state model and needs a server snapshot for SSR."
+  question: react/context-and-composition/context-performance
+- id: composition-four-ways
+  front: "What are the four ways a caller customizes what a component renders?"
+  back: "`children` and slot props, render props, compound components, and higher-order components."
+  question: react/context-and-composition/composition-patterns
+- id: composition-children-slots
+  front: "What are `children` and slot props, and what is their limit?"
+  back: "The caller passes elements (`<Card>{content}</Card>` or `<Layout header={<Header />} sidebar={<Nav />}>`) and the component decides where they go. The wrapper cannot pass its data into them."
+  question: react/context-and-composition/composition-patterns
+- id: composition-children-skip-rerender
+  front: "Why are `children` elements cheap to re-render?"
+  back: "The caller created them, so a re-render from the wrapper's own state skips them."
+  question: react/context-and-composition/composition-patterns
+- id: composition-render-props
+  front: "What is a render prop and when do you use it?"
+  back: "A function prop the component calls with its data, such as `renderItem={(item, isActive) => <Row … />}`, or `children` as a function. Use it when the component owns data the caller's markup needs. Costs: a new function each render, and nesting."
+  question: react/context-and-composition/composition-patterns
+- id: composition-compound
+  front: "What are compound components?"
+  back: "A set of parts used together, like `<Tabs>`, `<Tab>` and `<Panel>`. The parent provides shared state through context and each part reads it, so the caller controls structure and order."
+  question: react/context-and-composition/composition-patterns
+- id: composition-children-map-fragile
+  front: "Why does react.dev call `Children.map` plus `cloneElement` fragile?"
+  back: "They see only the elements passed directly, not what a wrapper component renders. Wrapping a `<Tab>` in a fragment or another component hides it from the parent; context does not care how deep a part sits."
+  question: react/context-and-composition/composition-patterns
+- id: composition-hoc
+  front: "What is a higher-order component?"
+  back: "`withX(Component)` returns a new component that renders the original with extra props."
+  question: react/context-and-composition/composition-patterns
+- id: hoc-problems
+  front: "What are the problems with HOCs?"
+  back: "Extra wrapper layers, prop-name collisions resolved silently, static methods not copied, and a HOC applied during render creating a new component type every time, which remounts and resets state."
+  question: react/context-and-composition/composition-patterns
+- id: hoc-status-docs
+  front: "Are HOCs deprecated?"
+  back: "No, but the legacy React docs say they \"are not commonly used in modern React code\". Hooks took over sharing logic; the Hooks FAQ says hooks are a simpler way to serve the single-child render prop and HOC use case."
+  question: react/context-and-composition/composition-patterns
+- id: hoc-inside-render
+  front: "What happens when you call `withTheme(Counter)` inside a component body?"
+  back: "It makes a new component type each render, so React remounts it and its state resets. Call it once at module level. In the exercise, `count 1` went back to `count 0` after the parent re-rendered."
+  question: react/context-and-composition/composition-patterns
+- id: hoc-prop-collision
+  front: "Two HOCs inject the same prop name. Which wins?"
+  back: "The one closest to the component (the inner wrapper), without a warning. In the example `withTheme`'s `dark` overwrote `withUser`'s `user-pref`."
+  question: react/context-and-composition/composition-patterns
+- id: hoc-statics-not-copied
+  front: "What happens to static properties like `Input.validate` through a HOC?"
+  back: "They stay on the original component unless the HOC copies them; `typeof Enhanced.validate` was `'undefined'`."
+  question: react/context-and-composition/composition-patterns
+- id: hoc-forward-ref-19
+  front: "Does a HOC still need `forwardRef` in React 19?"
+  back: "Not for function components. `ref` arrives as an ordinary prop, so spreading props forwards it; a ref on the enhanced component reached the inner `<input>` in Chrome 156 and Firefox 159."
+  question: react/context-and-composition/composition-patterns
+- id: render-prop-memo-pitfall
+  front: "Why does an inline render prop defeat a `memo` component?"
+  back: "The new function each render fails the props comparison."
+  question: react/context-and-composition/composition-patterns
+- id: render-prop-vs-hook
+  front: "When does a render prop still beat a custom hook?"
+  back: "When the component owns the markup around the caller's piece: a virtualized list renders the scroll container and calls `renderItem` only for visible rows. A hook returns data; it cannot place the caller's JSX inside its structure."
+  question: react/context-and-composition/composition-patterns
+- id: compound-context-provider
+  front: "Why do compound components usually make the parent a context provider?"
+  back: "The parts can sit anywhere below it, wrapped in layout or other components, and still read the shared state. React's `cloneElement` page lists context as the alternative to injecting props into children."
+  question: react/context-and-composition/composition-patterns
+- id: compound-rerender-through-context
+  front: "In the Tabs example, why did `Profile` and `Billing` log only when mounted?"
+  back: "The root created those elements, so only `Tab` and `Panel` re-render through context."
+  question: react/context-and-composition/composition-patterns
+- id: compound-implicit-contract
+  front: "What is the trade-off of compound components?"
+  back: "Callers control layout, with an implicit contract: parts only work inside their parent, so throw a clear error when the context is missing."
+  question: react/context-and-composition/composition-patterns
+- id: composition-data-flow-tradeoffs
+  front: "How do `children`/slots and render props differ in data flow?"
+  back: "Slots are simplest and cheapest to re-render but data flows only from the caller into the slot. Render props let the component give data back to the caller's markup, at the cost of callbacks in JSX and nesting."
+  question: react/context-and-composition/composition-patterns
+- id: custom-hook-definition
+  front: "What is a custom hook?"
+  back: "A function whose name starts with `use` and that calls other hooks. It shares logic between components, such as an online-status subscription or a form field's state and handler."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-shares-logic-not-state
+  front: "What does a custom hook share between components?"
+  back: "Stateful logic, not state. Its body runs inside each caller's render, so its `useState` and `useEffect` calls become that component's own hooks; two components, or two calls in one component, get independent state."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-docs-independent-quote
+  front: "What do the docs say about separate calls to the same hook?"
+  back: "\"Each call to a Hook is completely independent from every other call to the same Hook.\""
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-share-state-how
+  front: "How do callers of a hook see the same data?"
+  back: "Only when the hook reads something outside them: a context (the provider's state), an external store, or the browser. `useOnlineStatus()` callers agree because both subscribe to the same browser events, but each holds its own state. To share state itself, lift it up or use context."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-part-of-component
+  front: "What follows from a custom hook's body running on every render?"
+  back: "It must be pure during render, it always receives the latest props and state, and the functions it returns are new each render unless memoized."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-name-rule
+  front: "What do the docs say about hook names, and which tools rely on it?"
+  back: "\"Hook names must start with `use` followed by a capital letter.\" The `rules-of-hooks` lint rule allows hook calls only in components and `use` functions and checks they are called unconditionally; the React Compiler by default compiles functions named like components or hooks."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-no-use-without-hooks
+  front: "Should a function that calls no hooks be named `use…`?"
+  back: "No. The docs: \"If your function doesn't call any Hooks, avoid the `use` prefix.\" Callers could then no longer call it conditionally, and the name misleads. A `useSorted(items)` with no hooks gets no lint error."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-get-name-lint
+  front: "What does `eslint-plugin-react-hooks` 7.1.1 report for `useState` inside `getCounter`?"
+  back: "React Hook \"useState\" is called in function \"getCounter\" that is neither a React function component nor a custom React Hook function. A conditional call to a `get`-named hook goes unchecked."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-compiler-get-name
+  front: "What did `babel-plugin-react-compiler` 1.0.0 do with a `getCounter()` that calls hooks?"
+  back: "It compiled without a diagnostic, treated it as an ordinary function and cached the result on the first render, so the button kept showing `0` (Chrome 156 and Firefox 159). Renamed `useCounter`, the call is not cached. Listed as perishable."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-conditional-lint
+  front: "What is reported for `if (show) { useCounter(); }`?"
+  back: "React Hook \"useCounter\" is called conditionally. Under a `get` name nothing would be reported."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-store-pitfall
+  front: "Why is a custom hook not a shared store?"
+  back: "Each caller gets its own state. Sharing needs lifted state, context or an external store."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-component-inside
+  front: "What goes wrong with declaring a component inside a hook and returning `<Inner />`?"
+  back: "Each render creates a new component type, so its state resets. The `static-components` lint rule reports \"Cannot create components during render\"."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-use-mount
+  front: "Why are \"lifecycle\" hooks like `useMount(fn)` discouraged?"
+  back: "The docs warn they hide dependencies from the `exhaustive-deps` rule, which checks only direct `useEffect` calls."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-shared-value
+  front: "How do you write a hook whose callers do share a value?"
+  back: "Read it from somewhere shared: `function useTheme() { return useContext(ThemeContext); }`, or wrap `useSyncExternalStore` for data outside React. The hook shares access while the state lives in one place."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-return-jsx
+  front: "Can a custom hook return JSX?"
+  back: "Yes, an element is a value. Return elements of components defined at module level: `<Field />` kept its typed text across re-renders. A component defined inside the hook lost it each re-render."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-callback-effect-event
+  front: "A hook uses an `onMessage` callback in an effect. What goes wrong and what is the fix?"
+  back: "A new callback every render is a changing dependency, so the effect re-subscribes each render. Wrap it in an Effect Event (`useEffectEvent`) inside the hook, as the docs show for `useChatRoom`."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-no-runtime-concept
+  front: "How does React 19.3.1 treat a custom hook at runtime?"
+  back: "It has no concept of one. Each built-in hook call appends a node to a list on the currently rendering component's fiber (`memoizedState`), and the next render matches calls by position. A custom hook just makes some of those calls. Implementation detail."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-rules-transitive
+  front: "Why do the Rules of Hooks apply transitively to custom hooks?"
+  back: "Calling a custom hook conditionally shifts the positions of every hook inside it. Its closures capture that render's props and state, like code written directly in the component."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-use-online-status
+  front: "What are the flaws of the docs' `useOnlineStatus` built on `useState` plus an effect, and the fix?"
+  back: "It assumes the user starts online, and reading `navigator.onLine` would not work during server rendering. Rewriting the body with `useSyncExternalStore` fixes both without touching any caller."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-extraction-advice
+  front: "What does the docs advise about extracting custom hooks?"
+  back: "Do not extract a hook for a single `useState`, or write generic wrappers that do not constrain the caller. Name the hook after the use case; if no clear name comes, it is not ready to be extracted."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-vs-hoc-render-prop
+  front: "Why did hooks replace most HOCs and render props for sharing logic?"
+  back: "No wrapper components, no prop-name collisions, and the data flow is visible at the call site. The costs are the Rules of Hooks for every caller, and over-abstraction."
+  question: react/context-and-composition/custom-hooks
+- id: custom-hook-score-exercise
+  front: "A `Score` component calls `useCounter('home')` and `useCounter('away')`. Clicking home twice logs what?"
+  back: "`home 0`, `away 0`, then `home 1`, `away 0`, then `home 2`, `away 0` (no Strict Mode). Updating `home` re-renders `Score`, which re-runs both calls; `away` is unchanged."
+  question: react/context-and-composition/custom-hooks
