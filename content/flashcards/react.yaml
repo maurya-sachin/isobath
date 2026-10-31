@@ -427,3 +427,393 @@
   front: "Why does React re-render children by default, and what does it cost?"
   back: "It is simple and correct: React never has to know whether a child depends on something the parent did not pass as a prop. The cost is CPU time for components whose output did not change; the optimisation is left to `memo`, `useMemo`, composition or the React Compiler, which memoizes automatically when code follows the Rules of React."
   question: react/rendering-model/when-components-rerender
+
+# 02 State
+- id: snap-const-binding
+  front: "What is `count` in `const [count, setCount] = useState(0)`, and where does React keep the real state?"
+  back: "An ordinary local constant. React keeps the real state outside your component and hands your function the value for that render. Everything the render creates, from JSX to handlers, closes over that value: the docs call it a snapshot."
+  question: react/state/state-as-snapshot
+- id: snap-setter-does-not-reassign
+  front: "Why can `setCount(count + 1)` not change `count` in the running handler?"
+  back: "`count` is a `const` inside a function call that already ran. The setter queues an update and asks React to render again; the next render is a new call with a new `count` binding. The running handler keeps the old value, even after an `await` or in a late timeout."
+  question: react/state/state-as-snapshot
+- id: snap-symptoms
+  front: "What are the usual symptoms of the state snapshot?"
+  back: "`console.log(count)` right after the setter prints the old value; `setCount(count + 1)` three times in one handler adds 1; a `setInterval` created once in an effect with `[]` reads the first render's value forever."
+  question: react/state/state-as-snapshot
+- id: snap-getting-new-value
+  front: "How do you get the new value when you need it?"
+  back: "In the same handler, compute it into a variable and keep using it. Based on previous state, pass an updater `setCount(c => c + 1)`, which receives the latest queued state. From a long-lived callback, let the effect re-subscribe when the value changes, or keep the latest value in a ref."
+  question: react/state/state-as-snapshot
+- id: snap-deliberate
+  front: "Why is the snapshot behaviour deliberate?"
+  back: "A handler acts on what the user saw when they clicked, not on whatever state has become after an async step. For discrete events like clicks React also renders before the next one, so the next click's handler already sees the new value."
+  question: react/state/state-as-snapshot
+- id: snap-timeout-example
+  front: "In the Counter example, a click calls `setCount(count + 1)` and logs `count` in the handler and in a 1-second timeout. What is logged on the first click?"
+  back: "`handler 0`, then `render 1`, then `timeout 0`: the timeout closed over the first render's `count`. The second click ran the second render's handler. Same in Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/state/state-as-snapshot
+- id: snap-check-after-set
+  front: "Why is `setItems(next); if (items.length > 10) …` wrong?"
+  back: "It checks the old array. Use `next`."
+  question: react/state/state-as-snapshot
+- id: snap-no-hide-stale-closure
+  front: "Is removing a variable from an effect's dependencies, or suppressing the lint rule, a fix for a stale read?"
+  back: "No. It hides the stale closure instead of fixing it."
+  question: react/state/state-as-snapshot
+- id: snap-class-components
+  front: "Do class components behave like the hook snapshot?"
+  back: "Only partly. Right after `this.setState`, `this.state` still holds the old value, but React replaces `this.state` on the instance when it renders the update, so a timeout reading `this.state.count` logged `1` where the hook version logged `0`. Hooks have no instance for React to update."
+  question: react/state/state-as-snapshot
+- id: snap-not-a-bug
+  front: "Is the stale value a React bug?"
+  back: "No, it is how closures work: each render is a function call and callbacks keep the bindings of the call that created them. React could only \"fix\" it by mutating your variables, which would make one render's output disagree with its own handlers."
+  question: react/state/state-as-snapshot
+- id: snap-interval-latest
+  front: "How do you read the latest state inside an interval?"
+  back: "To compute the next state, use an updater: `setSeconds(s => s + 1)`. If you need the value for something else, such as sending it, list it as a dependency so the effect recreates the interval, or mirror it in a ref."
+  question: react/state/state-as-snapshot
+- id: snap-impl-hook-object
+  front: "Where does React 19.3.1 store a `useState` call's value, and how does your local constant get it?"
+  back: "In a hook object on the component's fiber, matched to the call by position (implementation detail). The hook holds the committed value (`memoizedState`) and a queue of pending updates; `useState` returns `[hook.memoizedState, setter]` and your destructuring copies the value into a local constant."
+  question: react/state/state-as-snapshot
+- id: snap-setter-identity
+  front: "Why does the state setter's identity never change?"
+  back: "It is `dispatchSetState`, bound to that fiber and queue when the component mounted. It appends an update and schedules a render, and never touches your variable."
+  question: react/state/state-as-snapshot
+- id: snap-await-example
+  front: "A handler does `setStatus('sending')`, awaits a 200ms promise, then logs `status`. What does it log, and why?"
+  back: "The old value, `idle`, although the component had already rendered with `'sending'`. The variable belongs to the call, not to the moment. Same in Chrome 156 and Firefox 159, development and production."
+  question: react/state/state-as-snapshot
+- id: snap-objects-by-reference
+  front: "Is the state snapshot a deep copy of objects?"
+  back: "No, the snapshot is the reference. If someone mutates the object, an old closure sees the mutation, which is one more reason to update state immutably."
+  question: react/state/state-as-snapshot
+- id: snap-refs-not-snapshotted
+  front: "Are refs snapshotted like state?"
+  back: "No. `ref.current` read in a timeout returns whatever it holds at that moment, which is why refs are the escape hatch for \"latest value\" reads and why reading them during render is discouraged."
+  question: react/state/state-as-snapshot
+- id: snap-autosave-scenario
+  front: "An autosave interval created in an effect with `[]` saves the empty initial draft. Why does adding `draft` as a dependency not fully fix it, and what does?"
+  back: "It fixes the value but restarts the timer on every keystroke, so a fast typist never triggers a save. Keep the interval stable and read the current draft from a ref the component keeps updated, or from an Effect Event."
+  question: react/state/state-as-snapshot
+- id: snap-tradeoff
+  front: "What do snapshots buy, and what do they cost?"
+  back: "Each render is internally consistent (output, handlers and effects agree on one set of values), and React can prepare a render with newer state, as concurrent rendering does, without changing handlers already on screen. The cost lands on long-lived callbacks, which must opt into fresh values via updaters, dependencies or refs."
+  question: react/state/state-as-snapshot
+- id: snap-timer-stops
+  front: "A `Timer` runs `setInterval(() => setSeconds(seconds + 1), 1000)` in an effect with `[]`. What does it show over time, and what fixes it?"
+  back: "It shows `1` after a second and stays at `1`: the callback closed over `seconds = 0`, so every tick calls `setSeconds(1)` and React bails out once unchanged. `setSeconds((s) => s + 1)` counts up."
+  question: react/state/state-as-snapshot
+
+- id: batch-what
+  front: "What is batching, and in which contexts does it apply since React 18 with `createRoot`?"
+  back: "A setter appends an update to a queue and schedules a render; when the running code finishes, React renders once, applying all queued updates across all state and components. It holds in React event handlers, `setTimeout`, promise callbacks and native `addEventListener` handlers. Separate user events each get their own render."
+  question: react/state/batching-and-updater-functions
+- id: batch-value-vs-updater
+  front: "How does React treat a value versus an updater function in the update queue?"
+  back: "A value, `setN(n + 1)`, means \"replace with this\", computed from the render's snapshot. An updater, `setN(m => m + 1)`, means \"compute from the state so far\": React passes it the previous update's result. Updates are processed in the order queued."
+  question: react/state/batching-and-updater-functions
+- id: batch-queue-results
+  front: "With `n = 0`, what do `setN(n + 1)` twice, `setN(m => m + 1)` twice, and `setN(n + 5); setN(m => m + 1)` give?"
+  back: "`1`, `2` and `6`. A later `setN(42)` in the same handler replaces all of that with `42`."
+  question: react/state/batching-and-updater-functions
+- id: batch-when-updater
+  front: "When should you use an updater function?"
+  back: "When the next state depends on the previous one and more than one update can queue before the next render: several updates in one handler, or a timer or subscription created in an earlier render. For a single update per click both forms behave the same, since React renders before the next click."
+  question: react/state/batching-and-updater-functions
+- id: batch-updaters-pure
+  front: "Why must updater functions be pure?"
+  back: "They run during rendering (React may run the first one early, as an optimization), so no side effects and no other setters. Strict Mode calls them twice in development."
+  question: react/state/batching-and-updater-functions
+- id: batch-flushsync
+  front: "How do you opt out of batching, and when?"
+  back: "`flushSync(() => setN(1))` from `react-dom` renders and commits before returning, so the next line sees the updated DOM. It is a last resort for code that must read the DOM immediately."
+  question: react/state/batching-and-updater-functions
+- id: batch-legacy-react17
+  front: "How did batching work before React 18 and with `ReactDOM.render`?"
+  back: "Only React event handlers batched. `ReactDOM.render` was removed in React 19."
+  question: react/state/batching-and-updater-functions
+- id: batch-one-render-per-click
+  front: "In the Counter example, how many renders does each click log, and what do `replaceTwice`, `updateTwice` and `mixed` render from 0?"
+  back: "Exactly one render each, whatever the number of setter calls: `1`, `2` and `6`; `mixed` followed by `setN(42)` renders `42`. Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/state/batching-and-updater-functions
+- id: batch-loop-same-snapshot
+  front: "Why does `setCount(count + 1)` called several times in a row not accumulate?"
+  back: "Every call reads the same snapshot."
+  question: react/state/batching-and-updater-functions
+- id: batch-updater-wrong-variable
+  front: "What does `setN(m => n + 1)` do?"
+  back: "It reads the snapshot `n` instead of the argument, ignores the queue and behaves like a plain value."
+  question: react/state/batching-and-updater-functions
+- id: batch-dom-next-line
+  front: "Does the DOM reflect a state change on the next line of a handler?"
+  back: "No, not until React renders; use `flushSync` only when you really must."
+  question: react/state/batching-and-updater-functions
+- id: batch-setstate-async
+  front: "Is `setState` asynchronous?"
+  back: "Not in the Promise sense: it returns `undefined` and cannot be awaited. It queues an update synchronously; the render happens later, after the running code finishes. For a click, React 19.3.1 renders in a microtask it queues on the first update."
+  question: react/state/batching-and-updater-functions
+- id: batch-two-timeouts
+  front: "Do two separate `setTimeout` callbacks get batched together?"
+  back: "Each callback's updates are batched within it. Whether two callbacks share a render depends on whether React's scheduled render ran between them, so do not rely on it either way."
+  question: react/state/batching-and-updater-functions
+- id: batch-unstable-batchedupdates
+  front: "What does `unstable_batchedUpdates` do with `createRoot`?"
+  back: "Nothing; it is unnecessary because everything is already batched. The React 18 working group kept the export for libraries, and `react-dom` 19.3.1 still exports it."
+  question: react/state/batching-and-updater-functions
+- id: batch-impl-queue
+  front: "How does React 19.3.1 store and schedule pending state updates?"
+  back: "As a circular linked list (`queue.pending`) on the hook; each update records its `action` and lane. The setter `dispatchSetState` appends an update and calls `scheduleUpdateOnFiber`. Scheduling is per root: the first update queues one microtask and later updates find the render already scheduled. Implementation details from `ReactFiberHooks.js`."
+  question: react/state/batching-and-updater-functions
+- id: batch-impl-reducer
+  front: "What reducer does `useState` run the update queue through?"
+  back: "Literally `typeof action === 'function' ? action(state) : action`: a value ignores the state it is given, an updater uses it."
+  question: react/state/batching-and-updater-functions
+- id: batch-lanes-skipped
+  front: "What happens to updates whose lane is not part of the current render?"
+  back: "They are skipped and kept, then re-applied in their original order in a later render, so the final state is the same as if everything had run in order."
+  question: react/state/batching-and-updater-functions
+- id: batch-two-setters-one-render
+  front: "Two setters called in one callback, run from a handler, a `setTimeout`, a promise or a native listener: how many renders?"
+  back: "One render in every case, in development and production, Chrome 156 and Firefox 159. A synthetic `button.click()` from script also gave one."
+  question: react/state/batching-and-updater-functions
+- id: batch-updater-runs-early
+  front: "When do updaters actually run in React 19.3.1, compared with the docs?"
+  back: "The docs say during the next render. React 19.3.1 adds an optimization in `dispatchSetState`: when the component has no pending update, it computes the first update immediately at the setter call so it can drop no-op updates. Later updates wait for the render. Pure code cannot tell the difference."
+  question: react/state/batching-and-updater-functions
+- id: batch-early-updater-sequence
+  front: "Two updaters in one handler: what order do they run on the first click after mount versus the second click?"
+  back: "First click: updater 1 gets 0, handler done, updater 2 gets 1, render 2. Second click: handler done, then updater 1 gets 2 and updater 2 gets 3, render 4, because the fiber's other copy still had work marked so nothing ran early. Chrome 156 and Firefox 159, development and production, no Strict Mode."
+  question: react/state/batching-and-updater-functions
+- id: batch-flushsync-splits
+  front: "What does `flushSync(() => setA(...))` followed by `setB(...)` in one handler do?"
+  back: "It splits the batch: render with new `a`, the DOM already shows the new `a` on the next line, then a second render for `setB`. Development and production, both browsers. Per the docs, `flushSync` may also flush other pending updates and effects first, and can force a Suspense fallback to show."
+  question: react/state/batching-and-updater-functions
+- id: batch-render-phase-updates
+  front: "When is calling a setter during render allowed?"
+  back: "Only for the component that is rendering; React discards the output and re-renders immediately. That is the \"store information from previous renders\" pattern, not batching."
+  question: react/state/batching-and-updater-functions
+- id: batch-likes-scenario
+  front: "A like button does `setLikes(likes + 1)` and rolls back with `setLikes(likes)` on failure. What goes wrong after two clicks and a failed first request?"
+  back: "The rollback restores the first click's snapshot, 0, wiping out the second like too. With `setLikes(l => l + 1)` and rollback `setLikes(l => l - 1)` the count ends at 1, because each change applies to the state as React finds it."
+  question: react/state/batching-and-updater-functions
+- id: batch-tradeoff
+  front: "What does batching trade, and when does a reducer read better than updaters?"
+  back: "It trades immediacy for consistency and speed: one render per event and no half-updated UI, but nothing is observable until React renders. When several state variables must change together by rules, a reducer usually reads better than a chain of updaters. The docs treat always using updaters for derived updates as a reasonable style, not a requirement."
+  question: react/state/batching-and-updater-functions
+- id: batch-predict-render
+  front: "From `n = 0`, a handler runs `setN(n + 1)`, `setN(m => m * 2)`, `setN(n + 10)`, `setN(m => m + 1)`. What renders, and after a second click?"
+  back: "`11`: replace with 1, double (2), replace with 10, add 1. A second click from 11 renders 22: replace with 12, double (24), replace with 21, add 1."
+  question: react/state/batching-and-updater-functions
+
+- id: reducer-signature
+  front: "What does `useReducer(reducer, initialArg, init?)` do?"
+  back: "It moves update logic out of handlers into one pure function `(state, action) => nextState`. Handlers say what happened (`dispatch({ type: 'submitted' })`); the reducer decides how state changes."
+  question: react/state/use-reducer
+- id: reducer-same-as-usestate
+  front: "What behaves the same in `useReducer` as in `useState`?"
+  back: "Each render sees a snapshot, dispatches are queued and batched, an unchanged result (by `Object.is`) skips the children, and `dispatch` keeps the same identity across renders."
+  question: react/state/use-reducer
+- id: reducer-when-values-together
+  front: "Why use a reducer when several values change together?"
+  back: "A form's status, error and data move as one: one action updates them consistently, where three setters can leave them disagreeing."
+  question: react/state/use-reducer
+- id: reducer-sees-whole-state
+  front: "What does a reducer see that an updater function does not?"
+  back: "The whole state object. An updater only sees its own variable."
+  question: react/state/use-reducer
+- id: reducer-many-handlers
+  front: "Why does a reducer help when many handlers make similar updates?"
+  back: "One function is easier to read, log (\"which action caused this?\") and unit-test without rendering anything."
+  question: react/state/use-reducer
+- id: reducer-dispatch-context
+  front: "Why is `dispatch` convenient to pass through context?"
+  back: "It is stable, so it can go through context once and every consumer can send actions without new callbacks each render."
+  question: react/state/use-reducer
+- id: reducer-vs-usestate-choice
+  front: "When should you stay with `useState`, and how do the two relate?"
+  back: "For independent, simple values such as a toggle, an input or a counter. They mix freely in one component, and `useState` is a reducer whose actions are values or updater functions."
+  question: react/state/use-reducer
+- id: reducer-rules
+  front: "What rules apply to reducers because they run during rendering?"
+  back: "Keep them pure (no requests, timeouts or mutation; Strict Mode calls them twice in development), return a new object for a change and the same `state` for a no-op, throw on unknown actions instead of returning `undefined`, and name actions after interactions (`reset_form`), not field assignments."
+  question: react/state/use-reducer
+- id: reducer-form-example-order
+  front: "In the SignupForm example, when does the reducer run relative to `dispatch`, and what does Strict Mode do in development?"
+  back: "After `dispatched` is logged, during the render. Under Strict Mode in development every line but `dispatched` appeared twice. Chrome 156 and Firefox 159, development and production builds of React 19.3.1."
+  question: react/state/use-reducer
+- id: reducer-mutate-return-same
+  front: "What happens if a reducer mutates `state` and returns it?"
+  back: "The result is the same object, so React discards the render."
+  question: react/state/use-reducer
+- id: reducer-no-side-effects
+  front: "Why not fetch or write `localStorage` in a reducer?"
+  back: "They run during render, and twice in Strict Mode development. Do them in the handler that dispatches."
+  question: react/state/use-reducer
+- id: reducer-partial-state
+  front: "What is wrong with `return { status: 'error' }` from a reducer?"
+  back: "It drops `error` and anything else. Spread the rest, or return complete states."
+  question: react/state/use-reducer
+- id: reducer-state-after-dispatch
+  front: "Does `state` change right after `dispatch`?"
+  back: "No. Like a setter, it only affects the next render."
+  question: react/state/use-reducer
+- id: reducer-same-state-renders-component
+  front: "When a reducer returns the same state in React 19.3.1, does the component itself render?"
+  back: "Yes. React skips the children, but `dispatch` does not pre-compute the result the way `useState`'s setter can, so the component renders each time: a no-op action logged `reducer noop` and `render error` on every click while a child stayed silent."
+  question: react/state/use-reducer
+- id: reducer-not-faster
+  front: "Is `useReducer` faster than `useState`?"
+  back: "No. In React 19.3.1 `useState` goes through the same code path with a built-in reducer (implementation detail). The choice is about where update logic lives."
+  question: react/state/use-reducer
+- id: reducer-init-arg
+  front: "What is the third argument of `useReducer` for?"
+  back: "`init` computes the initial state once: `useReducer(reducer, userId, createInitialState)` calls `createInitialState(userId)` on mount instead of rebuilding the initial value every render. Strict Mode calls it twice in development."
+  question: react/state/use-reducer
+- id: reducer-toggle-mutation
+  front: "A toggle reducer does `state.on = !state.on; return state;`. What happens on a click without Strict Mode, and with it in development?"
+  back: "Without Strict Mode the first click logs `render true` yet the button still says `off`: same object, `Object.is` finds no change, React throws the output away. Under Strict Mode the reducer runs twice, flips `on` back, and logs `render false`. Fix: `return { ...state, on: !state.on }`."
+  question: react/state/use-reducer
+
+- id: immut-object-is
+  front: "How does React decide whether state changed, and what must you do to change it?"
+  back: "It compares new and old values with `Object.is`, a reference check for objects and arrays. Treat state as read-only and pass the setter a new object or array."
+  question: react/state/immutable-updates
+- id: immut-no-render
+  front: "What happens with `todo.done = true; setTodos(todos)`?"
+  back: "The same array is passed, React sees no change and drops the update."
+  question: react/state/immutable-updates
+- id: immut-appears-later
+  front: "Why do mutated updates sometimes appear later at random?"
+  back: "The mutation stays in the object, so the next unrelated render shows it."
+  question: react/state/immutable-updates
+- id: immut-memoization-miss
+  front: "Why do `memo`, `useMemo`, `useCallback` and effect dependencies miss a mutation?"
+  back: "They all compare by reference, so a mutated object looks unchanged. The React Compiler's automatic memoization relies on the same rule of React: props and state are immutable."
+  question: react/state/immutable-updates
+- id: immut-past-rewritten
+  front: "How does mutation rewrite the past?"
+  back: "Earlier renders' closures, logged objects and any undo history share the mutated object. Strict Mode's double calls also repeat mutations inside updaters and reducers."
+  question: react/state/immutable-updates
+- id: immut-objects-spread
+  front: "How do you update a nested object immutably?"
+  back: "Spread copies one level, so copy each level on the path: `{ ...person, address: { ...person.address, city } }`."
+  question: react/state/immutable-updates
+- id: immut-arrays
+  front: "Which array operations are safe on state, and which should you avoid?"
+  back: "Add with `[...items, item]`, remove with `filter`, replace with `map`, insert with `toSpliced` or slices, sort with `toSorted` or a copy. Avoid `push`, `splice`, `sort`, `reverse` and index assignment on the state array."
+  question: react/state/immutable-updates
+- id: immut-object-in-array
+  front: "How do you mark one object in a state array as done?"
+  back: "`items.map(i => i.id === id ? { ...i, done: true } : i)`."
+  question: react/state/immutable-updates
+- id: immut-local-mutation
+  front: "Is mutating a copy created in the same handler allowed?"
+  back: "Yes: `const next = [...items]; next.push(item); setItems(next)` never touches the state."
+  question: react/state/immutable-updates
+- id: immut-deep-nesting
+  front: "What can you do when state nesting gets deep?"
+  back: "Flatten the state, or use Immer, which lets you write mutating code against a draft and produces the copies for you."
+  question: react/state/immutable-updates
+- id: immut-example-click-sequence
+  front: "In the TodoList example, what happens on \"Done\" (which mutates and sets the same array) and then on \"Show done\"?"
+  back: "\"Done\" logs nothing and the paragraph still says \"Milk: to do\". \"Show done\" renders `true` and the paragraph then says \"Milk: done\". Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/state/immutable-updates
+- id: immut-shallow-copy-pitfall
+  front: "What goes wrong when you copy only the top level and mutate a nested object through the copy?"
+  back: "The parent re-renders, but anything that compares the nested reference misses the change."
+  question: react/state/immutable-updates
+- id: immut-sort-in-place
+  front: "Why is `setItems(items.sort())` wrong?"
+  back: "`items.sort()` mutates the state array even when you pass the result to the setter. Use `toSorted()` or sort a copy."
+  question: react/state/immutable-updates
+- id: immut-strict-updater-push
+  front: "What happened with a `push` inside an updater in Strict Mode development?"
+  back: "It ran twice and took a list from 2 items to 4."
+  question: react/state/immutable-updates
+- id: immut-deep-clone
+  front: "Why not deep-clone the whole state \"to be safe\"?"
+  back: "Every object gets a new identity, so every memoized child and effect sees a change."
+  question: react/state/immutable-updates
+- id: immut-copy-cost
+  front: "Isn't copying slow?"
+  back: "Spread copies one level, so an update costs the objects on the changed path, not the whole state; unchanged branches are reused by reference, which also keeps `Object.is` checks cheap. Huge nested structures are a reason to flatten state."
+  question: react/state/immutable-updates
+- id: immut-mutation-sometimes-shows
+  front: "Why does a mutation sometimes show up and sometimes not?"
+  back: "It shows wherever a component happens to render and read the mutated object. A plain child of a re-rendering parent shows it; a `memo` child receiving the same object reference skips rendering and keeps the old output."
+  question: react/state/immutable-updates
+- id: immut-no-deep-compare
+  front: "Why does React not deep-compare state?"
+  back: "A deep comparison costs time proportional to the whole structure on every update. With immutable updates `prev === next` already proves nothing inside changed, so one reference check suffices and React needs no proxies or property tracking."
+  question: react/state/immutable-updates
+- id: immut-half-copied
+  front: "A `memo` `Address` child gets `person.address`; `moveToOslo` does `const next = { ...person }; next.address.city = 'Oslo'; setPerson(next)`. What shows after the click?"
+  back: "The heading says `Oslo`, the `Address` paragraph still says `Lima`: `next` is new so `Profile` re-renders, but `next.address` is the same mutated object, so `memo` skips `Address`. Copy the nested level too."
+  question: react/state/immutable-updates
+
+- id: struct-two-decisions
+  front: "What are the two decisions in structuring state?"
+  back: "Where each piece of state lives, and whether it should be state at all."
+  question: react/state/structuring-state
+- id: struct-lift-up
+  front: "Where should state live, and what does \"lift it up\" mean?"
+  back: "In the closest common parent of every component that reads or changes it. When two siblings need the same value, move it into their parent and pass down the value plus a callback to change it, so each piece of state has one owner."
+  question: react/state/structuring-state
+- id: struct-dont-lift-too-high
+  front: "Why not lift state higher than needed?"
+  back: "An update re-renders the owner's whole subtree, and unrelated components become coupled to one owner. Values many distant components need can go through context; shared stores outside React are read with `useSyncExternalStore`."
+  question: react/state/structuring-state
+- id: struct-derive-dont-store
+  front: "What should you do with a value that can be calculated from props or other state?"
+  back: "Compute it during render (`useMemo` only if slow). Do not sync it with an effect."
+  question: react/state/structuring-state
+- id: struct-prop-copy
+  front: "What does `useState(props.color)` do when the prop later changes?"
+  back: "It uses the prop only as the initial value and ignores later changes. Read the prop directly, name it `initialColor` if only the first value matters, or reset with a `key` to start over when an identity changes."
+  question: react/state/structuring-state
+- id: struct-selected-id
+  front: "How should you store a selected item from a list?"
+  back: "Store `selectedId`, not a copy of the selected object, and find the object during render."
+  question: react/state/structuring-state
+- id: struct-contradicting-values
+  front: "How do you avoid state values that can contradict each other, such as `isSending` and `isSent`?"
+  back: "Replace them with one `status: 'typing' | 'sending' | 'sent'`."
+  question: react/state/structuring-state
+- id: struct-group-and-flatten
+  front: "What do you do with values that always change together, and with deeply nested state?"
+  back: "Group the values into one object or a reducer. Flatten deep nesting into objects keyed by id."
+  question: react/state/structuring-state
+- id: struct-aim
+  front: "What is the aim of good state structure?"
+  back: "A structure where invalid combinations cannot be represented and every change is made in exactly one place."
+  question: react/state/structuring-state
+- id: struct-greeting-example
+  front: "In the Greeting example, `useState(name)` and `name.toUpperCase()`: what renders after name changes from Ana to Bo?"
+  back: "`render Ana BO`. `useState` ignores its argument after the first render, so `label` kept `Ana`, while the derived `shout` was right without extra code. Chrome 156 and Firefox 159, development and production builds of React 19.3.1, no Strict Mode."
+  question: react/state/structuring-state
+- id: struct-effect-sync-extra-render
+  front: "What is the cost of `useEffect(() => setFullName(first + ' Lee'), [first])`?"
+  back: "After a change the component rendered once with `Bo | Ana Lee`, then again with `Bo | Bo Lee`: an extra render that shows inconsistent values."
+  question: react/state/structuring-state
+- id: struct-stale-selected-copy
+  front: "Why does storing the selected object next to the list it came from go stale?"
+  back: "Edits to the list create new objects that never reach the copy; the paragraph kept showing `pretzels` after the rename. Store `selectedId` and derive the object with `items.find(...)` during render."
+  question: react/state/structuring-state
+- id: struct-adjust-on-prop-change
+  front: "How do you adjust state when a prop changes, without an effect?"
+  back: "First try deriving it instead. To reset all of a component's state, give it a `key` from the prop. For the rare partial adjustment, keep the previous prop in state and call the setter during render when it differs; React re-renders immediately, before the children."
+  question: react/state/structuring-state
+- id: struct-controlled
+  front: "After lifting state up, what makes a child \"controlled\"?"
+  back: "Its important information comes from props rather than its own state, so the parent decides what it shows. An uncontrolled component keeps that state locally: simpler to use, harder to coordinate."
+  question: react/state/structuring-state
+- id: struct-derive-cost
+  front: "Isn't calculating in every render wasteful compared to storing it?"
+  back: "Usually not: string joins and filters over small lists are cheap, and storing means keeping copies in sync. When profiling shows a slow calculation, wrap it in `useMemo`."
+  question: react/state/structuring-state
+- id: struct-other-state-kinds
+  front: "Which kinds of state have their own tools rather than plain component state?"
+  back: "Server data, URL state and form libraries."
+  question: react/state/structuring-state
