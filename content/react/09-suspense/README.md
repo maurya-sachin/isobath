@@ -33,7 +33,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 020 | [How does `use` read a promise, and why must the promise be cached?](020-use-api.md) | medium | 🟡 draft |
 | 030 | [How do transitions stop Suspense from showing a fallback again?](030-suspense-and-transitions.md) | hard | 🟡 draft |
 | 040 | [How does `lazy` split code, and where should you declare it?](040-lazy.md) | medium | 🟡 draft |
-| 050 | [What do error boundaries catch, and what slips past them?](050-error-boundaries.md) | medium | 🔴 planned |
+| 050 | [What do error boundaries catch, and what slips past them?](050-error-boundaries.md) | medium | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
