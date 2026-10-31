@@ -33,7 +33,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 020 | [What does Next.js prefetch, and what did Partial Prefetching change?](020-prefetch-and-partial-prefetching.md) | hard | 🟡 draft |
 | 030 | [How long does the client router reuse a page, and what do `staleTimes` control?](030-client-router-cache-stale-times.md) | medium | 🟡 draft |
 | 040 | [Why does a page keep its state after navigating back with Cache Components on?](040-state-retained-on-back-navigation.md) | medium | 🟡 draft |
-| 050 | [Why do `redirect()` and `notFound()` throw, and what goes wrong in a `try`/`catch`?](050-redirect-and-notfound-control-flow.md) | medium | 🔴 planned |
+| 050 | [Why do `redirect()` and `notFound()` throw, and what goes wrong in a `try`/`catch`?](050-redirect-and-notfound-control-flow.md) | medium | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
