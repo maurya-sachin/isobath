@@ -27,7 +27,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [What are React Server Components, and how do they differ from server rendering?](010-rsc-vs-ssr.md) | hard | 🔴 planned |
+| 010 | [What are React Server Components, and how do they differ from server rendering?](010-rsc-vs-ssr.md) | hard | 🟡 draft |
 | 020 | [Where does the client boundary go, and what does `use client` mark?](020-client-boundary.md) | hard | 🔴 planned |
 | 030 | [What can cross from Server Components to Client Components?](030-rsc-serialization.md) | hard | 🔴 planned |
 | 040 | [How are Server Functions called, and what do they expose?](040-server-functions.md) | hard | 🔴 planned |
