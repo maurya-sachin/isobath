@@ -1653,3 +1653,416 @@
   front: "In the `ClickGroup` example, did a card rendered after the effect ran get the click listener?"
   back: "Yes. Card `c` did not exist when the effect ran, yet it got the listener, and no wrapper element was added (React 19.3.1, development and production, Chrome 156 and Firefox 159)."
   question: react/refs/fragment-refs
+# 05 Reconciliation
+- id: reconciliation-what
+  front: "What does reconciliation do?"
+  back: "It compares a render's new elements with the tree React committed last time to find the DOM changes. The commit then applies only those changes."
+  question: react/reconciliation/diffing-heuristics
+- id: reconciliation-on3-vs-on
+  front: "What does an exact minimal tree diff cost, and what does React run instead?"
+  back: "An exact diff costs O(n³); the older React docs note 1,000 elements would need about a billion comparisons. React runs an O(n) heuristic."
+  question: react/reconciliation/diffing-heuristics
+- id: reconciliation-two-assumptions
+  front: "Which two assumptions does React's O(n) diffing heuristic rest on?"
+  back: "Elements of different types produce different trees, and keys mark which children stay the same between renders."
+  question: react/reconciliation/diffing-heuristics
+- id: reconciliation-different-type
+  front: "What does React do when the element type at a position changes (`<div>` to `<section>`, `<Article>` to `<Comment>`)?"
+  back: "It does not look inside. It unmounts the whole old subtree (effect cleanups run, DOM nodes removed, state gone) and mounts the new one from scratch."
+  question: react/reconciliation/diffing-heuristics
+- id: reconciliation-same-dom-type
+  front: "What does React do for the same DOM element type at a position?"
+  back: "It keeps the DOM node, updates only the changed attributes (only the changed `style` properties too), then recurses into the children."
+  question: react/reconciliation/diffing-heuristics
+- id: reconciliation-same-component-type
+  front: "What happens for the same component type at a position?"
+  back: "The instance and its state stay. React renders it with the new props and recurses into its output."
+  question: react/reconciliation/diffing-heuristics
+- id: reconciliation-type-by-reference
+  front: "How is a \"type\" compared, and is `memo(Field)` the same type as `Field`?"
+  back: "By reference: the string `'div'`, or the component function itself. `memo(Field)` is a different type from `Field`. `forwardRef` wrappers also return new types."
+  question: react/reconciliation/diffing-heuristics
+- id: virtual-dom-faster-myth
+  front: "Does the virtual DOM make React faster than direct DOM updates?"
+  back: "No, that is a myth. The diff is extra work on top of the DOM calls you would write by hand. It buys a declarative model; React's speed comes from touching only changed nodes and skipping renders."
+  question: react/reconciliation/diffing-heuristics
+- id: virtual-dom-meaning
+  front: "What does the older docs' \"virtual DOM\" refer to?"
+  back: "The in-memory description (elements, plus fibers) that React keeps and syncs with the real DOM. The current docs call this render and commit."
+  question: react/reconciliation/diffing-heuristics
+- id: wrapper-flip-remounts
+  front: "Why does `{hint ? <Tooltip><Field /></Tooltip> : <Field />}` lose the input every time?"
+  back: "The slot's type flips between `Tooltip` and `Field`, so `Field` remounts."
+  question: react/reconciliation/diffing-heuristics
+- id: moved-subtree-different-parent
+  front: "What happens when a subtree moves to a different parent?"
+  back: "React does not notice the move. Keys match only among siblings; anywhere else it is an unmount plus a mount."
+  question: react/reconciliation/diffing-heuristics
+- id: component-defined-inside-component
+  front: "Why does defining a component inside another component cause remounts?"
+  back: "Each render creates a new function, which is a new type, so React remounts it."
+  question: react/reconciliation/diffing-heuristics
+- id: reconciliation-vs-rerender
+  front: "Is reconciliation the same as re-rendering?"
+  back: "No. Rendering calls components to get elements; reconciliation compares them with the previous tree during the render phase; the commit applies the result. A component can re-render and reconcile to zero DOM changes."
+  question: react/reconciliation/diffing-heuristics
+- id: fragment-wrap-state-depth
+  front: "Does wrapping a child in a Fragment reset it?"
+  back: "Not one level deep: `<Child />` to `<><Child /></>` kept state in React 19.3.1. Two levels, `<><><Child /></></>`, remounted it, as the Fragment docs' caveat says."
+  question: react/reconciliation/diffing-heuristics
+- id: heuristic-never-incorrect
+  front: "Can the diffing heuristic be wrong?"
+  back: "It is never incorrect, only sometimes wasteful. Two component types with nearly identical output are rebuilt rather than patched, and a moved subtree is recreated. The legacy docs suggest one type if you alternate between similar ones."
+  question: react/reconciliation/diffing-heuristics
+- id: reconcile-single-element
+  front: "How does React 19.3.1's `reconcileSingleElement` decide to reuse a fiber?"
+  back: "It finds an old child with the same `key` (both `null` when unkeyed), then checks `child.elementType === element.type`. A match reuses the fiber with new props; a mismatch deletes the old fiber and everything below it and creates a new one. Implementation detail from `ReactChildFiber.js`."
+  question: react/reconciliation/diffing-heuristics
+- id: render-records-flags-commit-applies
+  front: "What does the render phase record, and who performs it?"
+  back: "Flags: placement, update, deletion. The commit performs them, which a `MutationObserver` makes visible."
+  question: react/reconciliation/diffing-heuristics
+- id: mutation-observer-type-change
+  front: "In the `MutationObserver` demo, what happened when `<div>` became `<section>` with an identical `<b>` inside?"
+  back: "It logged remove DIV, insert SECTION. The `<b>` and its text were identical but sat under a new type, so they were rebuilt too. Same-type steps only set `class` or text."
+  question: react/reconciliation/diffing-heuristics
+- id: attribute-change-same-input-type
+  front: "Does changing `<input type=\"text\">` to `<input type=\"number\">` remount the input?"
+  back: "No, it is the same type. React updated `type` on the existing node."
+  question: react/reconciliation/diffing-heuristics
+- id: hot-reload-same-family
+  front: "How do development builds treat a hot-reloaded component?"
+  back: "They accept a hot-reloaded version of the same component as a match (`isCompatibleFamilyForHotReloading` in the source), so state can survive an edit."
+  question: react/reconciliation/diffing-heuristics
+- id: null-false-hold-positions
+  front: "Do `null` and `false` hold a position among siblings?"
+  back: "Yes. `{a && <X />}<Y />` keeps `Y` in the second slot whether or not `X` renders."
+  question: react/reconciliation/diffing-heuristics
+- id: responsive-layout-remount-fix
+  front: "A form empties when `isMobile ? <MobileLayout>{form}</MobileLayout> : <DesktopLayout>{form}</DesktopLayout>` flips. Why, and what are the fixes?"
+  back: "The layout types differ at the same position, so the form below was unmounted. Fixes, best first: one layout component that adapts with CSS or props; lift the form's state above the switch; or render the form outside the layout-specific wrapper."
+  question: react/reconciliation/diffing-heuristics
+- id: diff-too-slow-fix
+  front: "When the diff itself is too slow, what are the fixes?"
+  back: "Render less: `memo`, the React Compiler, moving state down. Not avoiding React's DOM updates."
+  question: react/reconciliation/diffing-heuristics
+- id: key-is-identity
+  front: "What is a key?"
+  back: "A child's identity among its siblings. React matches old and new children by key, or by index when there is none, and the match decides which instance, state and DOM node each item gets."
+  question: react/reconciliation/list-keys
+- id: stable-keys-benefit
+  front: "What happens with stable keys from the data when a list is reordered, filtered or inserted into?"
+  back: "React keeps the instance for every key still present, moves its DOM node if the order changed, creates nodes only for new keys and removes them only for missing ones."
+  question: react/reconciliation/list-keys
+- id: key-unique-among-siblings
+  front: "Must keys be globally unique?"
+  back: "No, only among siblings; the same id in two different lists is fine. Duplicates among siblings warn `Encountered two children with the same key` and may duplicate or drop children."
+  question: react/reconciliation/list-keys
+- id: key-stable-not-in-render
+  front: "When should a key be generated?"
+  back: "When the data is created, never during render. `key={crypto.randomUUID()}` in render remounts every item every time."
+  question: react/reconciliation/list-keys
+- id: key-not-a-prop
+  front: "Can a component read its own `key` from props?"
+  back: "No. Reading `props.key` gives `undefined` and a development warning. Pass the id as another prop: `<Profile key={id} userId={id} />`."
+  question: react/reconciliation/list-keys
+- id: missing-key-warning
+  front: "What happens when list children have no keys?"
+  back: "Development warns `Each child in a list should have a unique \"key\" prop.` and React falls back to the index."
+  question: react/reconciliation/list-keys
+- id: index-key-bug
+  front: "What goes wrong with index keys after inserting an item at the top?"
+  back: "Every item shifts to the next key. Each instance re-renders with its new neighbour's props, so text looks right, but state, uncontrolled input values, checked boxes and focus stay in the old position, now next to a different item."
+  question: react/reconciliation/list-keys
+- id: index-key-acceptable
+  front: "When are index keys acceptable?"
+  back: "Only for lists that never reorder, filter or insert anywhere but the end, and whose items hold no state or uncontrolled inputs, such as a fixed list of labels."
+  question: react/reconciliation/list-keys
+- id: random-key-remount
+  front: "What does `key={Math.random()}` do?"
+  back: "It never matches the previous render, so every item remounts on every render: slow, and typed input is lost."
+  question: react/reconciliation/list-keys
+- id: fragment-key-shorthand
+  front: "How do you key a group of several elements per item?"
+  back: "`<Fragment key={id}>`. The `<>` shorthand cannot take a key. It keys a group without adding a DOM wrapper."
+  question: react/reconciliation/list-keys
+- id: index-key-silence-warning
+  front: "Why is using `index` just to silence the key warning a pitfall?"
+  back: "The warning is about identity. Silencing it with the index keeps the bug."
+  question: react/reconciliation/list-keys
+- id: key-no-id-data
+  front: "What do you do when list data has no id?"
+  back: "Add one when the data enters the app (a counter, or `crypto.randomUUID()` when the item is created), or use a stable natural key such as a unique slug. Hashing content works only if the content never changes."
+  question: react/reconciliation/list-keys
+- id: key-change-resets-instance
+  front: "What does changing a component's `key` outside a list do?"
+  back: "React treats it as a different instance: it unmounts the old one and mounts a fresh one. That is the standard way to reset state on purpose."
+  question: react/reconciliation/list-keys
+- id: reconcile-children-array-passes
+  front: "What are the passes of React 19.3.1's `reconcileChildrenArray`?"
+  back: "Walk old and new children together while keys match at the same index; delete the rest of the old or create the rest of the new when one list runs out; otherwise put remaining old children in a `Map` by key (index when unkeyed), reuse matches and delete leftovers. Implementation detail."
+  question: react/reconciliation/list-keys
+- id: last-placed-index
+  front: "What is `lastPlacedIndex` in `placeChild`?"
+  back: "The highest old index kept in place so far. A reused child with a lower old index is flagged to move; otherwise it stays and raises the mark. The scan is forward only. Implementation detail."
+  question: react/reconciliation/list-keys
+- id: move-to-front-cost
+  front: "Moving item `A` from the front to the end of `[A, B, C, D]` versus the end to the front: how many DOM moves?"
+  back: "One move to the end; three to the front (`BCD`), because `A`'s old index was the highest. The forward-only algorithm sometimes moves more nodes than necessary."
+  question: react/reconciliation/list-keys
+- id: item-to-index-keys-remount
+  front: "What happened when keys switched from item keys to index keys on the same list?"
+  back: "All four items were created anew, since no key matched. Reordering with index keys afterwards produced four text edits on the same nodes, which is how state ends up on the wrong item."
+  question: react/reconciliation/list-keys
+- id: key-in-props-dev-vs-prod
+  front: "What did `'key' in props` return in development versus production?"
+  back: "`true` in development (React defines a warning getter) and `false` in production; the value is `undefined` in both."
+  question: react/reconciliation/list-keys
+- id: key-same-type-check-order
+  front: "In reconciliation, is the key or the type checked first, and what if the key matches but the type differs?"
+  back: "The key match is checked first, then the type. Same key, different type at the same spot still remounts."
+  question: react/reconciliation/list-keys
+- id: key-sortable-table-edit
+  front: "Why does `key={index}` break a sortable table with a per-row edit toggle?"
+  back: "Sorting leaves the editor open on whatever row is now at that position. With `key={row.id}` the open editor travels with its row, and a focused input stays focused after a sort."
+  question: react/reconciliation/list-keys
+- id: key-virtualization
+  front: "For very long lists, what matters more than the extra node moves keys can cause?"
+  back: "Rendering fewer items in the first place, with virtualization."
+  question: react/reconciliation/list-keys
+- id: groceries-index-key-checked
+  front: "With `key={index}`, you check \"milk\" and remove it from `milk, eggs, bread`. Which row is checked?"
+  back: "`eggs`. Removal deleted the last `<li>` (key `2`), and the first `<li>`, still key `0` with its checked box, now renders `eggs`. With `key={item}` the checked row is the one removed."
+  question: react/reconciliation/list-keys
+- id: state-tied-to-position
+  front: "Where does React store a component's state?"
+  back: "In its own tree, at the position where the component renders, not in the function or the JSX tag. Each render matches the new element at that position with the old one."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-kept-conditions
+  front: "When is state kept?"
+  back: "When the same type renders at the same position with the same key, even if props change."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-reset-conditions
+  front: "When is state reset?"
+  back: "When the component is removed, when a different type takes its position (or an ancestor's), or when its key changes."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-ternary-vs-and
+  front: "Does `{isA ? <Counter name=\"A\" /> : <Counter name=\"B\" />}` keep state, and what about `{isA && <Counter name=\"A\" />}{!isA && <Counter name=\"B\" />}`?"
+  back: "The ternary keeps it: one slot, one counter whose props changed. The `&&` pair resets it: two slots, where `false` holds the empty one, so each counter mounts and unmounts."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-keyed-ternary-resets
+  front: "In the counter demo, what did the keyed ternary do when toggled?"
+  back: "It reset, like the `&&` pair: keys `A` and `B` are two identities, so the hidden counter unmounted and `A` came back at `0`. Only the plain ternary kept its count."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-position-is-returned-tree
+  front: "Does position mean where JSX sits in code?"
+  back: "No, it means the returned tree. Two `return` statements that each put `<Counter />` first in a `<div>` are the same position."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-reset-with-key
+  front: "How do you reset a chat component's state when the contact changes?"
+  back: "Give it a key from that identity: `<Chat key={contact.id} contact={contact} />`. A new key unmounts the old subtree and mounts a fresh one: state, DOM and effects start over, all the way down."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-prop-change-no-reset
+  front: "Does a changed prop reset state?"
+  back: "No. `<Chat contact={bob} />` after `<Chat contact={alice} />` keeps Alice's draft. Re-rendering never resets state; only unmounting does, and `useState(initial)` reads `initial` on mount only."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-reset-effect-pitfall
+  front: "Why is resetting with `useEffect(() => setDraft(''), [contactId])` worse than a key?"
+  back: "It renders the stale draft first, and it does not reset nested children's state."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-nested-component-definition
+  front: "What happens to a component defined inside another component?"
+  back: "It is a new function, so a new type, on every parent render. Its state and DOM are thrown away each time and its effects re-run on mount. Define components at the top level."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-conditional-wrapper
+  front: "Why does conditionally wrapping a component in a new element or provider reset it?"
+  back: "The ancestor's type changes at that position, so everything below remounts."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-preserve-hidden
+  front: "How do you keep state for hidden UI?"
+  back: "Lift the state up, or hide the UI with `<Activity>`."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: key-change-reruns-effects
+  front: "Does a key change re-run effects?"
+  back: "Yes. The old instance unmounts so its cleanups run, and the new one mounts and runs its setups. Refs, DOM nodes and focus are new as well."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-hooks-analogy
+  front: "How is state-by-position like the Rules of Hooks?"
+  back: "Same idea one level up: hooks are matched to their state by call order inside a component, and components by position (and key) in the tree. Change the order or position and the state goes to someone else, or is dropped."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-lives-on-fiber
+  front: "Where does state live internally, and what does a type match do to it?"
+  back: "On the component's fiber for that position. A match clones the fiber, hook state included. A mismatch deletes the old fiber and subtree and creates a new fiber with fresh hooks (React 19.3.1, implementation detail)."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-conditional-empty-slot
+  front: "Does a conditional that renders nothing still occupy a slot?"
+  back: "Yes. `{isA && <Counter />}` leaves `false` in its slot, so the `&&` pair always occupies two slots."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-early-return-structure
+  front: "Do two early-return branches that each render `<div><Inner />…</div>` remount `Inner` on switch?"
+  back: "No. `Inner` stayed mounted across the switch because the structure matches."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-key-resets-whole-subtree
+  front: "What does putting a `key` on a form reset?"
+  back: "Every input inside it, not only the top component's state."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-key-different-type
+  front: "Does a matching key keep state if the type differs?"
+  back: "No. Same key, different type still resets: the key matches but the type does not."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-keys-not-cross-parents
+  front: "What happens to a keyed component moved to a different parent element?"
+  back: "It remounts. Keys do not cross parents."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: drafts-keep-in-parent
+  front: "If chat drafts should survive switching contacts, what do you do?"
+  back: "Keep them in the parent as `drafts[contactId]`. The key stays, since a chat with Alice is still a different thing from a chat with Bob."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-key-vs-derive-tradeoff
+  front: "What is the cost of resetting with a key, and what is the alternative for one field?"
+  back: "It is explicit and complete but remounts the whole subtree. When only one field should change, derive it or adjust it during render instead."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: state-structure-is-behaviour
+  front: "What is the downside of tying state to position?"
+  back: "Structure becomes behaviour. Changing a ternary to two `&&`s, adding a wrapper, or inlining a component definition can silently reset state."
+  question: react/reconciliation/preserving-and-resetting-state
+- id: create-portal-signature
+  front: "What does `createPortal(children, domNode, key?)` do?"
+  back: "It returns a React node that renders `children` and places their DOM nodes inside `domNode` instead of inside the component's parent DOM element. The target must already exist; switching to a different node later recreates the content."
+  question: react/reconciliation/portals
+- id: portal-only-dom-placement
+  front: "What does a portal change, and what stays the same?"
+  back: "Only the physical DOM placement. Context, React event bubbling, state and lifecycle still follow the React tree: the portal mounts and unmounts with its owning component."
+  question: react/reconciliation/portals
+- id: portal-context
+  front: "Does context reach components inside a portal?"
+  back: "Yes. A `ThemeContext` provider above the component reaches components in the portal."
+  question: react/reconciliation/portals
+- id: portal-react-events-bubble
+  front: "How do React events bubble from inside a portal?"
+  back: "Through the React tree. A click in a portal rendered into `document.body` reaches an `onClick` on the portal's React parent, although that element is nowhere near it in the DOM."
+  question: react/reconciliation/portals
+- id: portal-native-follows-dom
+  front: "What follows the DOM tree rather than the React tree for portal content?"
+  back: "Native listeners (`addEventListener`, `contains()` checks), CSS inheritance and selectors, and layout."
+  question: react/reconciliation/portals
+- id: portal-purpose
+  front: "Why use a portal for a tooltip, menu or modal?"
+  back: "Its content escapes an ancestor's `overflow: hidden` or a stacking context that would clip or bury it."
+  question: react/reconciliation/portals
+- id: portal-event-delegation
+  front: "Since React 17, where does React attach its listeners, and what happens for portals in 19.3.1?"
+  back: "On the root container instead of `document`. Mounting a portal in React 19.3.1 also attaches React's listeners to its container (`listenToAllSupportedEvents` in `preparePortalMount`). React then walks the fiber tree, not the DOM, to find handlers."
+  question: react/reconciliation/portals
+- id: portal-listeners-capture-bubble
+  front: "Which listeners did `#root` and `<body>` get in the portal test?"
+  back: "Each got a capture and a bubble `click` listener (React 19.3.1)."
+  question: react/reconciliation/portals
+- id: portal-native-root-listener-skipped
+  front: "In the tooltip example, why did a native click listener on `#root` not run for a portaled button?"
+  back: "In the DOM, the button is a child of `<body>`, outside `#root`. The React `onClick` on the card did run, since in the React tree the button is inside the card."
+  question: react/reconciliation/portals
+- id: portal-dialog-popover-alternative
+  front: "What may replace a portal for modals?"
+  back: "`<dialog>` opened with `showModal()`, and the `popover` attribute. They put an element in the browser's top layer, above every stacking context, from wherever it sits in the DOM. The modal still needs focus and keyboard handling."
+  question: react/reconciliation/portals
+- id: portal-still-useful
+  front: "When are portals still useful despite `<dialog>` and popover?"
+  back: "When rendering into a specific node, including one owned by non-React code."
+  question: react/reconciliation/portals
+- id: portal-click-outside-pitfall
+  front: "Why does a native `document` click-outside handler with `contains(event.target)` close a menu on clicks in a portaled submenu?"
+  back: "Portaled nodes are not DOM descendants of the menu. Handle it through React events, or check the portal's node too."
+  question: react/reconciliation/portals
+- id: portal-bubbling-stop
+  front: "Does a portal stop event bubbling to its React ancestors?"
+  back: "No. A click in a modal also triggers `onClick` handlers on its React ancestors. Call `e.stopPropagation()` at the portal's root, or render the portal higher up."
+  question: react/reconciliation/portals
+- id: portal-descendant-selectors
+  front: "Why do descendant selectors like `.card button` fail for portal content?"
+  back: "It is no longer inside `.card` in the DOM, and it inherits fonts and colours from its new parent."
+  question: react/reconciliation/portals
+- id: portal-target-existence-ssr
+  front: "What are the target-node pitfalls of `createPortal`?"
+  back: "Do not create the target during render or read `document` during server rendering. The node must exist before the portal mounts, and there is no `document` on the server."
+  question: react/reconciliation/portals
+- id: portal-body-native-listener
+  front: "Do native listeners on `document.body` see portal clicks?"
+  back: "Yes, by normal DOM bubbling, since the portal's DOM is inside `<body>`. A native listener on the same node as React's runs in registration order relative to React's."
+  question: react/reconciliation/portals
+- id: portal-non-react-node
+  front: "Can a portal target a node rendered by non-React code?"
+  back: "Yes, any existing DOM node, such as a map widget's popup element. React manages only the children it puts there."
+  question: react/reconciliation/portals
+- id: portal-stop-propagation-exercise
+  front: "A portal's `<div onClick={e => e.stopPropagation()}>` wraps a close button, with a `<section onClick>` above `Modal`. What logs on click?"
+  back: "Only `close`. The click bubbles through the React tree from the button to the portal's `<div>`, whose `stopPropagation()` stops it before `<section>`. Without it, `section` would log too."
+  question: react/reconciliation/portals
+- id: activity-hidden-keeps
+  front: "What does `<Activity mode=\"hidden\">` keep and what does it do?"
+  back: "It keeps the subtree's fibers (state preserved) and DOM nodes (typed text, scroll position, a `<video>`'s timecode), hides the top-level DOM nodes with `display: none`, and cleans up the children's effects as if they had unmounted."
+  question: react/reconciliation/activity
+- id: activity-hide-style
+  front: "How does React 19.3.1 hide Activity content?"
+  back: "`display: none` set as `!important` inline, in the test `<button style=\"display: none !important;\">`."
+  question: react/reconciliation/activity
+- id: activity-stable-modes
+  front: "Since which version is Activity stable, and what modes exist?"
+  back: "React 19.2. It has two modes, `visible` (the default) and `hidden`."
+  question: react/reconciliation/activity
+- id: activity-hidden-rerenders-low-priority
+  front: "Do hidden Activity children re-render when props change?"
+  back: "Yes, but at a lower priority, after the visible content has committed. In the test: `render shown 1`, `commit 1`, `render hidden 1`."
+  question: react/reconciliation/activity
+- id: activity-visible-mode
+  front: "What happens when Activity switches back to `visible`?"
+  back: "The nodes are shown again with their previous state, and the effects are re-created."
+  question: react/reconciliation/activity
+- id: activity-vs-conditional
+  front: "How does Activity differ from conditional rendering `{isOpen && <Sidebar />}`?"
+  back: "Conditional rendering unmounts, so state and DOM are gone and come back from scratch. Activity preserves state and DOM."
+  question: react/reconciliation/activity
+- id: activity-vs-css-hiding
+  front: "How does Activity differ from CSS-only hiding?"
+  back: "CSS hiding keeps everything mounted, including effects, so subscriptions, timers and connections keep running in invisible UI, and every update renders at full priority. Activity is preserved like CSS hiding but quiet like unmounting."
+  question: react/reconciliation/activity
+- id: activity-prerender
+  front: "What happens when a boundary is `hidden` on its first render?"
+  back: "It still renders its children, after the visible content and without running their effects. A likely-next tab can load its code and Suspense-based data in advance; data fetched in an effect is not, since the effect does not run."
+  question: react/reconciliation/activity
+- id: activity-hidden-first-render-order
+  front: "In the test, where did the hidden first render show up in the log?"
+  back: "`render hidden 0` came after the visible effects, the children's DOM was inserted already hidden, and no effects ran."
+  question: react/reconciliation/activity
+- id: activity-dom-side-effects
+  front: "What DOM side effects continue while Activity is hidden, and how do you stop them?"
+  back: "A `<video>` keeps playing and iframes stay loaded. Pause them in an effect cleanup, preferably `useLayoutEffect` since the cleanup is tied to the UI being hidden."
+  question: react/reconciliation/activity
+- id: activity-effects-with-cleanup
+  front: "Which effects already work correctly under Activity?"
+  back: "Effects with proper cleanup, the same ones that survive Strict Mode."
+  question: react/reconciliation/activity
+- id: activity-effect-cleanup-order
+  front: "In the Activity versus conditional demo, what order did hiding and showing run effects?"
+  back: "Hiding: conditional cleanup, then activity cleanup. Showing: activity setup, then conditional setup. The activity button kept its count (2); the conditional one restarted at 0."
+  question: react/reconciliation/activity
+- id: activity-which-effects-cleaned
+  front: "Which effects does hiding clean up?"
+  back: "All of them. Hiding ran the layout effect cleanup during the commit and the `useEffect` cleanup after it; showing re-ran both setups. State, refs and DOM nodes were kept."
+  question: react/reconciliation/activity
+- id: activity-effects-not-running-pitfall
+  front: "What happens to a chat connection or polling interval inside a hidden Activity?"
+  back: "It is disconnected, because hidden effects do not run. Keep work that must continue above the boundary."
+  question: react/reconciliation/activity
+- id: activity-text-only
+  front: "What does a hidden Activity render around a component returning only text?"
+  back: "Nothing. There is no element to put `display: none` on, so `'just text'` left no text in the DOM."
+  question: react/reconciliation/activity
+- id: activity-memory-cost
+  front: "Why not wrap every hidden screen in Activity?"
+  back: "Each keeps its whole DOM and state in memory and still re-renders on prop changes, just later. Unmount what the user is not likely to return to."
+  question: react/reconciliation/activity
+- id: activity-vs-lifting-state
+  front: "Why prefer Activity over lifting state up?"
+  back: "Lifting up keeps data but not DOM: scroll position, uncontrolled inputs, media playback and focus are lost on remount. Activity keeps both, at the cost of memory."
+  question: react/reconciliation/activity
