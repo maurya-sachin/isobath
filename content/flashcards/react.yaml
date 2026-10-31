@@ -4176,3 +4176,320 @@
   front: "Why not pipe in `onAllReady` for every visitor?"
   back: "The response then starts only when all data is in: no progressive loading. Keep it for crawlers and static generation."
   question: react/server-rendering/streaming-and-selective-hydration
+# 12 Server components
+- id: rsc-what-is-server-component
+  front: "What is a Server Component, and when does it run?"
+  back: "A component that renders in a separate environment before the client app runs: once at build time, or on a web server per request. Its code is never sent to the browser."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-no-directive
+  front: "Which directive marks a Server Component?"
+  back: "None. It is the default in an RSC app. `\"use server\"` is for Server Functions, and `\"use client\"` marks Client Components."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-async-and-bundle
+  front: "What can a Server Component do that others can't?"
+  back: "Be async and `await` data: read the filesystem, query a database, use a secret, with no API endpoint in between. Its imports never reach the browser, so a heavy library used only there adds nothing to the bundle."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-cannot-interactive
+  front: "What can't a Server Component use?"
+  back: "State, Effects, event handlers, and creating context. Interactivity comes from Client Components it renders and passes props to."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-server-build-hooks
+  front: "Which hooks does React's `react-server` build export in 19.3.1, and which are missing?"
+  back: "Available: `use`, `useId`, `useMemo`, `useCallback`, `useDebugValue`, `cache`, `cacheSignal`. Missing: `useState`, `useReducer`, `useEffect`, `useRef`, `useContext`, `createContext`."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-use-state-error
+  front: "What error appears when a Server Component calls `useState` in the react-server build?"
+  back: "`React.useState` is `undefined`: the render failed with \"React.useState is not a function or its return value is not iterable\"."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-payload-definition
+  front: "What does rendering Server Components produce?"
+  back: "The RSC payload (the \"Flight\" format): rendered elements as serialized data, with each Client Component replaced by a reference to its module. The Server Component's function itself is never sent."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-vs-ssr-difference
+  front: "How do Server Components differ from server rendering (SSR)?"
+  back: "SSR produces HTML for the first paint and the client hydrates by running every component again. RSC produces a payload, not HTML, and Server Components never run in the browser, so they never hydrate."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-and-ssr-together
+  front: "How do RSC and SSR combine in a framework?"
+  back: "The framework renders Server Components to a payload, then server-renders that payload, Client Components included, to HTML, and ships the payload too so the client can hydrate. On navigation it can fetch a fresh payload instead of a whole HTML page."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-build-time
+  front: "Does a Server Component only run per request?"
+  back: "No. It can run once at build time; the payload and HTML are then static."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-client-async
+  front: "Can a Client Component be async? How does it get server data?"
+  back: "No; the docs say async components aren't supported on the client. A Server Component starts a promise and passes it as a prop; the Client Component reads it with `use`, suspending until it resolves."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-use-id
+  front: "Can a Server Component use `useId`?"
+  back: "Yes, in a non-async one: it produced `_S_1_` in the test. The `useId` docs say it can't be used in async Server Components yet."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-version-pinning
+  front: "Why do frameworks pin React versions for RSC?"
+  back: "The docs say Server Components themselves are stable in React 19, but the bundler-facing APIs that implement them don't follow semver and may break between 19.x minors."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-payload-rows
+  front: "What do the rows of the RSC payload look like in `react-server-dom-webpack` 19.3.1?"
+  back: "Rows of `id:data`. `1:I[…]` is an import row (module id, chunks, export name). Row `0` is the root model: `[\"$\", type, key, props]` is an element and `\"$L1\"` is a lazy reference to row 1."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-client-decoding
+  front: "What does the client do when its decoder hits `$L1`?"
+  back: "It calls the bundler runtime: `__webpack_chunk_load__('like-button.js')`, then `__webpack_require__('./LikeButton.js')`."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-streaming-payload
+  front: "Do async Server Components and promises block the payload stream?"
+  back: "No. The server emits rows for what's ready and sends others later, and client Suspense boundaries show fallbacks for parts still pending."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-dev-payload
+  front: "How does the development payload differ from production?"
+  back: "It is larger: rows for component names and source locations, timings, awaited calls, a replay of server `console` calls, and owner and stack references on elements, so DevTools can show server work."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-error-rows
+  front: "What does a thrown Server Component error look like in the payload?"
+  back: "An error row. In production it was `0:E{\"digest\":\"\"}`: no message, so server details don't leak. Development included the name, message and stack."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-context
+  front: "Can a Server Component use context?"
+  back: "It can't read or create context, but since React 19.3 it can render a `<Context value>` imported from a `'use client'` module."
+  question: react/server-components/rsc-vs-ssr
+- id: rsc-tradeoffs
+  front: "What are the costs of Server Components?"
+  back: "A bundler and framework that build two module graphs, serializable props across every Client Component boundary, interactive state only in Client Components, and a server round trip for fresh Server Component output. Routing and caching belong to the framework."
+  question: react/server-components/rsc-vs-ssr
+- id: use-client-what-it-marks
+  front: "What does `'use client'` at the top of a file mark?"
+  back: "That module and all its transitive dependencies as client code. Where server code imports it, the bundler cuts the graph: the server gets a client reference for each export, the client bundle gets the module plus its imports."
+  question: react/server-components/client-boundary
+- id: use-client-placement
+  front: "Where must the `'use client'` directive be placed?"
+  back: "At the very top of the file, above imports; comments are fine; quotes, not backticks. Below an import it isn't a directive: the plugin made no client chunk and Node ran the file as server code."
+  question: react/server-components/client-boundary
+- id: use-client-modules-not-components
+  front: "Does `'use client'` mark components or modules?"
+  back: "Modules. A module without a directive ships to the browser if a client module imports it, and can run on both sides depending on who imports it."
+  question: react/server-components/client-boundary
+- id: use-client-still-ssr
+  front: "Are Client Components rendered only in the browser?"
+  back: "No. They are still server-rendered to HTML and hydrated. The RSC server just never runs them: it sends a reference in the payload."
+  question: react/server-components/client-boundary
+- id: use-client-entry-points-only
+  front: "Where do you add `'use client'`?"
+  back: "Only at entry points, where server code imports something needing state, Effects, event handlers, browser APIs, or a third-party component that uses them. Inside the client graph the directive has no effect."
+  question: react/server-components/client-boundary
+- id: use-client-import-direction
+  front: "Which direction can Server and Client Components import each other?"
+  back: "A Server Component can import and render a Client Component. A client module can't import a Server Component: the import makes it client code. A Client Component can render Server Component output passed as `children` or another JSX prop."
+  question: react/server-components/client-boundary
+- id: use-client-import-server-failure
+  front: "What happened when `Toggle` (client) imported `Details` (which imports `node:fs/promises`)?"
+  back: "webpack failed: `UnhandledSchemeError: Reading from \"node:fs/promises\" is not handled by plugins`. Pass it in as `children` instead."
+  question: react/server-components/client-boundary
+- id: use-client-boundary-low
+  front: "Where should the client boundary sit?"
+  back: "Low: mark the small interactive leaves and keep pages and data-loading parents as Server Components. Marking a page client makes everything it imports join the bundle, and it can no longer be async or read server data."
+  question: react/server-components/client-boundary
+- id: server-only-package
+  front: "What does importing the `server-only` package do?"
+  back: "It throws outside the `react-server` condition, so modules that must never reach the client fail if imported there."
+  question: react/server-components/client-boundary
+- id: use-client-client-reference-call
+  front: "What happens when a Server Component calls a function exported from a `'use client'` module?"
+  back: "It threw \"Attempted to call format() from the server but format is on the client…\"; reading a property threw \"Cannot access format.toString on the server. You cannot dot into a client module from a server component…\". It can only render or pass the reference."
+  question: react/server-components/client-boundary
+- id: use-client-both-sides
+  front: "Is a component without a directive always a Server Component?"
+  back: "Only where server code imports it. Imported from a client module it is a Client Component there, so its module runs in both places. The docs' `FancyText` example is exactly this."
+  question: react/server-components/client-boundary
+- id: use-client-third-party
+  front: "Which third-party components need a client wrapper, per the docs?"
+  back: "Those using `createContext`, Hooks other than `use` and `useId`, `forwardRef`, `memo`, `startTransition`, or browser APIs. If the library doesn't ship its own `'use client'`, wrap it in a Client Component file of your own."
+  question: react/server-components/client-boundary
+- id: use-client-server-graph
+  front: "How does the server graph handle a `'use client'` module in `react-server-dom-webpack` 19.3.1? (implementation detail)"
+  back: "Resolved with the `react-server` condition, the Node loader checks leading directives and doesn't evaluate the module; it replaces each export with a client reference (`$$typeof: Symbol(react.client.reference)`, `$$id` ending in `Toggle.js#default`)."
+  question: react/server-components/client-boundary
+- id: use-client-plugin-manifest
+  front: "What does `ReactServerWebpackPlugin` do for the client graph? (implementation detail)"
+  back: "It scans configured directories, parses each file, keeps those with a leading `'use client'`, makes each the root of an async chunk, and writes `react-client-manifest.json` mapping the file to its id, chunks and name."
+  question: react/server-components/client-boundary
+- id: use-client-manifest-lookup
+  front: "How does `ReactFlightServer` serialize a client reference?"
+  back: "It looks it up in the client manifest and emits an import row (`1:I[…]`); the element points at it with `$L1`. The client loads the chunk and requires the module."
+  question: react/server-components/client-boundary
+- id: use-client-copyright
+  front: "In the docs' example, why is `Copyright`, rendered as a child of Client Component `InspirationGenerator`, still a Server Component?"
+  back: "`App` imports and renders it, and it is fully executed before `InspirationGenerator` starts. Render tree and module graph differ."
+  question: react/server-components/client-boundary
+- id: use-client-server-functions-direction
+  front: "How do Server Functions cross the boundary in the other direction?"
+  back: "A client module can import a `'use server'` module and gets references to call."
+  question: react/server-components/client-boundary
+- id: use-client-svg-tradeoff
+  front: "When can a Client Component be cheaper than a Server Component, per the docs?"
+  back: "When a component's output is much larger than its code, such as one returning a long SVG path: then sending the code is cheaper than sending the output."
+  question: react/server-components/client-boundary
+- id: use-client-plugin-webpack-version
+  front: "Which webpack versions did the 19.3.1 `react-server-dom-webpack` plugin run on in the test, and what caveat applies?"
+  back: "webpack 5.105. The question's perishable note says the plugin in 19.3.1 needs webpack internals that 5.112 moved."
+  question: react/server-components/client-boundary
+- id: serialize-why
+  front: "Why must every prop crossing from a Server to a Client Component be serialized?"
+  back: "They run in different environments, so props are encoded into the RSC payload and rebuilt on the client."
+  question: react/server-components/rsc-serialization
+- id: serialize-documented-list
+  front: "Which prop types does React document as serializable to Client Components?"
+  back: "Primitives (string, number, bigint, boolean, `undefined`, `null`, and symbols registered with `Symbol.for`), iterables (String, Array, `Map`, `Set`, TypedArray, `ArrayBuffer`), `Date`, plain objects, Server Functions, elements (JSX), and Promises."
+  question: react/server-components/rsc-serialization
+- id: serialize-not-supported
+  front: "Which values can't be passed from a Server Component to a Client Component?"
+  back: "Functions not exported from a client-marked module or marked `'use server'`; classes; instances of other classes and null-prototype objects; symbols not registered globally."
+  question: react/server-components/rsc-serialization
+- id: serialize-richer-than-json
+  front: "How does the RSC payload encode `Date`, bigint, `undefined` and `Set`?"
+  back: "JSON text with `$` tags: `\"$D…\"` a `Date`, `\"$n10\"` a bigint, `\"$undefined\"`, `\"$W2\"` a `Set` whose entries are in row 2. `-0`, `NaN` and `Infinity` survive."
+  question: react/server-components/rsc-serialization
+- id: serialize-shared-references
+  front: "What happens to an object referenced twice, even cyclically, in props?"
+  back: "It arrives as one object."
+  question: react/server-components/rsc-serialization
+- id: serialize-promise-streams
+  front: "How does a Promise prop cross the boundary?"
+  back: "React doesn't wait for it. It writes a placeholder (`\"$@3\"`), keeps the stream open, and emits row 3 when it settles. The client reads it with `use` inside `<Suspense>`; a rejection arrives as an error row, message hidden in production."
+  question: react/server-components/rsc-serialization
+- id: serialize-functions
+  front: "How do you get a callback from a Server Component into a Client Component?"
+  back: "Closures can't be sent. Pass a Server Function, sent as a reference the client can call, or move the handler into the Client Component. A Client Component itself can be passed, as a reference."
+  question: react/server-components/rsc-serialization
+- id: serialize-server-function-return
+  front: "Do Server Function return values follow the same serialization rules as props?"
+  back: "Yes. Their arguments have a slightly different list."
+  question: react/server-components/rsc-serialization
+- id: serialize-function-error
+  front: "What error does passing `onClick={() => …}` to a Client Component throw?"
+  back: "\"Functions cannot be passed directly to Client Components unless you explicitly expose it by marking it with \"use server\". Or maybe you meant to call this function rather than return it.\" Passing a class itself threw the same."
+  question: react/server-components/rsc-serialization
+- id: serialize-class-instance-error
+  front: "What error do class instances, `Object.create(null)`, `RegExp` and `WeakMap` props throw?"
+  back: "\"Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported.\" Map it to a plain object."
+  question: react/server-components/rsc-serialization
+- id: serialize-tojson
+  front: "What happens when you pass an object with `toJSON`, like a `URL`?"
+  back: "No error: its `toJSON()` result is sent, so the client gets a string. Development logged \"Only plain objects can be passed to Client Components from Server Components. URL objects are not supported.\"; production said nothing."
+  question: react/server-components/rsc-serialization
+- id: serialize-over-sharing
+  front: "What is the security downside of passing a whole record when the client needs two fields?"
+  back: "Every prop is in the payload, readable in the browser."
+  question: react/server-components/rsc-serialization
+- id: serialize-unserializable-client
+  front: "What does the client see when a prop can't be serialized?"
+  back: "The server's `onError` gets the error and the payload carries an error row in that value's place (`2:E{\"digest\":\"\"}` in production). Reading that element on the client threw \"An error occurred in the Server Components render…\", so the nearest error boundary takes over."
+  question: react/server-components/rsc-serialization
+- id: serialize-vs-json-structured-clone
+  front: "How does the RSC format differ from `JSON.stringify` and `structuredClone`?"
+  back: "JSON drops `undefined`, turns `Map` and `Set` into `{}` and throws on bigint. `structuredClone` copies class instances as plain objects and throws on symbols, functions and Promises. RSC keeps those built-ins, refuses class instances, and adds JSX, Promises and Server Functions."
+  question: react/server-components/rsc-serialization
+- id: serialize-symbol-for
+  front: "Why does `Symbol.for('app.tag')` work as a prop but `Symbol('app.tag')` not?"
+  back: "The payload sends only the registry key (`\"$Sapp.tag\"`) and the client calls `Symbol.for` with it. A local symbol has no key; it threw \"Only global symbols received from Symbol.for(...) can be passed to Client Components…\"."
+  question: react/server-components/rsc-serialization
+- id: serialize-undocumented-types
+  front: "Does the 19.3.1 serializer accept anything outside the documented list?"
+  back: "Yes: `FormData`, `Error` (message hidden in production), iterators, `Blob`, `ReadableStream` and async iterables. These are implementation details of `ReactFlightServer.js`; the docs list `FormData` only for Server Function arguments."
+  question: react/server-components/rsc-serialization
+- id: serialize-server-function-reference
+  front: "How is a Server Function prop serialized in the payload of `react-server-dom-webpack` 19.3.1?"
+  back: "As an outlined row `{\"id\":\"./actions.js#save\",\"bound\":null}`, referenced with `\"$h4\"` in the props. The client gets a function."
+  question: react/server-components/rsc-serialization
+- id: server-function-define
+  front: "Where does `'use server'` go, and what qualifies?"
+  back: "At the top of an async function body or of a module. At module level every export becomes a Server Function, importable even from client code; inline in a Server Component it is passed down as a prop. Only async functions qualify, because every call crosses the network."
+  question: react/server-components/server-functions
+- id: server-function-client-reference
+  front: "What does the client get for a Server Function?"
+  back: "A reference: an id (module plus export name) and any bound arguments, never the code. React on the client turns it into an async function."
+  question: react/server-components/server-functions
+- id: server-function-call-steps
+  front: "What happens when the client calls a Server Function?"
+  back: "Arguments are encoded with `encodeReply` (RSC format plus `FormData`, no JSX); the id and arguments go to the framework's `callServer`; on the server `decodeReply` rebuilds the arguments, the framework looks up the function by id and runs it, and the serialized return value becomes the promise's result."
+  question: react/server-components/server-functions
+- id: server-function-where-to-call
+  front: "Where should you call a Server Function from?"
+  back: "Pass it to `<form action>`, `formAction` or `useActionState` (it runs in a Transition, gets the `FormData`, and a form can submit before JavaScript loads); elsewhere call it inside `startTransition`."
+  question: react/server-components/server-functions
+- id: server-function-for-mutations
+  front: "Why do the docs advise against using Server Functions to fetch data?"
+  back: "Server Functions are for mutations. Frameworks typically process one call at a time and don't cache results."
+  question: react/server-components/server-functions
+- id: server-function-public-endpoint
+  front: "Why is every Server Function a public endpoint?"
+  back: "Arguments are \"fully client-controlled\" in the docs' words: anyone can send any id with any arguments, without your UI. Validate every argument, check the user may perform the action inside the function, and return only what the client needs."
+  question: react/server-components/server-functions
+- id: server-function-forged-call
+  front: "What did the forged `curl` call to `renameNote` show?"
+  back: "Posting `rsc-action-id` with `[{\"admin\":true},\"<img src=x onerror=alert(1)>\"]` reached the function with those arguments and its result was sent back, without any UI."
+  question: react/server-components/server-functions
+- id: server-function-permission-location
+  front: "Where should a Server Function check permissions?"
+  back: "Inside the function. Checking only in the page that renders the form leaves the function reachable without that page."
+  question: react/server-components/server-functions
+- id: server-function-bound-secrets
+  front: "Is a value bound with `.bind` or captured by an inline Server Function private?"
+  back: "No. It travels through the client: the bound `7` sat in the payload as row 4, readable in the browser. Some frameworks encrypt captured values; React itself doesn't."
+  question: react/server-components/server-functions
+- id: server-function-render-call
+  front: "What error appears when a Server Function is called during render?"
+  back: "The SSR client threw \"Server Functions cannot be called during initial render. This would create a fetch waterfall. Try to use a Server Component to pass data to Client Components instead.\""
+  question: react/server-components/server-functions
+- id: server-function-progressive-enhancement
+  front: "How does a form with a Server Function work before hydration?"
+  back: "Server rendering gave `<form action=\"\" encType=\"multipart/form-data\" method=\"POST\">` with a hidden input named `$ACTION_ID_` plus the id. The browser posts to the current URL; `decodeAction(formData, manifest)` returned the function with the fields bound. `useActionState`'s `permalink` sets where to go."
+  question: react/server-components/server-functions
+- id: server-function-argument-limits
+  front: "What can't be passed as an argument to a Server Function?"
+  back: "JSX, non-Server Functions, class instances, local symbols and events. A client callback threw \"Client Functions cannot be passed directly to Server Functions. Only Functions passed from the Server can be passed back again.\" in development; production gave minified error #469."
+  question: react/server-components/server-functions
+- id: server-action-vs-function
+  front: "What is the difference between a Server Action and a Server Function?"
+  back: "The docs called them all Server Actions until September 2024. Now a Server Function is any `'use server'` function; it is a Server Action when passed to an action prop or called inside an Action."
+  question: react/server-components/server-functions
+- id: server-function-client-shape
+  front: "What does a Server Function look like on the client in 19.3.1?"
+  back: "The docs show an object with `$$typeof` and `$$id`. In the 19.3.1 browser client it was a plain function, named `action` in production and `renameNote` in development; its id and bound arguments are in an internal `WeakMap`."
+  question: react/server-components/server-functions
+- id: server-function-server-registration
+  front: "How does the Node loader tag a `'use server'` export in 19.3.1? (implementation detail)"
+  back: "It keeps the real function and appends a `registerServerReference` call: `$$typeof` is `Symbol(react.server.reference)` and `$$id` is the module URL plus `#renameNote`. `.bind(null, 7)` stays a reference with `[7]` in `bound`."
+  question: react/server-components/server-functions
+- id: encode-reply-format
+  front: "What does `encodeReply` return?"
+  back: "A string for simple arguments (`[7,\"Hello\"]`) and a `FormData` when parts must be outlined, for example `[new Date(0), 10n, new Map([['a', 1]]), undefined]` became a field `0` with `[\"$D1970-01-01T00:00:00.000Z\",\"$n10\",\"$Q1\",\"$undefined\"]` and a field `1` with the map's entries."
+  question: react/server-components/server-functions
+- id: cve-2025-55182
+  front: "What is CVE-2025-55182, when was it disclosed, and how severe is it?"
+  back: "Disclosed December 3 (2025): CVSS 10.0, \"an unauthenticated remote code execution vulnerability in React Server Components\", exploiting \"a flaw in how React decodes payloads sent to React Server Function endpoints\"."
+  question: react/server-components/server-functions
+- id: cve-2025-55182-exposure
+  front: "Could an app without Server Function endpoints be vulnerable to CVE-2025-55182?"
+  back: "Yes: \"Even if your app does not implement any React Server Function endpoints it may still be vulnerable if your app supports React Server Components.\""
+  question: react/server-components/server-functions
+- id: cve-2025-55182-versions
+  front: "Which versions did CVE-2025-55182 affect, and where was it fixed?"
+  back: "Present in 19.0, 19.1.0, 19.1.1 and 19.2.0 of `react-server-dom-webpack`, `react-server-dom-parcel` and `react-server-dom-turbopack`, with a fix introduced in 19.0.1, 19.1.2 and 19.2.1."
+  question: react/server-components/server-functions
+- id: cve-december-11-advisory
+  front: "Which CVEs did the December 11, 2025 advisory (updated January 26, 2026) cover, and their CVSS scores?"
+  back: "Denial of Service CVE-2025-55184, CVE-2025-67779 and CVE-2026-23864 (CVSS 7.5), and Source Code Exposure CVE-2025-55183 (CVSS 5.3)."
+  question: react/server-components/server-functions
+- id: cve-december-11-versions
+  front: "Which versions did the December 11 advisory list as affected, fixed and safe?"
+  back: "Affected: 19.0.0 through 19.0.3, 19.1.0 through 19.1.3 and 19.2.0 through 19.2.3. Fixes backported to 19.0.4, 19.1.5 and 19.2.4: \"Versions 19.0.4, 19.1.5, 19.2.4 are safe.\" The post also calls 19.1.4 incomplete. Neither post mentions 19.3."
+  question: react/server-components/server-functions
+- id: cve-2025-55183-source-exposure
+  front: "What did the source code exposure (CVE-2025-55183) require, and what leaked?"
+  back: "A Server Function that stringifies an argument, which could then return \"the source code of any Server Function\". \"Secrets hardcoded in source code may be exposed, but runtime secrets such as `process.env.SECRET` are not affected.\""
+  question: react/server-components/server-functions
+- id: server-function-implicit-endpoints
+  front: "What is the main cost of Server Functions?"
+  back: "Endpoints become implicit: every exported function in a `'use server'` file is callable, so an accidentally exported helper is a public endpoint. Review these files like route handlers."
+  question: react/server-components/server-functions
