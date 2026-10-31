@@ -33,7 +33,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 020 | [What is the difference between `revalidatePath`, `revalidateTag`, `updateTag` and `refresh`?](020-revalidation-apis-compared.md) | hard | 🟡 draft |
 | 030 | [How does ISR serve a stale page, and what does on-demand revalidation do across instances?](030-isr-and-on-demand-revalidation.md) | hard | 🟡 draft |
 | 040 | [Why must every Server Action check authorization itself?](040-server-action-authorization.md) | hard | 🟡 draft |
-| 050 | [How do you show errors and pending state for a Server Action form without client JS?](050-action-errors-and-pending-state.md) | medium | 🔴 planned |
+| 050 | [How do you show errors and pending state for a Server Action form without client JS?](050-action-errors-and-pending-state.md) | medium | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
