@@ -3618,3 +3618,320 @@
   front: "How should boundaries be placed in a dashboard?"
   back: "One around the app shell (reload page) and one per widget, so a crashing chart leaves the rest usable. Around every component hides failures in tiny broken rectangles; only at the root, one bad widget blanks the page."
   question: react/suspense/error-boundaries
+# 10 Forms and actions
+- id: input-who-owns-value
+  front: "What is the difference between a controlled and an uncontrolled input?"
+  back: "Who owns the current value. Uncontrolled: the DOM does, and you read it from a ref or `FormData`. Controlled: React state does, and the input displays exactly the `value` prop."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-default-value-initial-only
+  front: "Does changing `defaultValue` in a later render change what an uncontrolled input displays?"
+  back: "No. It only sets the initial value. To apply a new one, remount the input with a `key`, or make it controlled."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-controlled-restore-after-change
+  front: "What happens to a keystroke on a controlled input if the `onChange` handler doesn't store the new text?"
+  back: "It is undone. After the change event React re-renders and resets the DOM to the `value` prop."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-when-to-control
+  front: "When should an input be controlled rather than uncontrolled?"
+  back: "When the UI depends on the value while the user types: live validation, a character count, conditional fields, formatting, or a \"Clear\" button."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-checked-textarea-select-split
+  front: "Does the controlled/uncontrolled split apply beyond text inputs?"
+  back: "Yes: `checked`/`defaultChecked` on checkboxes and radios, and `<textarea>` and `<select>`, where `value`/`defaultValue` replace HTML's children and `selected`."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-value-without-onchange
+  front: "What happens in development when you pass `value` without `onChange` to an input?"
+  back: "It renders a read-only field and logs an error. Fix it with `onChange`, `readOnly`, or `defaultValue`."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-value-undefined-uncontrolled
+  front: "What does `value={undefined}` mean, and why does `useState()` with no argument cause trouble for an input?"
+  back: "`undefined` means uncontrolled. Starting with `useState()` and later setting a string switches the input to controlled, which React reports. Use `useState('')`."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-value-null-reported
+  front: "Is `value={null}` on an input treated as empty? What should you use for \"empty\"?"
+  back: "No, React reports `null` too. Use `''` for \"empty\", for example `value={text ?? ''}` for API data."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-sync-update-caret
+  front: "What happens to the caret if the state setter in `onChange` runs after an `await`, in a `setTimeout`, or with a transformed value?"
+  back: "React writes the DOM value back, and the browser moves the caret to the end. Update state synchronously with `e.target.value`."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-late-update-lost-keystrokes
+  front: "Typing fast in a controlled input whose setter runs in `setTimeout(…, 50)`, what is lost?"
+  back: "Each keystroke is reverted before the next arrives, so every keystroke replaces the previous one and only the last survives (Chrome 156 and Firefox 159, React 19.3.1)."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-microtask-too-late
+  front: "Is `await null` before `setText(next)` early enough to avoid the caret jump in a controlled input?"
+  back: "No. The restore step runs before the microtask, so the caret still ended at the end of the text (measured in Chrome 156 and Firefox 159, React 19.3.1)."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-transition-update-browser-difference
+  front: "What happened when a controlled input's setter ran inside a Transition and six keys were typed back to back?"
+  back: "Chrome 156 left just `f`; Firefox 159 kept all six. A Transition is the same kind of late update."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-restore-step-mechanics
+  front: "How does React 19.3.1 restore controlled state after your `onChange` ran? (implementation detail)"
+  back: "It flushes the sync work, then calls `restoreControlledState` with the committed props. `updateInput` writes `node.value` only when the DOM value disagrees with the `value` prop."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-uncontrolled-dirty-flag
+  front: "Why does a new `defaultValue` not update an untouched uncontrolled input after mount?"
+  back: "React assigns `node.value` from `defaultValue` at mount, which sets the browser's dirty value flag. Later changes only update the `value` attribute."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-controlled-dev-warnings
+  front: "Which message does the React 19.3.1 development build log when an input goes from `undefined` to a string value?"
+  back: "\"A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen.\" Production prints no warnings. The input still follows the new mode."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-uppercase-caret-fix
+  front: "How do you keep a coupon field upper case without the caret jumping to the end?"
+  back: "Keep the typed text and show it with CSS `text-transform: uppercase`, normalising on submit. Or save `selectionStart` in `onChange` and restore it with `setSelectionRange` in a `useLayoutEffect`, which runs before paint."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-reset-uncontrolled
+  front: "How do you reset an uncontrolled input?"
+  back: "Change its `key` (or a parent's) so a fresh input mounts with `defaultValue`, call `form.reset()`, or let a successful `<form action>` reset the form."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-file-never-controlled
+  front: "Can `<input type=\"file\">` be controlled?"
+  back: "No. Browsers don't let scripts set a file input's value, apart from clearing it. Read `files` from a ref, the change event or `FormData`."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-readonly-vs-disabled
+  front: "What does `readOnly` change on an input, and how does it differ from `disabled` for form submission?"
+  back: "The user can't edit it and React stops warning about `value` without `onChange`. A `readOnly` value is still sent with the form, unlike `disabled`."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: input-controlled-cost-deferred
+  front: "What is the performance cost of a controlled input, and how can you reduce it?"
+  back: "Its component re-renders on every keystroke. Keep the state in a small component, or use `useDeferredValue` for an expensive consumer. Uncontrolled fields avoid those renders."
+  question: react/forms-and-actions/controlled-vs-uncontrolled
+- id: action-definition
+  front: "What is an Action in React 19, and what does that give you?"
+  back: "A function run inside a Transition, usually async. React knows when it starts and ends, so `isPending` stays `true` until it finishes and its updates commit, and `useOptimistic` and `useActionState` can build on it."
+  question: react/forms-and-actions/actions
+- id: action-error-routing
+  front: "Where does an error thrown in an Action go?"
+  back: "To the nearest error boundary, with `useTransition` or a form action. The standalone `startTransition` reports it as uncaught."
+  question: react/forms-and-actions/actions
+- id: form-action-submit-steps
+  front: "What does React do when a `<form action={fn}>` is submitted?"
+  back: "It cancels the browser navigation, builds `new FormData(form, submitter)`, calls `fn(formData)` inside `startTransition`, marks the form pending for `useFormStatus`, and calls `form.reset()` after `fn` completes without throwing."
+  question: react/forms-and-actions/actions
+- id: form-action-reset-controlled
+  front: "After a successful form action resets the form, which fields keep their values?"
+  back: "Controlled fields keep their state; uncontrolled fields return to their `defaultValue`."
+  question: react/forms-and-actions/actions
+- id: form-action-string-action
+  front: "What happens when `action` or `formAction` is a string instead of a function?"
+  back: "It is ordinary HTML: the browser submits and navigates (for example `action=\"target.html\"` navigated to `target.html?q=react`)."
+  question: react/forms-and-actions/actions
+- id: form-button-formaction-override
+  front: "How do you override a form's action for one submit button?"
+  back: "Give the `<button>` (or `<input type=\"submit\">`) a `formAction`. It replaces the form's action for that button."
+  question: react/forms-and-actions/actions
+- id: onsubmit-vs-action
+  front: "What do you have to do yourself with `onSubmit` that `<form action>` does for you?"
+  back: "Call `e.preventDefault()`, read `FormData` or your state, track loading and error state, and reset the form. `onSubmit` is just an event handler."
+  question: react/forms-and-actions/actions
+- id: onsubmit-prevent-default-cancels-action
+  front: "What happens if an `onSubmit` handler calls `preventDefault()` on a form that also has a function `action`?"
+  back: "The action never runs. `onSubmit` runs before React's action handling, and a prevented event cancels it. Without `preventDefault`, `onSubmit` logs and then the action runs."
+  question: react/forms-and-actions/actions
+- id: onsubmit-still-right-when
+  front: "When is `onSubmit` still the right choice over `<form action>`?"
+  back: "When you need the event, such as synchronous validation that blocks submission, or when a form library owns submission."
+  question: react/forms-and-actions/actions
+- id: form-action-server-function
+  front: "What does a Server Function as the `action` prop allow that `onSubmit` can't?"
+  back: "A server-rendered form can submit before JavaScript loads."
+  question: react/forms-and-actions/actions
+- id: use-form-status-returns
+  front: "What does `useFormStatus()` return?"
+  back: "`{ pending, data, method, action }` for the parent `<form>`. While submitting: `true`, the `FormData`, the form's `method` property (`'get'` by default), and the function. Between submissions: `false`, `null`, `null`, `null`."
+  question: react/forms-and-actions/actions
+- id: use-form-status-parent-only
+  front: "Why is `pending` always `false` when `useFormStatus` is called in the component that renders the `<form>`?"
+  back: "It reads the status of the parent form, so it must be in a child, typically the submit button. A copy in a child was `true` at the same time."
+  question: react/forms-and-actions/actions
+- id: request-form-reset
+  front: "How do you reset a form manually with React 19, and where must the call run?"
+  back: "`requestFormReset(form)` from `react-dom`, inside a Transition. Called outside one, development logs \"requestFormReset was called outside a transition or action.\""
+  question: react/forms-and-actions/actions
+- id: request-form-reset-no-reference
+  front: "What documentation caveat applies to `requestFormReset` as of React 19.3.1?"
+  back: "It has no react.dev reference page."
+  question: react/forms-and-actions/actions
+- id: form-action-caught-error-resets
+  front: "Why does catching an error inside a form action and storing it in state lose the user's input?"
+  back: "The action then succeeded, so the form reset. Return the error through `useActionState` with the submitted values, or make the fields controlled."
+  question: react/forms-and-actions/actions
+- id: form-submit-method-unexpected
+  front: "Why must you call `requestSubmit()` rather than `form.submit()` on a form with a function action?"
+  back: "`form.submit()` skips the `submit` event, so React never sees it. The form's `action` attribute is a `javascript:` URL that threw \"A React form was unexpectedly submitted…\"."
+  question: react/forms-and-actions/actions
+- id: action-state-after-await
+  front: "What goes wrong with setting state after an `await` in an action without `startTransition`?"
+  back: "The update commits before the action ends."
+  question: react/forms-and-actions/actions
+- id: form-action-error-boundary
+  front: "What happens when a form action throws?"
+  back: "The error is rethrown while rendering the `<form>`, so the nearest error boundary above it shows its fallback. Development logged \"The above error occurred in the <form> component.\""
+  question: react/forms-and-actions/actions
+- id: form-action-overlap
+  front: "What happens when a plain `<form action>` is submitted twice before the first finishes?"
+  back: "It doesn't queue: the second call started before the first finished, and `pending` stayed `true` until both ended. `useActionState` runs them one at a time."
+  question: react/forms-and-actions/actions
+- id: form-button-name-with-function-formaction
+  front: "What happens to a submit button's `name` when it also has a function `formAction`?"
+  back: "Development errors \"Cannot specify a \"name\" prop for a button that specifies a function as a formAction…\" and the value is missing from the `FormData`. With no `formAction`, `intent` was in the `FormData`."
+  question: react/forms-and-actions/actions
+- id: form-action-event-plugin-internals
+  front: "How does React 19.3.1 decide whether to run a form action? (implementation detail)"
+  back: "Its form event plugin runs after your `onSubmit` listeners. It skips if the event is `defaultPrevented` or the action isn't a function; otherwise it calls `preventDefault`, builds the `FormData` and calls `startHostTransition`."
+  question: react/forms-and-actions/actions
+- id: use-form-status-host-transition
+  front: "Why can only child components read `useFormStatus`? (implementation detail)"
+  back: "`startHostTransition` stores the status object as state on the `<form>` element's own fiber and provides it to descendants through an internal context. Like any context, the provider can't read it itself."
+  question: react/forms-and-actions/actions
+- id: form-reset-timing
+  front: "When does the form reset happen relative to the action's result, and why does a changed `defaultValue` survive it?"
+  back: "The reset is requested at the start as a Transition update, so it commits with the Action's result. React calls `form.reset()` after all other DOM mutations, so the new `defaultValue` is the one restored."
+  question: react/forms-and-actions/actions
+- id: form-onsubmit-with-transition
+  front: "How can you keep an `onSubmit` handler and still drive `useFormStatus` and the form reset?"
+  back: "Call `e.preventDefault()`, then run `startTransition(async () => { requestFormReset(form); await save(…) })`. `useFormStatus` reported `pending: true` but `action: null`. Capture `e.currentTarget` first; it is null after the `await`."
+  question: react/forms-and-actions/actions
+- id: use-action-state-signature
+  front: "What does `useActionState(action, initialState)` return, and what is the optional third argument?"
+  back: "`[state, dispatch, isPending]`. The optional third argument is `permalink`."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-action-args
+  front: "What arguments does an action passed to `useActionState` receive when used as a form action?"
+  back: "`(prevState, formData)`: the last result (initially `initialState`) and the `FormData`. Writing `(formData) => …` makes `formData.get` throw a `TypeError`."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-return-becomes-state
+  front: "How does `useActionState` relate to `useReducer`?"
+  back: "It is `useReducer` for side effects: the action may be async, and its return value is the next state. It runs in a Transition and is not called twice in Strict Mode, unlike a pure reducer."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-ispending
+  front: "When is `isPending` from `useActionState` `true`?"
+  back: "From the first dispatch until every queued call has finished and the result is committed."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-dispatch-transition
+  front: "Where must `dispatch` from `useActionState` run?"
+  back: "In a Transition. `<form action={dispatch}>` and `formAction` do that for you; from a click handler, wrap it in `startTransition`."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-queue
+  front: "What happens when `dispatch` is called three times quickly?"
+  back: "React runs the calls one at a time, in order, each receiving the previous return value. The runs started 100 ms apart, each after the previous resolved."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-batched-commit
+  front: "In the add-to-cart test with three quick dispatches, which counts were committed?"
+  back: "Only the last. Counts 1 and 2 were never committed: React batched the ongoing Actions and committed once at the end, so `count` stayed `0` until the queue drained."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-parallel-alternative
+  front: "What do you use instead of `useActionState` when calls shouldn't wait in a queue?"
+  back: "`useOptimistic` when the user shouldn't wait for the queue, or plain `useTransition` when calls are independent and may run in parallel."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-throw
+  front: "What happens to queued calls when a `useActionState` action throws?"
+  back: "Everything still queued is cancelled and the error goes to the nearest error boundary. In the test, calls 2 and 3 never ran. For expected failures such as validation, return an error state instead."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-permalink
+  front: "When does the `permalink` argument of `useActionState` matter?"
+  back: "Only with a Server Function on a server-rendered page: if the form is submitted before JavaScript loads, the browser goes to that URL and React passes the state through. After hydration it does nothing."
+  question: react/forms-and-actions/use-action-state
+- id: use-form-state-renamed
+  front: "What happened to `ReactDOM.useFormState` in React 19.3.1?"
+  back: "It was renamed `useActionState`. The old name still works but logs in development: \"ReactDOM.useFormState has been renamed to React.useActionState. Please update Legacy to use React.useActionState.\""
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-outside-transition
+  front: "What happens when `dispatch` is called from `onClick` without `startTransition` and the action is async?"
+  back: "Development logs \"An async function with useActionState was called outside of a transition. This is likely not what you intended (for example, isPending will not update correctly)…\", and the component suspends: the nearest `<Suspense>` fallback replaces it until the action finishes."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-sync-outside-transition
+  front: "Is a synchronous `useActionState` action called outside a Transition a problem?"
+  back: "No. It updated immediately with no warning."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-keep-input
+  front: "How do you keep the user's input when a `useActionState` action returns an error?"
+  back: "Return the submitted values in the state and use them as `defaultValue`. The reset happens in the commit that applies the new state, after `defaultValue` updates, so it restores the returned value."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-error-resets-uncontrolled
+  front: "Why do uncontrolled fields reset when a `useActionState` action returns an error result?"
+  back: "The form action still succeeded, so the form resets. Return `{ error }` plus the values instead of throwing."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-no-reset
+  front: "How do you reset `useActionState`'s state?"
+  back: "There is no reset function. Handle a reset payload in the action, or remount the component with a new `key`."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-queue-internals
+  front: "How does the hook queue work in React 19.3.1? (implementation detail)"
+  back: "`dispatch` appends a node; if the queue was empty it runs the action at once in a new Transition. When a promise resolves, its value becomes the state and the next node runs. If one rejects, all remaining nodes reject with that error and later dispatches are ignored."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-thenable
+  front: "Why does a pending `useActionState` keep the old state on screen inside a Transition? (implementation detail)"
+  back: "Each queue node is a thenable and the hook's state points to the latest one. The component reads it like `use(promise)`; inside a Transition React keeps the old UI while it's pending, outside one the component suspends."
+  question: react/forms-and-actions/use-action-state
+- id: use-action-state-abort-controller
+  front: "How can a long `useActionState` queue be made cheaper?"
+  back: "Use an `AbortController` per call so the action checks `signal.aborted` and returns early. The docs show this for a quantity stepper."
+  question: react/forms-and-actions/use-action-state
+- id: use-optimistic-signature
+  front: "What does `useOptimistic(value, reducer?)` return, and what does it show when no Action is pending?"
+  back: "`[shown, setShown]`. With no Action pending, `shown` is just `value`."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-in-action
+  front: "What does `setShown(guess)` do inside an Action?"
+  back: "It renders the guess immediately, even though the surrounding Transition is still running. With a reducer, `setShown(payload)` calls `reducer(current, payload)`; with a function, it's an updater like `setState`'s."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-when-action-ends
+  front: "What happens to the optimistic value when the Action ends?"
+  back: "React discards it. On success the real state (set in `startTransition` after an `await`) and the guess are replaced in one commit, with no flash. On failure the display reverts to the old value."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-no-rollback-code
+  front: "Do you write rollback code for `useOptimistic`? What must you still do on failure?"
+  back: "No: reverting is the default. You still have to tell the user it failed, by catching the error and showing a message or letting it reach an error boundary."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-must-be-in-action
+  front: "Where must the `useOptimistic` setter run, and what happens otherwise?"
+  back: "Inside `startTransition`, or a function passed to `<form action>`, `formAction` or another Action prop. Outside one, development logs an error and the value flashes and reverts."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-outside-transition-warning
+  front: "What is the development warning for calling the optimistic setter from a plain `onClick`?"
+  back: "\"An optimistic state update occurred outside a transition or action. To fix, move the update to an action, or wrap with startTransition.\" The value rendered once, then reverted within 10 ms."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-reducer-lists
+  front: "How does the reducer form of `useOptimistic` behave when the real list changes during a pending Action?"
+  back: "React re-runs the reducer on the new list, so optimistic entries stay on top of the latest data. For example `(current, text) => [...current, { text, pending: true }]`."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-forgot-real-state
+  front: "What happens if the Action succeeds but never updates the real state?"
+  back: "The guess is dropped when the Action ends and the UI snaps back to the old value."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-stale-guess
+  front: "Why prefer an updater or reducer over `setShown(count + 1)`?"
+  back: "An absolute guess from a stale closure can be wrong. An updater or reducer computes the guess from the current value."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-pairs-with-action-state
+  front: "How do `useOptimistic` and `useActionState` complement each other?"
+  back: "The optimistic value hides the queue's wait, while `useActionState` holds the confirmed result."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-is-pending
+  front: "How do you know whether an optimistic update is pending?"
+  back: "Compare `shown !== value`, take `isPending` from `useTransition` or `useActionState`, or mark the guessed items, for example `pending: true` in the reducer."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-action-throws
+  front: "What happens to the optimistic value if the Action throws?"
+  back: "The Transition still ends, so it reverts. With standalone `startTransition` the test showed the revert and an uncaught error on `window`; with a form action or `useTransition`'s `startTransition`, the error reaches an error boundary."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-overlapping-actions
+  front: "Do overlapping optimistic Actions revert separately in React 19.3.1?"
+  back: "No, React batches ongoing Transitions. Adding `b` (100 ms) then `c` (200 ms) showed both guesses stacked, and the real list got `b` and `c` together when `c` finished."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-two-lanes
+  front: "How does an optimistic update use lanes in React 19.3.1? (implementation detail)"
+  back: "It is queued with its own sync lane, so it renders at once, and a revert lane that is the Transition's lane. Renders without the revert lane apply it; rendering the Transition's lane, when the Action finishes, skips it."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-passthrough
+  front: "What is the passthrough value in `useOptimistic`? (implementation detail)"
+  back: "The value you pass in. Every render starts from it and replays the queued optimistic updates on top, so a reducer sees the latest real list and the guess and confirmed state are replaced in the same commit."
+  question: react/forms-and-actions/use-optimistic
+- id: use-optimistic-other-libraries
+  front: "Do server-cache libraries need `useOptimistic` for optimistic updates?"
+  back: "No. Libraries such as TanStack Query have their own optimistic APIs."
+  question: react/forms-and-actions/use-optimistic
