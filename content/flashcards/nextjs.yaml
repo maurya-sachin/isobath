@@ -1528,3 +1528,312 @@
   front: "Where does the page go after a no-JS form submit?"
   back: "It stays on the same URL, since the form's `action` is empty. `useActionState`'s third argument, a permalink, changes that target (per React's docs, not run here)."
   question: nextjs/mutations/action-errors-and-pending-state
+# 06 Navigation
+- id: lc-link-intercept
+  front: "What does hydrated `<Link>` do on a plain left click?"
+  back: "It renders a real `<a>`, so it works without JavaScript and opens new tabs. Once hydrated it calls `preventDefault()` and the App Router navigates inside a React transition. No HTML document is requested."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-prefetched-static
+  front: "What does a click on a link to a prefetched static route do?"
+  back: "The whole page was prefetched, so the click commits from memory with no request."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-dynamic-loading
+  front: "What does a click do for a dynamic route with a `loading.js`, or with Cache Components?"
+  back: "The router commits the prefetched shared layouts plus the loading UI or static shell at once, pushes the URL, and requests the rest."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-dynamic-nothing
+  front: "What does a click on a dynamic route with neither `loading.js` nor Cache Components do?"
+  back: "Only metadata was prefetched, so the old page stays on screen until the server answers, and the URL changes then too."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-request-shape
+  front: "What does the navigation request for a dynamic route look like?"
+  back: "`GET /d?_rsc=…` with `RSC: 1` and a `Next-Router-State-Tree` header listing the segments the client already holds. The response is `text/x-component`."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-segments-rendered
+  front: "Which segments does the server render for a client navigation?"
+  back: "Only those below the deepest shared layout. Layouts the client already has come back empty (`\"r\":null`) in the RSC payload, so layouts don't re-render on the server."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-merge
+  front: "How does the router merge the navigation response?"
+  back: "Shared layouts aren't re-rendered on the client, so their state survives. The page segment is swapped in, Suspense boundaries fill as chunks arrive, and Next.js scrolls to the new page if it is out of view."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-activity
+  front: "How does the old route behave with Cache Components on during a navigation?"
+  back: "It is hidden with `<Activity>` instead of unmounted."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-timings
+  front: "In the Chrome 156 test with 400 ms added latency, when did each navigation show something?"
+  back: "Cache Components off: no `loading.js` took 410 ms; with `loading.js`, 5 ms. Cache Components on: the shell after 6 ms. Next.js 16.4.5 under `next start`; the added latency was Chrome-only (Firefox under Puppeteer's BiDi has no network emulation)."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-suspense-not-enough
+  front: "Does an in-page `<Suspense>` make a dynamic route feel instant without Cache Components?"
+  back: "No. Only `loading.js` is prefetched; the in-page fallback arrived with the server's response."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-dev-prefetch
+  front: "Why not judge navigation speed in `next dev`?"
+  back: "Automatic prefetching only runs in production builds, so dev timings mislead."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-url-timing
+  front: "Why does the URL stay old while a slow page loads?"
+  back: "With nothing to show, the router keeps the old UI inside a transition and commits URL and tree together. `pushState` fired at 410 ms with the response; with a shell or loading UI cached it fired within 7 ms."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-link-status
+  front: "How do you show progress on a slow `<Link>` click?"
+  back: "`useLinkStatus()` inside the link returns `pending: true` while its navigation is in flight (per the docs, not run here). Better: add `loading.js` or Cache Components so the click commits at once."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-rsc-param
+  front: "What is the `_rsc` query value on navigation requests?"
+  back: "Not random: every link with the same router headers sent the same value, whatever its path. A wrong one got a `307` with the right one in `location`. With `Vary`, it keeps RSC payloads and HTML for one URL apart in HTTP caches."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-metadata-only
+  front: "What does a prefetch of a dynamic route with no `loading.js` return without Cache Components?"
+  back: "`next-router-state-tree` ended in `\"metadata-only\"` and the response was 832 bytes of route tree and `<head>` data, no UI. That is what the docs mean by \"skipped\"."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-prefetch-false-click
+  front: "What did `prefetch={false}` do to a click on a static page in the 400 ms test?"
+  back: "No request on viewport entry or hover, so the click waited for its round trip (413 ms at 400 ms latency)."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-cc-partial-either
+  front: "With Cache Components on, did `partialPrefetching` change whether the dynamic page's shell was prefetched?"
+  back: "No. The shell was prefetched either way, so the fallback appeared at once. The server never ran the dynamic component for an automatic prefetch."
+  question: nextjs/navigation/link-click-to-render
+- id: pf-prod-only
+  front: "When does `<Link>` prefetch, and in which builds?"
+  back: "In production builds only; `next dev` made no prefetch requests, even on hover. It prefetches when it enters the viewport and again on hover if what it fetched has expired. `prefetch={false}` turns both off."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-cc-off
+  front: "What does a `<Link>` prefetch without Cache Components?"
+  back: "A static route in full. A dynamic route gets everything down to its nearest `loading.js`, or with none only its route tree and `<head>` metadata. `prefetch={true}` renders the whole route, dynamic data included, at prefetch time."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-cc-on
+  front: "What does a `<Link>` prefetch with Cache Components on and `partialPrefetching: false`?"
+  back: "The dynamic route's prerendered static shell, so it needs no `loading.js`. `prefetch={true}` is still the full render."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-app-shell
+  front: "What does `partialPrefetching: true` prefetch by default (16.3+)?"
+  back: "The route's App Shell: static and cached output that doesn't depend on `params` or `searchParams`. Every link to `/p/[id]` shares one shell. It requires Cache Components; `next build` fails without it."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-true-with-partial
+  front: "What does `prefetch={true}` do with `partialPrefetching` on?"
+  back: "It adds that link's URL data and the cached content behind it, but no longer prefetches uncached data; that streams after the click. It costs a second request per link (`next-router-prefetch: 2`)."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-headers
+  front: "How are prefetch requests structured and marked?"
+  back: "Per segment: first the route tree, then each segment the client lacks, marked by `Next-Router-Prefetch` and `Next-Router-Segment-Prefetch` headers."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-counts
+  front: "How many prefetch requests to `/p/*` did a page with 20 links make in the 16.4.5 test across the three configs?"
+  back: "Cache Components off: 24 (4 route trees, 20 per-link metadata). On with `partialPrefetching: false`: 8 (4 trees, 4 copies of the same shell). On with `partialPrefetching: true`: 5 (4 trees, 1 shared shell). Same counts in Chrome 156 and Firefox 159."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-shell-size
+  front: "What did the single shared shell request look like with both flags on?"
+  back: "`next-router-segment-prefetch: /p/$d$id/__PAGE__`, 3,346 bytes holding the heading and `loading item…`. Clicking `/p/7` showed the fallback at once and `item 7` from one more request."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-defaults-removed
+  front: "What do the docs say about the two prefetch flags in the next major?"
+  back: "Both become the default, and are removed."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-side-effects
+  front: "Why avoid side effects in a layout or page with `prefetch={true}`?"
+  back: "With Partial Prefetching off, the server log showed the dynamic component rendering at prefetch time, before any click."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-prefetch-false-hover
+  front: "Does `prefetch={false}` mean \"prefetch on hover\"?"
+  back: "No, it disables hover too. The docs' pattern starts at `false` and switches to `null` in `onMouseEnter`; with Partial Prefetching, `'auto'` before hover and `true` after."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-refetch-on-hover
+  front: "When is a prefetched route fetched again?"
+  back: "When its data has expired and the link is hovered. A static page fetched at load was fetched again on hover at 312 s, not 272 s: the 5-minute default. Invalidations such as `revalidatePath` refetch at once."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-per-route-opt-in
+  front: "Can Partial Prefetching be adopted one route at a time?"
+  back: "Yes, per the docs (not run here): with the global flag off, `export const prefetch = 'partial'` from a page or layout opts that route in. A codemod removes those exports once the flag is on."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-cookies-in-shell
+  front: "Where do `cookies()` and `headers()` fit in the App Shell?"
+  back: "Per the docs (not run here), they vary per session, not per link, so their output can be in the App Shell, which the client then caches per session."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: st-contents
+  front: "What does the App Router client cache hold, and what empties it?"
+  back: "RSC payloads of prefetched and visited routes, keyed by segment, in the tab's memory. A reload empties it."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-static
+  front: "What does `staleTimes.static` default to and cover?"
+  back: "300 s. Prerendered pages, `loading.js` UI, and anything prefetched with `prefetch={true}` or `router.prefetch()`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-dynamic
+  front: "What does `staleTimes.dynamic` default to, and what was it before Next.js 15.0?"
+  back: "0 s: every new visit to a dynamic page fetches it again. It was 30 s until Next.js 15.0."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-config-header
+  front: "Where are `staleTimes` set in 16.4.5, and how does the server communicate the value?"
+  back: "Under `experimental.staleTimes` in `next.config`; the build lists it under \"Experiments (use with caution)\". The server sends the value with each response, such as `x-nextjs-stale-time: 300`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-cachelife-stale
+  front: "How does `cacheLife` interact with the router cache's stale time with Cache Components?"
+  back: "A page's `cacheLife` `stale` sets it per route: `stale: 45` got `x-nextjs-stale-time: 45`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-lazy-expiry
+  front: "How does router cache expiry work?"
+  back: "Lazily. An expired prefetch is fetched again when the link is hovered; an expired page when you navigate to it. Nothing refreshed in the background while idle."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-back-forward
+  front: "Do stale times apply to Back and Forward?"
+  back: "No. They restore what was on screen from memory, even a dynamic page with `dynamic: 0`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-emptied-by
+  front: "What empties the whole router cache, not just the touched route?"
+  back: "A Server Action that calls `revalidatePath` or `updateTag` or sets a cookie: visible links were prefetched again at once. `router.refresh()` did the same for their page segments."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-refresh-disagree
+  front: "Where do the `cacheLife` docs and the mutations chapter's test disagree about `refresh()`?"
+  back: "The `cacheLife` docs list an action's `refresh()` as emptying the cache, but in the mutations chapter's test it caused no new prefetches."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-observed-dynamic
+  front: "What did `staleTimes.dynamic: 30` do going `/` to `/d` to `/` to `/d` on 16.4.5?"
+  back: "The second visit to `/d` made no request and showed the same `t`; after 35 s idle it fetched again. With the defaults it made a new request and showed a new `t`. Cache Components on and off agreed."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-observed-static
+  front: "When was a static link prefetched at load fetched again on hover?"
+  back: "After 42 s with `static: 30`, and after 312 s (not 272 s) with the default. Expiry timings ran in Chrome only."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-raise-dynamic
+  front: "What is the risk of raising `staleTimes.dynamic` for speed?"
+  back: "Every page shows data up to that old, unless an action invalidates it."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-refresh-timer
+  front: "What did `router.refresh()` do to visible links in 16.4.5?"
+  back: "Its docs say it clears the cache for the current route, but each call also made both browsers re-prefetch every visible link's page."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-revalidate-path-broad
+  front: "Does `revalidatePath('/s')` in an action clear only `/s` in the router cache?"
+  back: "No. After an action called it, both browsers re-prefetched every visible link, `/d` as well as `/s`. A no-op action caused no prefetch requests."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-layouts-not-refetched
+  front: "Are shared layouts fetched again when a page's entry is stale?"
+  back: "No. The navigation request lists the segments the client has, and the server skips layouts above the changed page. The docs note `staleTimes` doesn't change this."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-static-cachelife
+  front: "How does `staleTimes.static` relate to `cacheLife`, per the docs?"
+  back: "Setting it also changes the `stale` of the `default` cache profile, and `cacheLife` enforces a 30-second minimum `stale` so a prefetch can't expire before the click (not run here)."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-vs-bfcache
+  front: "How is the router cache different from the browser's back/forward cache?"
+  back: "The bfcache keeps a whole document for a cross-document Back. The router cache is the router's memory within one document."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: bf-off-behaviour
+  front: "What happens to a page's client state on navigating away without Cache Components?"
+  back: "The page segment unmounts: Client Components' state and DOM are gone, and Back renders it again from scratch."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-activity
+  front: "What does `cacheComponents: true` do to the route you leave?"
+  back: "Wraps each route in React's `<Activity>`. Leaving sets it to `hidden`: components stay mounted, the DOM is hidden with `display: none`, and effect cleanups run as if it had unmounted. Coming back shows the same instance."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-observed-on-back
+  front: "What was restored on Back with Cache Components on in 16.4.5, Chrome 156 and Firefox 159?"
+  back: "Input text, a `useState` counter, an open `<details>` and `scrollY` 1500, all restored."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-link-return
+  front: "What happens returning to a hidden route by `<Link>` rather than Back?"
+  back: "State is restored, but scroll is at the top, as for any push."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-off-back
+  front: "What did Back show with Cache Components off in the 16.4.5 test?"
+  back: "Input empty, count 0, `<details>` closed. The scroll position was still restored."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-limit-three
+  front: "How many routes does Next.js keep hidden?"
+  back: "The docs say up to three. The page survived after visiting two other routes and was fresh after three, so three counts the one on screen."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-not-bfcache
+  front: "Is Activity retention the browser's back/forward cache?"
+  back: "No. The document never changed; the router keeps the hidden route in the same document."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-reset-options
+  front: "How do the docs suggest resetting retained state?"
+  back: "In an event handler, in a `useLayoutEffect` cleanup that runs on hide, or by keying a subtree on `useRouter().bfcacheId`, which changes on push and replace but not on Back or Forward."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-keyed-draft
+  front: "What did keying `<Draft>` on `bfcacheId` do?"
+  back: "Back kept the typed `draft`, but a fresh link to the page showed an empty input and `count: 0`."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-hidden-dom
+  front: "What does a hidden route look like in the DOM?"
+  back: "Its `<main>` is still in the document with `style=\"display: none !important;\"`. `document.querySelectorAll('#form-main')` still matched it while on another page, so filter by visibility or use role-based queries."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-effects
+  front: "Do effects keep running on a hidden page?"
+  back: "No, cleanups ran on hide, so timers and subscriptions stop. Per the docs, a `<video>` keeps playing under `display: none` unless an effect pauses it."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-stale-state-risk
+  front: "What risks does retained state carry?"
+  back: "A success message, an open dropdown or another user's draft stays until reset. The docs warn about state left from a previous user after logout."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-layouts
+  front: "Do shared layouts behave differently under Activity?"
+  back: "No. A layout shared by both routes was never hidden; it stays mounted on any navigation. Activity matters for the segments that change."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-data-refetch
+  front: "Is the page's data re-fetched on Back with Cache Components on?"
+  back: "No, Back restored the hidden route without a request. A `<Link>` to a dynamic page fetched it again, with a new server timestamp."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-logout-reset
+  front: "How do you force a full reset on logout, per the docs?"
+  back: "Navigate with `window.location.href` for a full document load, or key components by user id (not run here)."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: rn-mechanism
+  front: "How do `redirect()`, `permanentRedirect()` and `notFound()` stop rendering from any depth?"
+  back: "They throw an `Error` whose `digest` encodes the instruction, such as `NEXT_REDIRECT;replace;/s;307;` or `NEXT_HTTP_ERROR_FALLBACK;404`. Their return type is `never`. Next.js catches it where it builds the response."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-where-callable
+  front: "Where can these functions be called?"
+  back: "From a component, a function it awaits, a Server Action or a route handler, any number of calls deep. Per the docs, not from an event handler; use `useRouter().push` there."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-statuses
+  front: "What statuses did `redirect`, `permanentRedirect` and `notFound` give in a page on 16.4.5?"
+  back: "`redirect('/s')`: `307` with `location: /s`. `permanentRedirect`: `308`. `notFound()`: `404` and `<meta name=\"robots\" content=\"noindex\"/>`. In a route handler `redirect` gave `307`. Cache Components on and off alike."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-streamed
+  front: "What status does a redirect or `notFound()` inside `<Suspense>` after streaming started produce?"
+  back: "`200`, because the status was already sent. The redirect came as `<meta id=\"__next-page-redirect\" http-equiv=\"refresh\" content=\"1;url=/s\"/>` plus an error row in the RSC stream; `notFound()` gave `200` with the `noindex` tag."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-streamed-crawlers
+  front: "Who can move the user when a redirect happens inside `<Suspense>`?"
+  back: "Only the meta refresh and the client router. Crawlers see a `200`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-streamed-no-js
+  front: "What does a streamed redirect do without JavaScript?"
+  back: "With JavaScript disabled in Chrome 156, loading the page fetched `/r/stream` (`200`), then `/s` after the 1-second meta refresh."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-action-redirect
+  front: "What does `redirect()` in a Server Action produce with and without JavaScript?"
+  back: "Called from JavaScript: a `200` RSC response, then a client-side push to `/s`. A form posted without JavaScript got `303` to `/s`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-try-catch
+  front: "What happens when `redirect('/s')` sits inside a `try`/`catch`?"
+  back: "The `catch` swallows it: rendering continues in the `catch` block and the page answered `200` with the catch branch's content (`NEXT_REDIRECT | digest=NEXT_REDIRECT;replace;/s;307;`). In an action the user stayed put."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-prerendered-catch
+  front: "What happened to the caught-redirect page at build time?"
+  back: "Nothing else in it was dynamic, so it was prerendered with the catch branch and served with `Cache-Control: s-maxage=31536000`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-fix
+  front: "How do you avoid swallowing a redirect or `notFound()` in a `catch`?"
+  back: "Keep the call outside the `try`, or call `unstable_rethrow(error)` first thing in the `catch`, which rethrows Next.js's own errors and returns for yours. `/r/rethrow` returned `307` with `location: /s`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-catch-notfound
+  front: "What happens when `notFound()` is called inside a data-loading `try`/`catch`?"
+  back: "The catch turned the 404 into a `200` page showing the error UI."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-after-redirect
+  front: "Why not call `revalidatePath` or `updateTag` after `redirect()` in an action?"
+  back: "The throw skips them."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-push-replace
+  front: "Is an action redirect a push or a replace?"
+  back: "A push by default: the caught digest read `NEXT_REDIRECT;push;/s;307;`, and Back from `/s` returned to the form page in Chrome 156 and Firefox 159. In render the digest says `replace`; per the docs `type` has no effect in Server Components."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-307-not-302
+  front: "Why 307 and not 302 for a redirect?"
+  back: "A 307 keeps the request method, so a redirected `POST` stays a `POST`; a 302 lets browsers switch to `GET`. Form actions use `303` precisely to force the `GET`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
