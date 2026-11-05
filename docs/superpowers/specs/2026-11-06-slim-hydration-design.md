@@ -14,7 +14,7 @@ The manifest is 34 kB of topics (summary HTML and text, planned areas, stats, pe
 ## Change
 - The root route's loader returns a site index: `{ topics: { slug, title, track, chapterCount }[] }`, about 2 kB. `TopicSwitcher` reads it through `useSiteIndex()`.
 - Home, Roadmap, Paths, a Path and the Practice hub get the full manifest from their own route loader (`loadManifest`, still one shared request). Only those pages embed it.
-- Result: the manifest leaves the hydration data of every other page. Question 104 → about 62 kB, chapter and topic 78 → about 36 kB, Home unchanged.
+- Result, measured on the build (average embedded data per page, escaped JSON): question 131 → 85 kB, chapter 101 → 55 kB, other pages 53 → 19 kB. Home grows by 3 kB (49 → 52): it embeds the site index beside the manifest.
 - `useManifest()` is removed; its callers use `useLoaderData()` for their route's loader.
 
 ## Not doing
