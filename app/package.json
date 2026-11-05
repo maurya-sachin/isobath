@@ -17,6 +17,7 @@
     "content:new": "node scripts/new.ts",
     "content:build": "node scripts/build.ts",
     "theme:build": "node scripts/theme.ts",
+    "smoke": "node scripts/smoke.ts",
     "examples:check": "node scripts/examples.ts"
   },
   "dependencies": {
