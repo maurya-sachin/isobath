@@ -42,7 +42,7 @@ Everything here is **V8 behaviour**, not part of the language. Other engines hav
 
 ## Example
 
-```js no-run
+```js node=--allow-natives-syntax
 // shapes.mjs. Run: node --allow-natives-syntax shapes.mjs (Node 24.19, V8 13.6).
 // %HaveSameMap and %HasFastProperties are debug-only natives, not public API.
 const p1 = { x: 1, y: 2 };
@@ -117,7 +117,7 @@ Two takeaways. The Map, not the object, holds the names. And a different route t
 
 Whether two objects share a Map depends on the route that built them, not only on their final keys:
 
-```js no-run
+```js node=--allow-natives-syntax
 // routes.mjs. Run: node --allow-natives-syntax routes.mjs
 const literal = { x: 1, y: 2 };
 const built = {};
