@@ -5,9 +5,9 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 ## Now
 - Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
-- On `dev`, unmerged (maintainer merges at EOD): 6.1 rewrite fix (then curl `/flashcards/react` live), 6.2 example runner (272 JS examples run, 48 `no-run`), 6.3 og cards (412 PNGs, +13 s build; check a shared link with a card validator after deploy).
+- On `dev`, unmerged (maintainer merges at EOD): 6.1 rewrite fix (then curl `/flashcards/react` live), 6.2 example runner (272 JS examples run, 48 `no-run`), 6.3 og cards (412 PNGs, +13 s build; check a shared link with a card validator after deploy), 6.6 Anki decks (`/data/topics/<slug>/anki.txt`; import into Anki once to confirm).
 - Repo renamed `isobath` (2026-11-05); `dev` not yet pushed since. Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); publish the dev.to draft "I rebuilt my interview prep repo…" (update counts if React ships first); pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
-- Next: 6.4 (Giscus) needs maintainer to enable Discussions + install the app; do 6.5, 6.6 first. Phase 7 (`nextjs`) waits until Phase 6 tier 1 and 6.10 ship; tier 2–3 then alternate with content.
+- Next: 6.4 (Giscus) needs maintainer to enable Discussions + install the app; do 6.5 first. Phase 7 (`nextjs`) waits until Phase 6 tier 1 and 6.10 ship; tier 2–3 then alternate with content.
 - Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
 
 ## Goal
@@ -48,7 +48,6 @@ Tier 1:
 - [ ] 6.2b Shrink the 48 `no-run` JS examples: multi-file blocks, Node flags (`--expose-gc`, `--allow-natives-syntax`), env vars, earlier-block continuation, `…` elision for noisy lines; then extend to `typescript` (6.13 for browser topics)
 - [ ] 6.4 Comments + reactions on question pages: Giscus (Discussions category "Questions", mapping by question id, lazy-loaded, themed from tokens; maintainer enables Discussions + installs the app)
 - [ ] 6.5 Printable chapter cheat sheet (all `tldr`s of a chapter)
-- [ ] 6.6 Anki export: one `.txt` deck per topic
 Tier 2:
 - [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
 - [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
