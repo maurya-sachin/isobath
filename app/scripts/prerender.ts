@@ -8,8 +8,19 @@ import { pathToFileURL } from 'node:url'
 import { chapterStats } from '../src/content/stats.ts'
 import type { ContentManifest, SearchDoc, TopicSummary } from '../src/content/types.ts'
 import { SITE_NAME, SITE_URL, TAGLINE } from '../src/lib/site.ts'
+import { hex } from '../src/theme/palette.ts'
 import { CARD_HEIGHT, CARD_WIDTH, type CardData } from './lib/ogCard.ts'
 import { renderQuestionCard } from './lib/ogImage.ts'
+import {
+  breadcrumbList,
+  duplicates,
+  jsonLdScript,
+  metaDescription,
+  pageUrl,
+  techArticle,
+  webSite,
+  type Crumb,
+} from './lib/seo.ts'
 
 interface Rendered {
   html: string
@@ -20,6 +31,8 @@ interface Page {
   path: string
   description: string
   type: 'website' | 'article'
+  /** Structured data for the page, one JSON-LD script each. */
+  jsonLd?: object[]
   /** Question pages share a social card, written to `dist/og/<path>.png`. */
   card?: CardData
 }
@@ -57,7 +70,7 @@ function escapeHtml(text: string): string {
 async function listPages(): Promise<Page[]> {
   const manifest = await readJson<ContentManifest>('data/manifest.json')
   const pages: Page[] = [
-    { path: '/', description: HOME_DESCRIPTION, type: 'website' },
+    { path: '/', description: HOME_DESCRIPTION, type: 'website', jsonLd: webSite(HOME_DESCRIPTION) },
     { path: '/paths', description: PATHS_DESCRIPTION, type: 'website' },
     ...manifest.paths.map((rolePath): Page => ({
       path: `/paths/${rolePath.slug}`,
@@ -71,9 +84,20 @@ async function listPages(): Promise<Page[]> {
 
   for (const overview of manifest.topics) {
     const topic = await readJson<TopicSummary>(`data/topics/${overview.slug}/index.json`)
+    const home: Crumb = { name: SITE_NAME, path: '/' }
+    const topicCrumbs: Crumb[] = [home, { name: topic.title, path: `/${topic.slug}` }]
     if (overview.stats.readable > 0)
-      pages.push({ path: `/practice/${topic.slug}`, description: PRACTICE_DESCRIPTION, type: 'website' })
-    pages.push({ path: `/${topic.slug}`, description: topic.summaryText, type: 'website' })
+      pages.push({
+        path: `/practice/${topic.slug}`,
+        description: `Practise ${topic.title} interview questions and review its flashcards.`,
+        type: 'website',
+      })
+    pages.push({
+      path: `/${topic.slug}`,
+      description: topic.summaryText,
+      type: 'website',
+      jsonLd: [breadcrumbList(topicCrumbs)],
+    })
 
     // Topics without chapters have no search.json.
     const searchDocs =
@@ -86,7 +110,13 @@ async function listPages(): Promise<Page[]> {
     }
     const tldrs = new Map(searchDocs.map((doc) => [doc.id, doc.tldr]))
     for (const chapter of topic.chapters) {
-      pages.push({ path: `/${topic.slug}/${chapter.slug}`, description: chapter.summaryText, type: 'website' })
+      const chapterCrumbs: Crumb[] = [...topicCrumbs, { name: chapter.title, path: `/${topic.slug}/${chapter.slug}` }]
+      pages.push({
+        path: `/${topic.slug}/${chapter.slug}`,
+        description: chapter.summaryText,
+        type: 'website',
+        jsonLd: [breadcrumbList(chapterCrumbs)],
+      })
       for (const question of chapter.questions.filter((candidate) => candidate.hasPage)) {
         const description = tldrs.get(question.id)
         if (!description) throw new Error(`${question.id}: no TL;DR in search.json for the page description`)
@@ -97,12 +127,27 @@ async function listPages(): Promise<Page[]> {
           difficulty: question.difficulty,
           map,
         }
-        pages.push({ path: `/${question.id}`, description, type: 'article', card })
+        pages.push({
+          path: `/${question.id}`,
+          description,
+          type: 'article',
+          card,
+          jsonLd: [
+            techArticle({ title: question.title, description: metaDescription(description), path: `/${question.id}` }),
+            breadcrumbList([...chapterCrumbs, { name: question.title, path: `/${question.id}` }]),
+          ],
+        })
       }
     }
   }
   return pages
 }
+
+/** The browser's address-bar and overscroll colour: the page background of each mode. */
+const themeColorTags = [
+  `<meta name="theme-color" content="${hex('light', 'background')}" media="(prefers-color-scheme: light)" />`,
+  `<meta name="theme-color" content="${hex('dark', 'background')}" media="(prefers-color-scheme: dark)" />`,
+]
 
 function cardFile(pagePath: string): string {
   return path.join(distDir, 'og', `${pagePath}.png`)
@@ -120,12 +165,14 @@ function imageTags(pagePath: string, alt: string): string[] {
 
 /** `title` is already HTML-escaped by React. */
 function headTags(title: string, page: Page): string {
-  const url = page.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${page.path}`
-  const description = escapeHtml(page.description)
+  const url = pageUrl(page.path)
+  const description = escapeHtml(metaDescription(page.description))
   return [
     `<title>${title}</title>`,
     `<meta name="description" content="${description}" />`,
     ...fontPreloads,
+    ...themeColorTags,
+    '<meta name="robots" content="index, follow, max-image-preview:large" />',
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
@@ -133,6 +180,7 @@ function headTags(title: string, page: Page): string {
     `<meta property="og:type" content="${page.type}" />`,
     `<meta property="og:site_name" content="${SITE_NAME}" />`,
     ...(page.card ? imageTags(page.path, page.card.title) : ['<meta name="twitter:card" content="summary" />']),
+    ...(page.jsonLd ?? []).map(jsonLdScript),
   ].join('\n    ')
 }
 
@@ -142,6 +190,7 @@ function appShellHeadTags(title: string, description: string): string {
     `<meta name="description" content="${escapeHtml(description)}" />`,
     '<meta name="robots" content="noindex" />',
     ...fontPreloads,
+    ...themeColorTags,
   ].join('\n    ')
 }
 
@@ -193,6 +242,15 @@ const { render } = (await import(pathToFileURL(path.resolve(distDir, '../dist-se
 }
 const pages = await listPages()
 
+const sharedDescriptions = duplicates(
+  pages.map((page) => ({ path: page.path, value: metaDescription(page.description) })),
+)
+if (sharedDescriptions.length > 0)
+  throw new Error(
+    `prerender: pages share a meta description:\n${sharedDescriptions.map(({ value, paths }) => `  "${value.slice(0, 70)}" → ${paths.join(', ')}`).join('\n')}`,
+  )
+const titles: { path: string; value: string }[] = []
+
 // Served for unknown URLs and client-only pages, so it must not claim to be the home page: no canonical, no og tags.
 await writePage(
   path.join(distDir, 'app-shell.html'),
@@ -203,9 +261,16 @@ for (const page of pages) {
   const { html, status } = await render(page.path)
   if (status !== 200) throw new Error(`${page.path}: rendered with status ${status}`)
   const { title, markup } = splitTitle(page.path, html)
+  titles.push({ path: page.path, value: title })
   await writePage(outputFile(page.path), fillTemplate(headTags(title, page), markup))
   if (page.card) await writePage(cardFile(page.path), await renderQuestionCard(page.card))
 }
+
+const sharedTitles = duplicates(titles)
+if (sharedTitles.length > 0)
+  throw new Error(
+    `prerender: pages share a title:\n${sharedTitles.map(({ value, paths }) => `  "${value}" → ${paths.join(', ')}`).join('\n')}`,
+  )
 
 const urls = pages.map(
   (page) => `  <url><loc>${escapeHtml(page.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${page.path}`)}</loc></url>`,
