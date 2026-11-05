@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run content:build && vite",
-    "build": "npm run content:build && tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.ts",
+    "dev": "npm run content:build && npm run theme:build && vite",
+    "build": "npm run content:build && npm run theme:build && tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.ts",
     "lint": "eslint .",
     "test": "node --test 'scripts/**/*.test.ts'",
     "preview": "vite preview",
@@ -14,6 +14,7 @@
     "content:status": "node scripts/status.ts",
     "content:new": "node scripts/new.ts",
     "content:build": "node scripts/build.ts",
+    "theme:build": "node scripts/theme.ts",
     "examples:check": "node scripts/examples.ts"
   },
   "dependencies": {

@@ -1,19 +1,20 @@
 // The element tree of a question's social card (1200×630), for satori. Plain `{ type, props }` objects:
-// scripts run on Node's native TypeScript, which has no JSX. Colours are the light theme tokens in src/index.css.
+// scripts run on Node's native TypeScript, which has no JSX. Colours come from the light palette (R23).
 
 import { coverRings, ringPath } from '../../src/lib/contours.ts'
 import { depthStop } from '../../src/lib/depth.ts'
 import { AUTHOR, SITE_NAME } from '../../src/lib/site.ts'
+import { hex } from '../../src/theme/palette.ts'
 
 export const CARD_WIDTH = 1200
 export const CARD_HEIGHT = 630
 
-const BACKGROUND = '#F9FAFC'
-const FOREGROUND = '#0E1424'
-const MUTED = '#4A5368'
-const ACCENT = '#2F4FD8'
-/** `--depth-1..4`, shallow to deep: the oklab mixes of `--depth-from` and `--depth-to`, precomputed because satori has no `color-mix`. */
-const DEPTH_STOPS = ['#6e86df', '#5166b7', '#344790', '#1b2a6b']
+const BACKGROUND = hex('light', 'background')
+const FOREGROUND = hex('light', 'foreground')
+const MUTED = hex('light', 'mutedForeground')
+const ACCENT = hex('light', 'link')
+/** The depth ramp, shallow to deep; satori has no `oklch()`, so the palette converts it to hex. */
+const DEPTH_STOPS = (['depth1', 'depth2', 'depth3', 'depth4'] as const).map((token) => hex('light', token))
 
 const PADDING = 72
 const MAP_SIZE = CARD_HEIGHT

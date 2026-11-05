@@ -5,6 +5,7 @@
 @import "@fontsource-variable/geist-mono";
 @import "@fontsource-variable/newsreader";
 @import "@fontsource-variable/newsreader/wght-italic.css";
+@import "./theme/palette.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -31,11 +32,6 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -64,90 +60,7 @@
 }
 
 :root {
-    --background: #F9FAFC;
-    --foreground: #0E1424;
-    --card: #FFFFFF;
-    --card-foreground: oklch(21% 0.006 285.885);
-    --popover: #FFFFFF;
-    --popover-foreground: oklch(21% 0.006 285.885);
-    --primary: #0E1424;
-    --primary-foreground: oklch(98.5% 0 0);
-    --secondary: #EEF1F6;
-    --secondary-foreground: oklch(21% 0.006 285.885);
-    --muted: #EEF1F6;
-    --muted-foreground: #4A5368;
-    --accent: #EEF1F6;
-    --accent-foreground: oklch(21% 0.006 285.885);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: #E1E5EE;
-    --input: #E1E5EE;
-    --ring: #2F4FD8;
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
     --radius: 0.625rem;
-    --sidebar: oklch(98.5% 0 0);
-    --sidebar-foreground: oklch(21% 0.006 285.885);
-    --sidebar-primary: oklch(21% 0.006 285.885);
-    --sidebar-primary-foreground: oklch(98.5% 0 0);
-    --sidebar-accent: oklch(96.7% 0.001 286.375);
-    --sidebar-accent-foreground: oklch(21% 0.006 285.885);
-    --sidebar-border: oklch(92% 0.004 286.32);
-    --sidebar-ring: #2F4FD8;
-    --link: #2F4FD8;
-    --link-hover: #1E3A8A;
-    --tldr: #EDF1FD;
-    --tldr-foreground: #1E3A8A;
-    /* Both ends keep at least 3:1 against the background and muted surfaces (WCAG 1.4.11, graphics). */
-    --depth-from: #6E86DF;
-    --depth-to: #1B2A6B;
-    /* Four stops down the ramp: shallow (1, the 30-second answer) to deep (4, spec and engine). */
-    --depth-1: var(--depth-from);
-    --depth-2: color-mix(in oklab, var(--depth-from) 67%, var(--depth-to));
-    --depth-3: color-mix(in oklab, var(--depth-from) 33%, var(--depth-to));
-    --depth-4: var(--depth-to);
-}
-
-.dark {
-    --background: #0A0F1E;
-    --foreground: #E8EDFB;
-    --card: #101733;
-    --card-foreground: oklch(96.7% 0.001 286.375);
-    --popover: #101733;
-    --popover-foreground: oklch(96.7% 0.001 286.375);
-    --primary: #E8EDFB;
-    --primary-foreground: oklch(21% 0.006 285.885);
-    --secondary: #151D3D;
-    --secondary-foreground: oklch(96.7% 0.001 286.375);
-    --muted: #151D3D;
-    --muted-foreground: #9AA6C4;
-    --accent: #151D3D;
-    --accent-foreground: oklch(96.7% 0.001 286.375);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: #9DAEF7;
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(21% 0.006 285.885);
-    --sidebar-foreground: oklch(96.7% 0.001 286.375);
-    --sidebar-primary: oklch(96.7% 0.001 286.375);
-    --sidebar-primary-foreground: oklch(21% 0.006 285.885);
-    --sidebar-accent: oklch(27.4% 0.006 286.033);
-    --sidebar-accent-foreground: oklch(96.7% 0.001 286.375);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: #9DAEF7;
-    --link: #9DAEF7;
-    --link-hover: #C7D0FB;
-    --tldr: #131B3D;
-    --tldr-foreground: #B4C1F9;
-    --depth-from: #9DAEF7;
-    --depth-to: #4C63D9;
 }
 
 @layer base {
@@ -217,7 +130,7 @@
   .content pre .line.output {
     display: inline-block;
     min-width: 100%;
-    background: oklch(0.95 0.05 150);
+    background: var(--output);
   }
   /* Output lines are results, not comments: keep them readable on the highlight (beats Shiki's inline grey). */
   .content pre .line.output span {
@@ -235,16 +148,5 @@
     padding: 0.4rem 0.75rem;
     border: 1px solid var(--border);
     text-align: left;
-  }
-  /* Shiki inlines its light colours as style attributes; !important is the only way to override them. */
-  .dark .content .shiki {
-    background-color: var(--card) !important;
-  }
-  .dark .content .shiki,
-  .dark .content .shiki span {
-    color: var(--shiki-dark) !important;
-  }
-  .dark .content pre .line.output {
-    background: oklch(0.3 0.06 150);
   }
 }
