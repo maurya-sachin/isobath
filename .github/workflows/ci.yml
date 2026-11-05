@@ -21,5 +21,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run content:check
+      - run: npm run examples:check
       # Includes the TypeScript check (tsc -b) and the Vite build.
       - run: npm run build
