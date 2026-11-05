@@ -23,9 +23,16 @@ export interface Appearance {
   motion: 'auto' | 'reduce'
 }
 
-export const DEFAULT_APPEARANCE: Appearance = { hueLight: null, hueDark: null, textSize: 100, contrast: 'auto', motion: 'auto' }
+export const DEFAULT_APPEARANCE: Appearance = {
+  hueLight: null,
+  hueDark: null,
+  textSize: 100,
+  contrast: 'auto',
+  motion: 'auto',
+}
 
-const normalizeHue = (value: unknown): number | null => (typeof value === 'number' && Number.isFinite(value) ? ((Math.round(value) % 360) + 360) % 360 : null)
+const normalizeHue = (value: unknown): number | null =>
+  typeof value === 'number' && Number.isFinite(value) ? ((Math.round(value) % 360) + 360) % 360 : null
 
 /** Reads saved settings; anything missing or invalid falls back to the default, so a bad value never breaks the page. */
 export function parseAppearance(raw: string | null): Appearance {

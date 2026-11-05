@@ -25,5 +25,9 @@ export function oldestMonth(months: string[]): string | null {
 /** "October 2026" for display. */
 export function formatMonth(month: string): string {
   const [year, monthOfYear] = month.split('-').map(Number)
-  return new Date(Date.UTC(year, monthOfYear - 1, 1)).toLocaleDateString('en', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return new Date(Date.UTC(year, monthOfYear - 1, 1)).toLocaleDateString('en', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
 }

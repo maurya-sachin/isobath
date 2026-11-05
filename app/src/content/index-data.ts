@@ -1,7 +1,15 @@
 // Loading and querying the data built by content:build: a manifest for every page, then one shard per topic.
 
 import { useRouteLoaderData } from 'react-router'
-import type { Changelog, ChapterSummary, ContentManifest, Flashcard, QuestionPage as QuestionData, QuestionSummary, TopicSummary } from './types.ts'
+import type {
+  Changelog,
+  ChapterSummary,
+  ContentManifest,
+  Flashcard,
+  QuestionPage as QuestionData,
+  QuestionSummary,
+  TopicSummary,
+} from './types.ts'
 
 export const MANIFEST_ROUTE_ID = 'root'
 export const TOPIC_ROUTE_ID = 'topic'
@@ -59,14 +67,17 @@ export async function loadPractice(topicSlug: string | undefined, chapterSlug: s
   const topic = await loadTopic(topicSlug)
   const chapter = topic?.chapters.find((candidate) => candidate.slug === chapterSlug)
   const readable = chapter?.questions.filter((question) => question.hasPage) ?? []
-  const questions = await Promise.all(readable.map((question) => fetchData<QuestionData>(`questions/${question.id}.json`)))
+  const questions = await Promise.all(
+    readable.map((question) => fetchData<QuestionData>(`questions/${question.id}.json`)),
+  )
   return { topic, questions }
 }
 
 /** One topic's flashcards, with the topic. Topics without a deck have no file to fetch. */
 export async function loadFlashcards(topicSlug: string | undefined) {
   const topic = await loadTopic(topicSlug)
-  const cards = topic && topic.flashcardCount > 0 ? await fetchData<Flashcard[]>(`topics/${topic.slug}/flashcards.json`) : []
+  const cards =
+    topic && topic.flashcardCount > 0 ? await fetchData<Flashcard[]>(`topics/${topic.slug}/flashcards.json`) : []
   return { topic, cards }
 }
 

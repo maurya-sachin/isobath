@@ -82,17 +82,23 @@ async function parsePath(file: string, problems: Problem[]) {
  * Every entry names an existing topic (and chapter) and appears once; a chapter entry can't sit beside its whole
  * topic (its questions would count twice); `order` is unique; `start` is a real question.
  */
-export function validateRolePaths(paths: RolePathSource[], topics: TopicRef[], questionIds: ReadonlySet<string>): Problem[] {
+export function validateRolePaths(
+  paths: RolePathSource[],
+  topics: TopicRef[],
+  questionIds: ReadonlySet<string>,
+): Problem[] {
   const problems: Problem[] = []
   const owners = new Map<number, string>()
   for (const rolePath of paths) {
     const { file } = rolePath
-    if (!new RegExp(`^${KEBAB}$`).test(rolePath.slug)) problems.push({ file, message: 'file name must be kebab-case: it becomes the URL `/paths/<name>`' })
+    if (!new RegExp(`^${KEBAB}$`).test(rolePath.slug))
+      problems.push({ file, message: 'file name must be kebab-case: it becomes the URL `/paths/<name>`' })
     const owner = owners.get(rolePath.order)
     if (owner !== undefined) problems.push({ file, message: `order ${rolePath.order} is already used by \`${owner}\`` })
     else owners.set(rolePath.order, rolePath.slug)
 
-    if (rolePath.start !== undefined && !questionIds.has(rolePath.start)) problems.push({ file, message: `start: unknown question \`${rolePath.start}\`` })
+    if (rolePath.start !== undefined && !questionIds.has(rolePath.start))
+      problems.push({ file, message: `start: unknown question \`${rolePath.start}\`` })
 
     const seen = new Set<string>()
     for (const { ref } of rolePath.steps) {
@@ -127,7 +133,8 @@ export function resolveRolePaths(paths: RolePathSource[], topics: TopicSummary[]
       steps: steps.map(({ ref, why }): PathStep => {
         const [topicSlug, chapterSlug] = ref.split('/')
         const topic = topics.find((candidate) => candidate.slug === topicSlug)!
-        const chapter = chapterSlug === undefined ? null : topic.chapters.find((candidate) => candidate.slug === chapterSlug)!
+        const chapter =
+          chapterSlug === undefined ? null : topic.chapters.find((candidate) => candidate.slug === chapterSlug)!
         const questionCount = chapterStats(chapter ? [chapter] : topic.chapters).readable
         return {
           topic: topic.slug,

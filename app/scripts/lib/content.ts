@@ -72,7 +72,9 @@ export async function loadContent(): Promise<Content> {
     await access(contentDir)
   } catch {
     // Hosts that build from a sub-folder (e.g. a Vercel Root Directory of `app`) can't see ../content.
-    throw new Error(`Cannot find ${contentDir}. The build needs the whole repository: on Vercel, leave Root Directory blank.`)
+    throw new Error(
+      `Cannot find ${contentDir}. The build needs the whole repository: on Vercel, leave Root Directory blank.`,
+    )
   }
 
   const problems: Problem[] = []
@@ -214,7 +216,11 @@ function parseSubTopics(readme: string, file: string, problems: Problem[]): SubT
     if (!line.startsWith('- ')) continue
     const match = SUB_TOPIC.exec(line)
     if (!match) {
-      problems.push({ file: repoRelative(file), line: index + 1, message: 'sub-topic must end with `→ NNN, NNN` or `→ —`' })
+      problems.push({
+        file: repoRelative(file),
+        line: index + 1,
+        message: 'sub-topic must end with `→ NNN, NNN` or `→ —`',
+      })
       continue
     }
     const [, text, target] = match

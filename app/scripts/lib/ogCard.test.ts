@@ -20,7 +20,8 @@ const textOf = (node: unknown): string => {
 
 test('the card shows the title, where it sits and how hard it is', () => {
   const text = textOf(questionCard(card))
-  for (const expected of [card.title, 'JavaScript · Numbers and BigInt', 'isobath', 'medium']) assert.ok(text.includes(expected), expected)
+  for (const expected of [card.title, 'JavaScript · Numbers and BigInt', 'isobath', 'medium'])
+    assert.ok(text.includes(expected), expected)
 })
 
 test('renders a PNG of the card size', async () => {
@@ -31,7 +32,10 @@ test('renders a PNG of the card size', async () => {
 })
 
 test('a title that is too long for the large size gets a smaller one', () => {
-  const fontSize = (title: string) => JSON.stringify(questionCard({ ...card, title })).match(/"fontFamily":"Newsreader","fontWeight":500,"fontSize":(\d+)/)?.[1]
+  const fontSize = (title: string) =>
+    JSON.stringify(questionCard({ ...card, title })).match(
+      /"fontFamily":"Newsreader","fontWeight":500,"fontSize":(\d+)/,
+    )?.[1]
   assert.equal(fontSize('Short'), '64')
   assert.equal(fontSize('x'.repeat(100)), '52')
 })

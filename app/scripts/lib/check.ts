@@ -9,7 +9,9 @@ import { staleReadmes } from './readme.ts'
 import { checkBody } from './sections.ts'
 
 function questionIdsOf(topics: Content['topics']): Set<string> {
-  return new Set(topics.flatMap((topic) => topic.chapters.flatMap((chapter) => chapter.questions.map((question) => question.id))))
+  return new Set(
+    topics.flatMap((topic) => topic.chapters.flatMap((chapter) => chapter.questions.map((question) => question.id))),
+  )
 }
 
 /** Problems that need more than one file to see. */
@@ -23,8 +25,10 @@ function checkReferences({ topics }: Content): Problem[] {
     const slugs = new Set<string>()
     for (const question of chapter.questions) {
       const file = repoRelative(question.file)
-      if (numbers.has(question.number)) problems.push({ file, message: `number ${question.number} is used twice in this chapter` })
-      if (slugs.has(question.slug)) problems.push({ file, message: `slug \`${question.slug}\` is used twice, so the id isn't unique` })
+      if (numbers.has(question.number))
+        problems.push({ file, message: `number ${question.number} is used twice in this chapter` })
+      if (slugs.has(question.slug))
+        problems.push({ file, message: `slug \`${question.slug}\` is used twice, so the id isn't unique` })
       numbers.add(question.number)
       slugs.add(question.slug)
     }
@@ -66,7 +70,10 @@ function checkQuestionLinks({ topics }: Content): Problem[] {
     visitLinks(parseMarkdown(question.body), (link) => {
       const target = targetMarkdownFile(question.file, link.url)
       if (target !== null && !questionFiles.has(target)) {
-        problems.push({ file: repoRelative(question.file), message: `link \`${link.url}\` is not an existing question file` })
+        problems.push({
+          file: repoRelative(question.file),
+          message: `link \`${link.url}\` is not an existing question file`,
+        })
       }
     })
   }
@@ -102,17 +109,30 @@ function checkRolePaths({ topics, paths }: Content): Problem[] {
   const questionIds = questionIdsOf(topics)
   const reserved = topics
     .filter((topic) => RESERVED_TOPIC_SLUGS.includes(topic.slug))
-    .map((topic): Problem => ({ file: repoRelative(topic.dir), message: `\`${topic.slug}\` is a reserved route name; pick another folder name` }))
+    .map((topic): Problem => ({
+      file: repoRelative(topic.dir),
+      message: `\`${topic.slug}\` is a reserved route name; pick another folder name`,
+    }))
   return [...reserved, ...validateRolePaths(paths, topics, questionIds)]
 }
 
 export function collectProblems(content: Content): Problem[] {
   const questions = content.topics.flatMap((topic) => topic.chapters.flatMap((chapter) => chapter.questions))
-  const problems = [...content.problems, ...questions.flatMap(checkBody), ...checkReferences(content), ...checkQuestionLinks(content), ...checkDecks(content), ...checkRolePaths(content)]
+  const problems = [
+    ...content.problems,
+    ...questions.flatMap(checkBody),
+    ...checkReferences(content),
+    ...checkQuestionLinks(content),
+    ...checkDecks(content),
+    ...checkRolePaths(content),
+  ]
   // README tables can only be rendered from valid content, so staleness is checked last.
   if (problems.length === 0) {
     for (const { file } of staleReadmes(content.topics)) {
-      problems.push({ file: repoRelative(file), message: 'generated parts are out of date — run `npm run content:sync`' })
+      problems.push({
+        file: repoRelative(file),
+        message: 'generated parts are out of date — run `npm run content:sync`',
+      })
     }
   }
   return problems

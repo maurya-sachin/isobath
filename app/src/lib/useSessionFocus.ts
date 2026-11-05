@@ -7,7 +7,12 @@ import { useEffect, useRef } from 'react'
  * summary when the session `finished`. It never moves on the first render, unless `focusOnStart` is set
  * (for a round the learner just chose to begin).
  */
-export function useSessionFocus<Prompt extends HTMLElement, Answer extends HTMLElement>(step: number, revealed: boolean, finished: boolean, focusOnStart = false) {
+export function useSessionFocus<Prompt extends HTMLElement, Answer extends HTMLElement>(
+  step: number,
+  revealed: boolean,
+  finished: boolean,
+  focusOnStart = false,
+) {
   const promptRef = useRef<Prompt>(null)
   const answerRef = useRef<Answer>(null)
   const doneRef = useRef<HTMLHeadingElement>(null)

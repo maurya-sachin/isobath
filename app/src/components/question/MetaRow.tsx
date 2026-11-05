@@ -25,7 +25,10 @@ interface MetaRowProps {
 export function MetaRow({ status, difficulty, frequency, verified, stale, legacy }: MetaRowProps) {
   return (
     <>
-      <ul aria-label="Question details" className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+      <ul
+        aria-label="Question details"
+        className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground"
+      >
         <li>
           <LifecycleLabel status={status} legacy={legacy !== null} />
         </li>
@@ -51,13 +54,18 @@ const LABEL_STYLE = 'rounded-full border px-2 py-0.5 font-medium'
 
 /** Draft, Reviewed or Legacy; a legacy question is labelled so whatever its status. */
 function LifecycleLabel({ status, legacy }: { status: Status; legacy: boolean }) {
-  if (legacy) return <span className={cn(LABEL_STYLE, 'border-transparent bg-medium text-medium-foreground')}>Legacy</span>
+  if (legacy)
+    return <span className={cn(LABEL_STYLE, 'border-transparent bg-medium text-medium-foreground')}>Legacy</span>
   if (status === 'published') return <span className={cn(LABEL_STYLE, 'border-link text-link')}>Reviewed</span>
   return <span className={cn(LABEL_STYLE, 'text-muted-foreground')}>Draft</span>
 }
 
 export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
-  return <span className={cn('rounded-full px-2 py-0.5 font-medium capitalize', DIFFICULTY_STYLE[difficulty])}>{difficulty}</span>
+  return (
+    <span className={cn('rounded-full px-2 py-0.5 font-medium capitalize', DIFFICULTY_STYLE[difficulty])}>
+      {difficulty}
+    </span>
+  )
 }
 
 export function FrequencyDots({ frequency }: { frequency: number }) {

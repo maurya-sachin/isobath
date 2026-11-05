@@ -29,7 +29,13 @@ export function PathPage() {
       index: String(index + 1).padStart(2, '0'),
       title: stepLabel(step),
       to: stepPath(step),
-      meta: !step.ready ? (step.started ? 'In progress' : 'Planned') : progress.read > 0 ? `${progress.read} of ${progress.total} read` : `${progress.total} questions`,
+      meta: !step.ready
+        ? step.started
+          ? 'In progress'
+          : 'Planned'
+        : progress.read > 0
+          ? `${progress.read} of ${progress.total} read`
+          : `${progress.total} questions`,
       note: step.why,
       planned: !step.ready,
       current: step === next,

@@ -44,12 +44,24 @@ const SEGMENTS: Record<number, [Edge, Edge][]> = {
 /** Saddle cells (opposite corners inside) join differently depending on whether their centre is inside. */
 const SADDLE: Record<number, { centreInside: [Edge, Edge][]; centreOutside: [Edge, Edge][] }> = {
   5: {
-    centreInside: [['top', 'left'], ['bottom', 'right']],
-    centreOutside: [['top', 'right'], ['left', 'bottom']],
+    centreInside: [
+      ['top', 'left'],
+      ['bottom', 'right'],
+    ],
+    centreOutside: [
+      ['top', 'right'],
+      ['left', 'bottom'],
+    ],
   },
   10: {
-    centreInside: [['top', 'right'], ['left', 'bottom']],
-    centreOutside: [['top', 'left'], ['bottom', 'right']],
+    centreInside: [
+      ['top', 'right'],
+      ['left', 'bottom'],
+    ],
+    centreOutside: [
+      ['top', 'left'],
+      ['bottom', 'right'],
+    ],
   },
 }
 
@@ -75,8 +87,10 @@ function seededRandom(seed: string): () => number {
 
 type Field = (u: number, v: number) => number
 
-const gaussian = (x: number, y: number, spread: number, height: number): Field => (u, v) =>
-  height * Math.exp(-((u - x) ** 2 + (v - y) ** 2) / (2 * spread ** 2))
+const gaussian =
+  (x: number, y: number, spread: number, height: number): Field =>
+  (u, v) =>
+    height * Math.exp(-((u - x) ** 2 + (v - y) ** 2) / (2 * spread ** 2))
 
 /** Low waves that make the lines wander like a surveyed coast rather than a lathe. */
 function ripple(random: () => number, amplitude: number): Field {
@@ -86,7 +100,11 @@ function ripple(random: () => number, amplitude: number): Field {
     phase: random() * Math.PI * 2,
     amplitude: amplitude * (0.5 + random() * 0.5),
   }))
-  return (u, v) => waves.reduce((sum, wave) => sum + wave.amplitude * Math.sin(2 * Math.PI * (wave.fx * u + wave.fy * v) + wave.phase), 0)
+  return (u, v) =>
+    waves.reduce(
+      (sum, wave) => sum + wave.amplitude * Math.sin(2 * Math.PI * (wave.fx * u + wave.fy * v) + wave.phase),
+      0,
+    )
 }
 
 /**
@@ -160,7 +178,11 @@ function ringsAtHeight(field: number[][], height: number, level: number, size: n
       const topRight = field[row][column + 1]
       const bottomRight = field[row + 1][column + 1]
       const bottomLeft = field[row + 1][column]
-      const pattern = Number(topLeft > height) * 8 + Number(topRight > height) * 4 + Number(bottomRight > height) * 2 + Number(bottomLeft > height)
+      const pattern =
+        Number(topLeft > height) * 8 +
+        Number(topRight > height) * 4 +
+        Number(bottomRight > height) * 2 +
+        Number(bottomLeft > height)
       const saddle = SADDLE[pattern]
       const centreInside = (topLeft + topRight + bottomRight + bottomLeft) / 4 > height
       const segments = saddle ? (centreInside ? saddle.centreInside : saddle.centreOutside) : (SEGMENTS[pattern] ?? [])
@@ -192,7 +214,9 @@ export function contourRings({ seed, levels, steepness = 0, size = 100 }: Contou
   const field = heightField(seededRandom(seed), steepness)
   const floor = borderMaximum(field)
   const peak = Math.max(...field.flat())
-  return Array.from({ length: levels }, (_, level) => ringsAtHeight(field, floor + ((peak - floor) * (level + 0.5)) / levels, level, size)).flat()
+  return Array.from({ length: levels }, (_, level) =>
+    ringsAtHeight(field, floor + ((peak - floor) * (level + 0.5)) / levels, level, size),
+  ).flat()
 }
 
 const MIN_COVER_LEVELS = 3
@@ -213,7 +237,12 @@ export function ringPath(points: readonly Point[]): string {
 
 /** The ring with the most points at a level (a level can have several rings); `undefined` when the level has none. */
 export function ringAtLevel(rings: Ring[], level: number): Ring | undefined {
-  return rings.filter((ring) => ring.level === level).reduce<Ring | undefined>((best, ring) => (!best || ring.points.length > best.points.length ? ring : best), undefined)
+  return rings
+    .filter((ring) => ring.level === level)
+    .reduce<Ring | undefined>(
+      (best, ring) => (!best || ring.points.length > best.points.length ? ring : best),
+      undefined,
+    )
 }
 
 /** The point furthest in a direction: `angle` 0 is right and grows clockwise on screen (y grows downward). */

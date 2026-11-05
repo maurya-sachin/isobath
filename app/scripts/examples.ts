@@ -12,7 +12,9 @@ import { repoRelative } from './lib/paths.ts'
 const TIMEOUT_MS = 10_000
 
 const content = await loadContent()
-const files = content.topics.filter((topic) => topic.slug === 'javascript').flatMap((topic) => topic.chapters.flatMap((chapter) => chapter.questions.map((question) => question.file)))
+const files = content.topics
+  .filter((topic) => topic.slug === 'javascript')
+  .flatMap((topic) => topic.chapters.flatMap((chapter) => chapter.questions.map((question) => question.file)))
 const workDir = mkdtempSync(path.join(tmpdir(), 'isobath-examples-'))
 
 let ran = 0
@@ -31,7 +33,9 @@ try {
       const actual = printedOutput(result.stdout, result.stderr, result.status)
       if (outputMatches(example.expected, actual)) continue
       failed++
-      console.error(`✖ ${repoRelative(file)}:${example.line}\n  expected: ${example.expected.join(' | ')}\n  actual:   ${actual.trim().split('\n').join(' | ')}`)
+      console.error(
+        `✖ ${repoRelative(file)}:${example.line}\n  expected: ${example.expected.join(' | ')}\n  actual:   ${actual.trim().split('\n').join(' | ')}`,
+      )
     }
   }
 } finally {

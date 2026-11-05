@@ -10,7 +10,13 @@ test('missing or corrupt saved settings give the defaults', () => {
 
 test('keeps valid settings and wraps hues into 0–359', () => {
   const saved = JSON.stringify({ hueLight: 190, hueDark: 370.4, textSize: 120, contrast: 'high', motion: 'reduce' })
-  assert.deepEqual(parseAppearance(saved), { hueLight: 190, hueDark: 10, textSize: 120, contrast: 'high', motion: 'reduce' })
+  assert.deepEqual(parseAppearance(saved), {
+    hueLight: 190,
+    hueDark: 10,
+    textSize: 120,
+    contrast: 'high',
+    motion: 'reduce',
+  })
   assert.equal(parseAppearance(JSON.stringify({ hueLight: -30 })).hueLight, 330)
 })
 

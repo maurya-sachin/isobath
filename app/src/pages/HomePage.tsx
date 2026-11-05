@@ -30,20 +30,28 @@ export function HomePage() {
       {/* Phones read intro, figure, roles; from lg the figure takes the right column beside both. */}
       <section className="grid items-start gap-x-16 gap-y-10 lg:grid-cols-[1fr_1.1fr] lg:gap-y-9">
         <div>
-          <h1 className="font-serif text-[2.75rem] leading-[1.05] font-medium tracking-[-0.025em] sm:text-6xl">{TAGLINE}.</h1>
+          <h1 className="font-serif text-[2.75rem] leading-[1.05] font-medium tracking-[-0.025em] sm:text-6xl">
+            {TAGLINE}.
+          </h1>
           <p className="mt-5 max-w-lg font-serif text-xl leading-relaxed text-muted-foreground">
-            Every question opens with the answer you would give in the room, then goes down to the mechanism, the edge cases, and the spec or engine underneath.
+            Every question opens with the answer you would give in the room, then goes down to the mechanism, the edge
+            cases, and the spec or engine underneath.
           </p>
         </div>
         <StrataFigure className="mx-auto w-full max-w-md lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-[30rem]" />
         <div>
           <h2 className="mb-1 text-sm font-semibold">What are you preparing as?</h2>
           {available.length === 0 && drafted > 0 && (
-            <p className="mb-2 text-sm text-muted-foreground">Nothing is published yet: {drafted} questions are written and in review.</p>
+            <p className="mb-2 text-sm text-muted-foreground">
+              Nothing is published yet: {drafted} questions are written and in review.
+            </p>
           )}
           <RoleList paths={paths} />
           {lastQuestion && (
-            <Link to={questionPath(lastQuestion)} className="group mt-8 flex max-w-lg items-baseline gap-3 border-l-2 border-link pl-4">
+            <Link
+              to={questionPath(lastQuestion)}
+              className="group mt-8 flex max-w-lg items-baseline gap-3 border-l-2 border-link pl-4"
+            >
               <span>
                 <span className="block text-sm text-muted-foreground">Continue where you left off</span>
                 <span className="block font-medium group-hover:text-link">
@@ -56,7 +64,10 @@ export function HomePage() {
       </section>
 
       {start && (
-        <section className="mt-20 grid gap-10 border-t pt-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16" aria-labelledby="start-here">
+        <section
+          className="mt-20 grid gap-10 border-t pt-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16"
+          aria-labelledby="start-here"
+        >
           <div>
             <h2 id="start-here" className="font-serif text-3xl font-medium tracking-tight">
               Start here
@@ -71,7 +82,10 @@ export function HomePage() {
           </div>
           <div className="rounded-r-xl border-l-4 border-link bg-tldr py-5 pr-6 pl-6 text-tldr-foreground">
             <p className="text-sm font-medium">30-second answer</p>
-            <InlineHtml html={start.tldrHtml} className={`mt-2 block font-serif text-xl leading-snug text-foreground ${INLINE_CODE}`} />
+            <InlineHtml
+              html={start.tldrHtml}
+              className={`mt-2 block font-serif text-xl leading-snug text-foreground ${INLINE_CODE}`}
+            />
           </div>
         </section>
       )}
@@ -109,10 +123,18 @@ function AvailableTopic({ topic }: { topic: TopicOverview }) {
   const { stats } = topic
   return (
     <Link to={`/${topic.slug}`} className="group grid grid-cols-[7.5rem_1fr] gap-5">
-      <TopicCover slug={topic.slug} chapterCount={topic.chapterCount} hardShare={stats.total === 0 ? 0 : stats.byDifficulty.hard / stats.total} className="size-30 rounded-md bg-muted" />
+      <TopicCover
+        slug={topic.slug}
+        chapterCount={topic.chapterCount}
+        hardShare={stats.total === 0 ? 0 : stats.byDifficulty.hard / stats.total}
+        className="size-30 rounded-md bg-muted"
+      />
       <span>
         <span className="block font-serif text-2xl leading-tight font-medium group-hover:text-link">{topic.title}</span>
-        <InlineHtml html={topic.summaryHtml} className={`mt-1 mb-3 line-clamp-2 block text-sm text-muted-foreground ${INLINE_CODE}`} />
+        <InlineHtml
+          html={topic.summaryHtml}
+          className={`mt-1 mb-3 line-clamp-2 block text-sm text-muted-foreground ${INLINE_CODE}`}
+        />
         <DifficultyMix counts={stats.byDifficulty} className="max-w-64" />
         <span className="mt-2 block text-xs text-muted-foreground">
           {stats.readable} questions{topic.flashcardCount > 0 && ` · ${topic.flashcardCount} flashcards`}

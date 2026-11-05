@@ -14,7 +14,15 @@ interface TopicCoverProps {
 export function TopicCover({ slug, chapterCount, hardShare, className }: TopicCoverProps) {
   const { rings, levels } = coverRings(slug, chapterCount, hardShare)
   return (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" fill="none" strokeWidth="0.8" strokeLinejoin="round" aria-hidden="true" className={cn('overflow-hidden', className)}>
+    <svg
+      viewBox="0 0 100 100"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      strokeWidth="0.8"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={cn('overflow-hidden', className)}
+    >
       {rings.map((ring, index) => (
         <path
           key={index}

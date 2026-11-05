@@ -25,7 +25,9 @@ export function ChapterPage() {
   if (!topic || !chapter) return <NotFound what="Chapter" />
 
   const stats = chapterStats([chapter])
-  const shown = chapter.questions.filter((question) => (!difficulty || question.difficulty === difficulty) && (!coreOnly || question.core))
+  const shown = chapter.questions.filter(
+    (question) => (!difficulty || question.difficulty === difficulty) && (!coreOnly || question.core),
+  )
   const filtering = difficulty !== null || coreOnly
 
   return (
@@ -41,7 +43,10 @@ export function ChapterPage() {
       <h1 className="mt-1 text-4xl font-bold tracking-[-0.03em]">
         <InlineHtml html={chapter.titleHtml} className="[&_code]:font-mono [&_code]:text-[0.9em]" />
       </h1>
-      <InlineHtml html={chapter.summaryHtml} className="mt-3 block max-w-2xl font-serif text-xl leading-relaxed text-muted-foreground [&_code]:font-mono [&_code]:text-[0.9em]" />
+      <InlineHtml
+        html={chapter.summaryHtml}
+        className="mt-3 block max-w-2xl font-serif text-xl leading-relaxed text-muted-foreground [&_code]:font-mono [&_code]:text-[0.9em]"
+      />
 
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
         <span>{stats.total} questions</span>
@@ -55,7 +60,11 @@ export function ChapterPage() {
 
       <div role="group" aria-label="Filter questions" className="mt-6 flex flex-wrap gap-2 text-sm">
         {LEVELS.map((level) => (
-          <FilterChip key={level} pressed={difficulty === level} onClick={() => setDifficulty(difficulty === level ? null : level)}>
+          <FilterChip
+            key={level}
+            pressed={difficulty === level}
+            onClick={() => setDifficulty(difficulty === level ? null : level)}
+          >
             <span className="capitalize">{level}</span> · {stats.byDifficulty[level]}
           </FilterChip>
         ))}
@@ -77,11 +86,16 @@ export function ChapterPage() {
       </div>
 
       {shown.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed p-5 text-muted-foreground">No questions match these filters.</p>
+        <p className="mt-6 rounded-xl border border-dashed p-5 text-muted-foreground">
+          No questions match these filters.
+        </p>
       ) : (
         <ol className="mt-4 border-t">
           {shown.map((question) => (
-            <li key={question.id} className="grid grid-cols-[2.5rem_1fr] gap-x-3 gap-y-2 border-b py-4 sm:grid-cols-[2.5rem_1fr_auto]">
+            <li
+              key={question.id}
+              className="grid grid-cols-[2.5rem_1fr] gap-x-3 gap-y-2 border-b py-4 sm:grid-cols-[2.5rem_1fr_auto]"
+            >
               <span className="font-mono text-xs text-muted-foreground sm:pt-1">{question.number}</span>
               {question.hasPage ? (
                 <Link to={questionPath(question)} className="font-medium hover:text-link">
@@ -107,7 +121,15 @@ export function ChapterPage() {
   )
 }
 
-function FilterChip({ pressed, onClick, children }: { pressed: boolean; onClick: () => void; children: React.ReactNode }) {
+function FilterChip({
+  pressed,
+  onClick,
+  children,
+}: {
+  pressed: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
   return (
     <button
       type="button"

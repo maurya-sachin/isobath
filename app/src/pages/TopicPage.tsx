@@ -34,7 +34,9 @@ function Topic({ topic }: { topic: TopicSummary }) {
   const stats = chapterStats(topic.chapters)
   const questions = topic.chapters.flatMap((chapter) => chapter.questions)
   // Continue at the first readable question not read yet; fall back to the first readable one.
-  const start = questions.find((question) => question.hasPage && !read.includes(question.id)) ?? questions.find((question) => question.hasPage)
+  const start =
+    questions.find((question) => question.hasPage && !read.includes(question.id)) ??
+    questions.find((question) => question.hasPage)
   // Drafts are readable but not yet reviewed by the maintainer.
   const unreviewed = stats.readable - stats.reviewed
   const hasFacts = topic.covers !== null || unreviewed > 0 || stats.lastVerified !== null || stats.stale > 0
@@ -54,7 +56,10 @@ function Topic({ topic }: { topic: TopicSummary }) {
             className="mb-6 hidden aspect-2/1 w-full rounded-lg bg-muted lg:block"
           />
           <h1 className="text-4xl font-bold tracking-[-0.03em]">{topic.title}</h1>
-          <InlineHtml html={topic.summaryHtml} className={`mt-3 block font-serif text-xl leading-relaxed text-muted-foreground ${INLINE_CODE}`} />
+          <InlineHtml
+            html={topic.summaryHtml}
+            className={`mt-3 block font-serif text-xl leading-relaxed text-muted-foreground ${INLINE_CODE}`}
+          />
 
           {topic.chapters.length > 0 && (
             <div className="mt-5 flex flex-wrap gap-3 lg:flex-col">
@@ -69,7 +74,11 @@ function Topic({ topic }: { topic: TopicSummary }) {
                 </Button>
               )}
               {topic.flashcardCount > 0 && (
-                <a href={`/data/topics/${topic.slug}/anki.txt`} download={`${SITE_NAME}-${topic.slug}-anki.txt`} className="self-start text-sm text-link hover:text-link-hover">
+                <a
+                  href={`/data/topics/${topic.slug}/anki.txt`}
+                  download={`${SITE_NAME}-${topic.slug}-anki.txt`}
+                  className="self-start text-sm text-link hover:text-link-hover"
+                >
                   Download for Anki
                 </a>
               )}
@@ -89,14 +98,20 @@ function Topic({ topic }: { topic: TopicSummary }) {
               {topic.covers !== null && <li>Covers {topic.covers}</li>}
               {unreviewed > 0 && <li>{unreviewed} not yet reviewed</li>}
               {stats.lastVerified !== null && <li>Last verified {formatMonth(stats.lastVerified)}</li>}
-              {stats.stale > 0 && <li className={WARNING_TEXT}>{stats.stale === 1 ? '1 needs re-checking' : `${stats.stale} need re-checking`}</li>}
+              {stats.stale > 0 && (
+                <li className={WARNING_TEXT}>
+                  {stats.stale === 1 ? '1 needs re-checking' : `${stats.stale} need re-checking`}
+                </li>
+              )}
             </ul>
           )}
         </header>
 
         <section aria-label="Contents">
           {topic.chapters.length === 0 ? (
-            <p className="rounded-xl border border-dashed p-5 text-muted-foreground">Chapters for this topic are planned.</p>
+            <p className="rounded-xl border border-dashed p-5 text-muted-foreground">
+              Chapters for this topic are planned.
+            </p>
           ) : (
             <>
               <div className="flex gap-3">
@@ -108,7 +123,13 @@ function Topic({ topic }: { topic: TopicSummary }) {
                   aria-label="Filter chapters and questions"
                   className="h-9 flex-1"
                 />
-                <Button variant="outline" size="lg" aria-pressed={unreadOnly} onClick={() => setUnreadOnly((value) => !value)} className={cn(unreadOnly && 'bg-tldr text-tldr-foreground')}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  aria-pressed={unreadOnly}
+                  onClick={() => setUnreadOnly((value) => !value)}
+                  className={cn(unreadOnly && 'bg-tldr text-tldr-foreground')}
+                >
                   Unread only
                 </Button>
               </div>
@@ -137,7 +158,10 @@ function Topic({ topic }: { topic: TopicSummary }) {
                         <details open={filtering} className="group">
                           <summary className="grid cursor-pointer list-none grid-cols-[2.5rem_1fr] items-center gap-x-4 gap-y-2 py-4 sm:grid-cols-[2.5rem_1fr_11rem] [&::-webkit-details-marker]:hidden">
                             <span className="font-mono text-sm text-muted-foreground">{chapter.number}</span>
-                            <InlineHtml html={chapter.titleHtml} className="text-lg font-semibold group-hover:text-link [&_code]:font-mono [&_code]:text-[0.9em]" />
+                            <InlineHtml
+                              html={chapter.titleHtml}
+                              className="text-lg font-semibold group-hover:text-link [&_code]:font-mono [&_code]:text-[0.9em]"
+                            />
                             <span className="col-start-2 flex flex-col gap-1.5 text-sm text-muted-foreground sm:col-start-3 sm:text-right">
                               <DifficultyMix counts={counts.byDifficulty} />
                               <span>
@@ -146,18 +170,30 @@ function Topic({ topic }: { topic: TopicSummary }) {
                             </span>
                           </summary>
                           <div className="pb-4 pl-14">
-                            <InlineHtml html={chapter.summaryHtml} className={`block text-sm leading-relaxed text-muted-foreground ${INLINE_CODE}`} />
+                            <InlineHtml
+                              html={chapter.summaryHtml}
+                              className={`block text-sm leading-relaxed text-muted-foreground ${INLINE_CODE}`}
+                            />
                             <ul className="mt-3 flex flex-col">
                               {chapter.questions.map((question) => (
                                 <li key={question.id} className="border-t border-dashed first:border-t-0">
                                   {question.hasPage ? (
-                                    <Link to={questionPath(question)} className="flex items-baseline justify-between gap-4 py-2 hover:text-link">
+                                    <Link
+                                      to={questionPath(question)}
+                                      className="flex items-baseline justify-between gap-4 py-2 hover:text-link"
+                                    >
                                       <span>
                                         <QuestionTitle html={question.titleHtml} />
-                                        {question.legacy !== null && <span className={cn('ml-2 text-xs font-medium', WARNING_TEXT)}>Legacy</span>}
-                                        {question.stale && <span className={cn('ml-2 text-xs', WARNING_TEXT)}>may be out of date</span>}
+                                        {question.legacy !== null && (
+                                          <span className={cn('ml-2 text-xs font-medium', WARNING_TEXT)}>Legacy</span>
+                                        )}
+                                        {question.stale && (
+                                          <span className={cn('ml-2 text-xs', WARNING_TEXT)}>may be out of date</span>
+                                        )}
                                       </span>
-                                      {read.includes(question.id) && <span className="shrink-0 text-xs text-muted-foreground">read</span>}
+                                      {read.includes(question.id) && (
+                                        <span className="shrink-0 text-xs text-muted-foreground">read</span>
+                                      )}
                                     </Link>
                                   ) : (
                                     <div className="flex items-baseline justify-between gap-4 py-2 text-muted-foreground">
@@ -168,7 +204,10 @@ function Topic({ topic }: { topic: TopicSummary }) {
                                 </li>
                               ))}
                             </ul>
-                            <Link to={`/${topic.slug}/${chapter.slug}`} className="mt-2 inline-block text-sm text-link hover:text-link-hover">
+                            <Link
+                              to={`/${topic.slug}/${chapter.slug}`}
+                              className="mt-2 inline-block text-sm text-link hover:text-link-hover"
+                            >
                               Open chapter page
                             </Link>
                           </div>

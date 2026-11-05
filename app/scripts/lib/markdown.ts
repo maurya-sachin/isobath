@@ -69,6 +69,8 @@ export async function renderInline(markdown: string, sourceFile?: string): Promi
   const mdast = inlineProcessor.parse(markdown)
   if (sourceFile) rewriteQuestionLinks(mdast, sourceFile)
   const hast: HastRoot = await inlineProcessor.run(mdast)
-  const children = hast.children.flatMap((node) => (node.type === 'element' && node.tagName === 'p' ? node.children : [node]))
+  const children = hast.children.flatMap((node) =>
+    node.type === 'element' && node.tagName === 'p' ? node.children : [node],
+  )
   return { text: toString(mdast), html: toHtml(children) }
 }

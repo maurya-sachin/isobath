@@ -37,7 +37,12 @@ interface Element {
   props: Record<string, unknown>
 }
 
-const element = (type: string, style: Record<string, unknown>, children?: unknown, props: Record<string, unknown> = {}): Element => ({
+const element = (
+  type: string,
+  style: Record<string, unknown>,
+  children?: unknown,
+  props: Record<string, unknown> = {},
+): Element => ({
   type,
   props: { ...props, style, children },
 })
@@ -62,18 +67,63 @@ export function questionCard(data: CardData): Element {
     'div',
     { display: 'flex', width: CARD_WIDTH, height: CARD_HEIGHT, background: BACKGROUND, position: 'relative' },
     [
-      element('img', { position: 'absolute', right: MAP_OFFSET, top: 0, width: MAP_SIZE, height: MAP_SIZE }, undefined, { src: contourMap(data.map), width: MAP_SIZE, height: MAP_SIZE }),
-      element('div', { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, padding: PADDING }, [
-        element('div', { display: 'flex', flexDirection: 'column', width: TEXT_WIDTH }, [
-          element('div', { fontFamily: 'Geist', fontWeight: 600, fontSize: 28, color: ACCENT }, `${data.topicTitle} · ${data.chapterTitle}`),
-          element('div', { fontFamily: 'Newsreader', fontWeight: 500, fontSize: titleSize, lineHeight: 1.15, color: FOREGROUND, marginTop: 28 }, data.title),
-        ]),
-        element('div', { display: 'flex', alignItems: 'baseline', fontFamily: 'Geist', fontWeight: 600, fontSize: 30, color: FOREGROUND }, [
-          element('div', {}, SITE_NAME),
-          element('div', { color: MUTED, marginLeft: 20 }, `by ${AUTHOR}`),
-          element('div', { color: MUTED, marginLeft: 20 }, `· ${data.difficulty}`),
-        ]),
-      ]),
+      element(
+        'img',
+        { position: 'absolute', right: MAP_OFFSET, top: 0, width: MAP_SIZE, height: MAP_SIZE },
+        undefined,
+        { src: contourMap(data.map), width: MAP_SIZE, height: MAP_SIZE },
+      ),
+      element(
+        'div',
+        {
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          padding: PADDING,
+        },
+        [
+          element('div', { display: 'flex', flexDirection: 'column', width: TEXT_WIDTH }, [
+            element(
+              'div',
+              { fontFamily: 'Geist', fontWeight: 600, fontSize: 28, color: ACCENT },
+              `${data.topicTitle} · ${data.chapterTitle}`,
+            ),
+            element(
+              'div',
+              {
+                fontFamily: 'Newsreader',
+                fontWeight: 500,
+                fontSize: titleSize,
+                lineHeight: 1.15,
+                color: FOREGROUND,
+                marginTop: 28,
+              },
+              data.title,
+            ),
+          ]),
+          element(
+            'div',
+            {
+              display: 'flex',
+              alignItems: 'baseline',
+              fontFamily: 'Geist',
+              fontWeight: 600,
+              fontSize: 30,
+              color: FOREGROUND,
+            },
+            [
+              element('div', {}, SITE_NAME),
+              element('div', { color: MUTED, marginLeft: 20 }, `by ${AUTHOR}`),
+              element('div', { color: MUTED, marginLeft: 20 }, `· ${data.difficulty}`),
+            ],
+          ),
+        ],
+      ),
     ],
   )
 }

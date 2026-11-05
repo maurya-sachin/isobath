@@ -1,0 +1,8 @@
+dist
+dist-server
+public/data
+node_modules
+package-lock.json
+*.md
+src/components/ui
+src/theme/palette.css

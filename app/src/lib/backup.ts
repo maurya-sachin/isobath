@@ -16,7 +16,13 @@ export interface Backup {
 }
 
 export function createBackup(progress: Progress, reviews: Reviews, now: Date): Backup {
-  return { format: BACKUP_FORMAT, version: 1, exportedAt: now.toISOString(), progress: { read: [...progress.read] }, reviews }
+  return {
+    format: BACKUP_FORMAT,
+    version: 1,
+    exportedAt: now.toISOString(),
+    progress: { read: [...progress.read] },
+    reviews,
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -31,15 +37,15 @@ export function parseBackup(text: string): Backup {
   } catch {
     throw new Error('This file is not valid JSON.')
   }
-  if (!isRecord(data) || data.format !== BACKUP_FORMAT || data.version !== 1) throw new Error('This is not an isobath progress file.')
+  if (!isRecord(data) || data.format !== BACKUP_FORMAT || data.version !== 1)
+    throw new Error('This is not an isobath progress file.')
 
   const { progress, reviews } = data
   if (!isRecord(progress) || !Array.isArray(progress.read) || !progress.read.every((id) => typeof id === 'string')) {
     throw new Error("The file's reading progress is damaged.")
   }
   const reviewsValid =
-    isRecord(reviews) &&
-    Object.entries(reviews).every(([id, card]) => CARD_ID.test(id) && isValidCard(card))
+    isRecord(reviews) && Object.entries(reviews).every(([id, card]) => CARD_ID.test(id) && isValidCard(card))
   if (!reviewsValid) throw new Error("The file's flashcard history is damaged.")
 
   return {
@@ -56,8 +62,14 @@ function reviewedAt(card: Reviews[string]): number {
 }
 
 /** Combines an import with what this browser has: read questions are unioned, the last question stays as is, and each card keeps its most recent review. */
-export function mergeBackup(current: { progress: Progress; reviews: Reviews }, incoming: Backup): { progress: Progress; reviews: Reviews } {
-  const progress: Progress = { ...current.progress, read: [...new Set([...current.progress.read, ...incoming.progress.read])] }
+export function mergeBackup(
+  current: { progress: Progress; reviews: Reviews },
+  incoming: Backup,
+): { progress: Progress; reviews: Reviews } {
+  const progress: Progress = {
+    ...current.progress,
+    read: [...new Set([...current.progress.read, ...incoming.progress.read])],
+  }
 
   const merged = new Map(Object.entries(current.reviews))
   for (const [id, card] of Object.entries(incoming.reviews)) {
