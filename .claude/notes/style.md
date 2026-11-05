@@ -4,6 +4,7 @@ Rules: `PLAN.md`. Layout: `README.md`. Templates: `templates/`.
 Record here only conventions not covered there (e.g., maintainer corrections). Delete entries once they're obsolete.
 
 ## App (`app/`)
+- Formatting is Prettier (`npm run format`, checked in CI): no semicolons, single quotes, 120 columns. It skips `content/`, Markdown, `src/components/ui/` and generated files. Never mix a formatting pass with a logic change.
 - TypeScript stays `~6.0` until typescript-eslint's peer range allows 7 (it caps at `<6.1`).
 - `src/components/ui/` is shadcn-generated: add components with `npx shadcn add`, don't hand-edit; ESLint's react-refresh rule is off there.
 - Theme tokens live in `src/index.css`; brand colours are the `link`, `tldr` and `depth-*` utilities.
