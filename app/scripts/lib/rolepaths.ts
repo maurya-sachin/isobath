@@ -78,6 +78,55 @@ async function parsePath(file: string, problems: Problem[]) {
   return undefined
 }
 
+const KEBAB_SLUG = new RegExp(`^${KEBAB}$`)
+
+/** `order` is unique across paths: the later path is reported. */
+function checkUniqueOrders(paths: RolePathSource[]): Problem[] {
+  const owners = new Map<number, string>()
+  return paths.flatMap(({ file, slug, order }) => {
+    const owner = owners.get(order)
+    if (owner === undefined) {
+      owners.set(order, slug)
+      return []
+    }
+    return [{ file, message: `order ${order} is already used by \`${owner}\`` }]
+  })
+}
+
+/** One entry names an existing topic (and chapter), and a chapter entry isn't beside its whole topic. */
+function checkStep(file: string, ref: string, steps: RolePathSource['steps'], topics: TopicRef[]): Problem[] {
+  const [topicSlug, chapterSlug] = ref.split('/')
+  const problems: Problem[] = []
+  if (chapterSlug !== undefined && steps.some((step) => step.ref === topicSlug)) {
+    problems.push({ file, message: `\`${ref}\` is already covered by \`${topicSlug}\`` })
+  }
+  const topic = topics.find((candidate) => candidate.slug === topicSlug)
+  if (!topic) problems.push({ file, message: `unknown topic \`${topicSlug}\` in entry \`${ref}\`` })
+  else if (chapterSlug !== undefined && !topic.chapters.some((chapter) => chapter.slug === chapterSlug)) {
+    problems.push({ file, message: `unknown chapter \`${ref}\`` })
+  }
+  return problems
+}
+
+/** Each entry appears once and names something real. */
+function checkSteps({ file, steps }: RolePathSource, topics: TopicRef[]): Problem[] {
+  const seen = new Set<string>()
+  return steps.flatMap(({ ref }) => {
+    const repeated: Problem[] = seen.has(ref) ? [{ file, message: `entry \`${ref}\` appears twice` }] : []
+    seen.add(ref)
+    return [...repeated, ...checkStep(file, ref, steps, topics)]
+  })
+}
+
+function checkIdentity({ file, slug, start }: RolePathSource, questionIds: ReadonlySet<string>): Problem[] {
+  const problems: Problem[] = []
+  if (!KEBAB_SLUG.test(slug))
+    problems.push({ file, message: 'file name must be kebab-case: it becomes the URL `/paths/<name>`' })
+  if (start !== undefined && !questionIds.has(start))
+    problems.push({ file, message: `start: unknown question \`${start}\`` })
+  return problems
+}
+
 /**
  * Every entry names an existing topic (and chapter) and appears once; a chapter entry can't sit beside its whole
  * topic (its questions would count twice); `order` is unique; `start` is a real question.
@@ -87,35 +136,10 @@ export function validateRolePaths(
   topics: TopicRef[],
   questionIds: ReadonlySet<string>,
 ): Problem[] {
-  const problems: Problem[] = []
-  const owners = new Map<number, string>()
-  for (const rolePath of paths) {
-    const { file } = rolePath
-    if (!new RegExp(`^${KEBAB}$`).test(rolePath.slug))
-      problems.push({ file, message: 'file name must be kebab-case: it becomes the URL `/paths/<name>`' })
-    const owner = owners.get(rolePath.order)
-    if (owner !== undefined) problems.push({ file, message: `order ${rolePath.order} is already used by \`${owner}\`` })
-    else owners.set(rolePath.order, rolePath.slug)
-
-    if (rolePath.start !== undefined && !questionIds.has(rolePath.start))
-      problems.push({ file, message: `start: unknown question \`${rolePath.start}\`` })
-
-    const seen = new Set<string>()
-    for (const { ref } of rolePath.steps) {
-      if (seen.has(ref)) problems.push({ file, message: `entry \`${ref}\` appears twice` })
-      seen.add(ref)
-      const [topicSlug, chapterSlug] = ref.split('/')
-      if (chapterSlug !== undefined && rolePath.steps.some((step) => step.ref === topicSlug)) {
-        problems.push({ file, message: `\`${ref}\` is already covered by \`${topicSlug}\`` })
-      }
-      const topic = topics.find((candidate) => candidate.slug === topicSlug)
-      if (!topic) problems.push({ file, message: `unknown topic \`${topicSlug}\` in entry \`${ref}\`` })
-      else if (chapterSlug !== undefined && !topic.chapters.some((chapter) => chapter.slug === chapterSlug)) {
-        problems.push({ file, message: `unknown chapter \`${ref}\`` })
-      }
-    }
-  }
-  return problems
+  return [
+    ...checkUniqueOrders(paths),
+    ...paths.flatMap((rolePath) => [...checkIdentity(rolePath, questionIds), ...checkSteps(rolePath, topics)]),
+  ]
 }
 
 /**
