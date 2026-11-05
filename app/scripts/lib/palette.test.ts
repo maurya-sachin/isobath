@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { contrastRatio } from '../../src/theme/oklch.ts'
-import { CSS_TOKENS, hex, linearRgb, paletteCss, PALETTE, type Mode, type Token } from '../../src/theme/palette.ts'
+import { CSS_TOKENS, hex, linearRgb, paletteCss, PALETTE, STATUS_HUES, statusRgb, type Mode, type StatusName, type Token } from '../../src/theme/palette.ts'
 
 const MODES: Mode[] = ['light', 'dark']
 const HUES = Array.from({ length: 72 }, (_, index) => index * 5)
@@ -41,6 +41,21 @@ test('every text and graphic pair meets WCAG AA at every hue, in both modes', ()
       for (const [foreground, background, minimum] of PAIRS) {
         const ratio = contrastRatio(linearRgb(mode, foreground, hue), linearRgb(mode, background, hue))
         assert.ok(ratio >= minimum, `${mode} ${foreground} on ${background} at hue ${hue}: ${ratio.toFixed(2)} < ${minimum}`)
+      }
+    }
+  }
+})
+
+test('status text reads on its badge and on the page, card and muted surfaces at every hue, in both modes', () => {
+  for (const mode of MODES) {
+    for (const name of Object.keys(STATUS_HUES) as StatusName[]) {
+      const text = statusRgb(mode, name, 'text')
+      assert.ok(contrastRatio(text, statusRgb(mode, name, 'surface')) >= 4.5, `${mode} ${name} on its badge`)
+      for (const hue of HUES) {
+        for (const surface of ['background', 'card', 'muted'] as const) {
+          const ratio = contrastRatio(text, linearRgb(mode, surface, hue))
+          assert.ok(ratio >= 4.5, `${mode} ${name} text on ${surface} at hue ${hue}: ${ratio.toFixed(2)}`)
+        }
       }
     }
   }
