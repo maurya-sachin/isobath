@@ -54,7 +54,7 @@ Non-goals: backend service, accounts, paid AI.
 - [ ] Q4 Responsive and cross-browser smoke in CI: `puppeteer-core` against the built site (Chrome and Firefox; 375/768/1024/1440 px; light, dark and 145 % text; fails on horizontal overflow, console errors or axe violations; the axe and keyboard scripts also live only in the scratchpad); the harness now lives only in a scratchpad. Safari (macOS and iOS) and Android Chrome are maintainer checks on real devices after deploy
 - [ ] Q3 Security headers in `vercel.json` (CSP that allows giscus and the inline theme script, nosniff, referrer and permissions policy)
 
-### 6C — Code complexity (ground rule in `CLAUDE.md`)
+### 6C — Code complexity (global rule: ≤ 8 per function)
 - [ ] C1 Bring the 12 source functions above 10 down to ≤ 8, one directory per commit: `TopicPage` 24, `QuestionPage` 24, `checkSection` 24, `checkReferences` 15, `Session` 14, `onKeyDown` 13, `validateRolePaths` 13, `ringsAtHeight` 11, `parseBackup` 11, `parseAppearance` 11, then the 10s
 - [ ] C2 Turn on ESLint `complexity` as an error at 10 once C1 is done (and ignore `dist-server`)
 
