@@ -27,8 +27,79 @@ test('counts `no-run` blocks as skipped, not run', () => {
 })
 
 test('runs blocks as modules unless the fence meta says `script`', () => {
-  assert.equal(extractExamples(fence('js', 'x // → 1')).examples[0].mode, 'module')
-  assert.equal(extractExamples(fence('js script', 'x // → 1')).examples[0].mode, 'script')
+  assert.deepEqual(extractExamples(fence('js', 'x // → 1')).examples[0].entries, ['example.mjs'])
+  assert.deepEqual(extractExamples(fence('js script', 'x // → 1')).examples[0].entries, ['example.cjs'])
+})
+
+test('reads allowed Node flags and environment variables from the fence meta', () => {
+  const [example] = extractExamples(
+    fence('js node=--expose-gc,--allow-natives-syntax env=A=1 env=B=two', 'x // → 1'),
+  ).examples
+  assert.deepEqual(example.nodeFlags, ['--expose-gc', '--allow-natives-syntax'])
+  assert.deepEqual(example.env, { A: '1', B: 'two' })
+})
+
+test('rejects a Node flag that is not on the allow-list', () => {
+  assert.throws(() => extractExamples(fence('js node=--inspect', 'x // → 1')), /--inspect/)
+})
+
+test('`files` splits a fence at `// name.ext` lines and `run=` names the files to run, in order', () => {
+  const code = [
+    '// lib.cjs',
+    'exports.a = 1',
+    '',
+    '// main.mjs: ESM importing CommonJS',
+    "import lib from './lib.cjs'",
+    'console.log(lib.a) // → 1',
+    '// main.cjs (entry point)',
+    "console.log(require('./lib.cjs').a) // → 1",
+  ].join('\n')
+  const [example] = extractExamples(fence('js files run=main.mjs,main.cjs', code)).examples
+  assert.deepEqual(
+    example.files.map((file) => file.name),
+    ['lib.cjs', 'main.mjs', 'main.cjs'],
+  )
+  assert.deepEqual(example.entries, ['main.mjs', 'main.cjs'])
+  assert.equal(example.files[0].code, 'exports.a = 1\n')
+})
+
+test('without `files`, header-like comments are ordinary comments and the fence is one file', () => {
+  const [example] = extractExamples(fence('js', '// example.mjs\nconsole.log(1) // → 1')).examples
+  assert.deepEqual(example.entries, ['example.mjs'])
+  assert.equal(example.files.length, 1)
+})
+
+test('rejects a `files` fence with no `run=`, an unknown entry, or code before the first header', () => {
+  assert.throws(() => extractExamples(fence('js files', '// main.mjs\nx // → 1')), /run=/)
+  assert.throws(() => extractExamples(fence('js files run=other.mjs', '// main.mjs\nx // → 1')), /other\.mjs/)
+  assert.throws(
+    () => extractExamples(fence('js files run=main.mjs', 'oops()\n// main.mjs\nx // → 1')),
+    /before the first/,
+  )
+  assert.throws(() => extractExamples(fence('js run=main.mjs', 'x // → 1')), /files/)
+})
+
+test('`continues` puts the previous js fence first, with its output silenced', () => {
+  const markdown =
+    fence('js', 'const a = 1\nconsole.log(a) // → 1') + fence('js continues', 'console.log(a + 1) // → 2')
+  const { examples } = extractExamples(markdown)
+  assert.equal(examples.length, 2)
+  const code = examples[1].files[0].code
+  assert.match(code, /const a = 1/)
+  assert.ok(code.indexOf('console.log = () => {}') < code.indexOf('const a = 1'))
+  assert.ok(code.indexOf('const a = 1') < code.indexOf('console.log = __log'))
+  assert.ok(code.endsWith('console.log(a + 1) // → 2'))
+  assert.deepEqual(examples[1].expected, ['2'])
+})
+
+test('`continues` chains through earlier continuing fences and needs an earlier fence', () => {
+  const markdown =
+    fence('js', 'const a = 1') +
+    fence('js continues', 'const b = a + 1') +
+    fence('js continues', 'console.log(b) // → 2')
+  const code = extractExamples(markdown).examples[0].files[0].code
+  assert.ok(code.includes('const a = 1') && code.includes('const b = a + 1'))
+  assert.throws(() => extractExamples(fence('js continues', 'x // → 1')), /continues/)
 })
 
 test('matches output ignoring whitespace', () => {
