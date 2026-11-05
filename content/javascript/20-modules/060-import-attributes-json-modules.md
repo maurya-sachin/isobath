@@ -48,7 +48,7 @@ History: an earlier version of the proposal used `assert { type: 'json' }` ("imp
 
 ## Example
 
-```js
+```js no-run
 // data.json: { "name": "demo", "tags": ["a", "b"], "n": 1 }
 import data from './data.json' with { type: 'json' };
 import again from './data.json' with { type: 'json' };

@@ -48,7 +48,7 @@ V8 rests on the **generational hypothesis**: most objects die young. So the heap
 
 ## Example
 
-```js
+```js no-run
 // gc-kinds.mjs, run with: node gc-kinds.mjs
 import { PerformanceObserver, constants } from 'node:perf_hooks';
 import v8 from 'node:v8';

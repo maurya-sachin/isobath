@@ -41,7 +41,7 @@ Import declarations are hoisted: they are processed at link time, so a dependenc
 
 ## Example
 
-```js
+```js no-run
 // counter.mjs
 console.log('counter evaluated');
 export let count = 0;
@@ -113,7 +113,7 @@ Link-time failures stop everything before output. Given `bad.mjs` containing `co
 
 The namespace object is a module namespace exotic object. Its `[[Get]]` reads the live binding, `[[Set]]` returns `false` (strict-mode assignment throws), `[[GetPrototypeOf]]` returns `null`, and it is non-extensible. Properties report `{ writable: true, enumerable: true, configurable: false }`, sorted by code unit order, plus `Symbol.toStringTag` of `"Module"`:
 
-```js
+```js no-run
 import * as ns from './counter.mjs';
 console.log(Object.getPrototypeOf(ns), Object.isExtensible(ns), ns[Symbol.toStringTag]);
 console.log(Object.getOwnPropertyDescriptor(ns, 'count'));

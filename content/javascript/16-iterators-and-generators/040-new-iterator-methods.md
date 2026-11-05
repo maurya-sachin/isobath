@@ -55,7 +55,7 @@ Until you can rely on these, feature-detect or use a polyfill such as core-js, o
 
 The outputs come from running this on Node 24.19 with core-js 3.50.0 loaded. On plain Node 24 it prints the "Not available" line.
 
-```js
+```js no-run
 const missing = ['concat', 'zip', 'zipKeyed'].filter((name) => typeof Iterator[name] !== 'function');
 
 if (missing.length > 0) {

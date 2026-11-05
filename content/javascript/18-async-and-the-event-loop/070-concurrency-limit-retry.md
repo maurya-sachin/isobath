@@ -92,7 +92,7 @@ async function runTasks(tasks, { limit, retries = 0, baseDelayMs = 100 }) {
 
 ### Trace the pool
 
-```js
+```js no-run
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const job = (name, ms) => async () => {
   console.log('start', name);
@@ -116,7 +116,7 @@ console.log(await runTasks([job('A', 40), job('B', 10), job('C', 20), job('D', 1
 
 ### Prove the limit
 
-```js
+```js no-run
 let running = 0;
 let peak = 0;
 const task = (value) => async () => {
@@ -134,7 +134,7 @@ console.log(values.join(), 'peak', peak);
 
 ### Backoff arithmetic
 
-```js
+```js no-run
 const start = performance.now();
 let calls = 0;
 await runTasks([async () => { calls++; throw new Error('down'); }], { limit: 1, retries: 3, baseDelayMs: 20 })

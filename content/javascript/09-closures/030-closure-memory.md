@@ -44,7 +44,7 @@ tldr: >
 
 ## Example
 
-```js
+```js no-run
 // Run with: node --expose-gc example.mjs
 const settle = () => new Promise((resolve) => setTimeout(resolve));
 
@@ -120,7 +120,7 @@ Only `stats` escapes, and it only reads `lookups`, but it points to the same `Co
 - **Releasing the slot.** Assigning `null` to a captured `let` clears it for every closure sharing the `Context`.
 - **Measuring.** `WeakRef` targets are kept alive until the end of the current job (`AddToKeptObjects`), so a test must yield before forcing GC. Treat `gc()` results as a diagnostic, not a guarantee.
 
-```js
+```js no-run
 // Run with: node --expose-gc fixes.mjs
 const settle = () => new Promise((resolve) => setTimeout(resolve));
 
@@ -159,7 +159,7 @@ for (const make of [scoped, released]) {
 
 Sibling sharing can turn one retained object into an unbounded chain. Here each refresh creates a closure that reads `previous`, and a long-lived `describe` method that doesn't. Both share the call's `Context`, so each new entry's `describe` keeps the previous entry alive, which keeps the one before it, and so on:
 
-```js
+```js no-run
 // Run with: node --expose-gc chain.mjs
 const settle = () => new Promise((resolve) => setTimeout(resolve));
 let current = null;

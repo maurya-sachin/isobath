@@ -43,7 +43,7 @@ The main use is lazy loading: defer a heavy module until a feature is used, and 
 
 ## Example
 
-```js
+```js no-run
 console.log('start');
 const button = { onclick: null };
 button.onclick = async () => {

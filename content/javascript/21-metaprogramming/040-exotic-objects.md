@@ -104,7 +104,7 @@ The spec defines a default for each internal method (`OrdinaryGet`, `OrdinaryDef
 
 **Module namespace.** `import * as ns` yields an object with null prototype, `Symbol.toStringTag` `"Module"`, string keys sorted by code unit order, each key `{ writable: true, enumerable: true, configurable: false }`, and no extensibility. Reads are live: `[[Get]]` resolves the binding at access time, so it sees later changes and throws `ReferenceError` for a binding still in its temporal dead zone. `[[Set]]` always returns `false`, and `[[Delete]]` of an export returns `false` too.
 
-```js
+```js no-run
 // ns.mjs — a module that imports its own namespace
 import * as ns from './ns.mjs';
 export let count = 0;

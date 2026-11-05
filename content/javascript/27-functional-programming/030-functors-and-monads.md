@@ -97,7 +97,7 @@ console.log([[1]].flatMap(k), k([1])); // → [ [ 1 ], [ 1 ] ] [ [ 1 ], [ 1 ] ]
 
 Step 4 is duck typing: any object with a callable `then` is treated as a promise, which is the interoperability rule inherited from Promises/A+. It's also why a module namespace with a `then` export is unwrapped by dynamic `import()`:
 
-```js
+```js no-run
 // thenable-module.mjs
 //   export const name = 'config';
 //   export function then(resolve) { resolve('not the namespace'); }

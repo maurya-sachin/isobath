@@ -43,7 +43,7 @@ Top-level `await` is only for modules. In a classic script or CommonJS file, `aw
 
 ## Example
 
-```js
+```js no-run
 // a.mjs: takes 100 ms
 console.log('a start');
 await new Promise((resolve) => setTimeout(resolve, 100));
