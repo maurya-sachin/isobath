@@ -6,8 +6,9 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 - Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
 - Bug, awaiting OK to fix and deploy: direct loads of non-prerendered routes (`/flashcards/<topic>`, `/practice/…`, unknown paths) get Vercel's NOT_FOUND, because `cleanUrls` 308s the `/app-shell.html` rewrite. Likely fix: destination `/app-shell`; confirm in Vercel docs, curl live.
-- Next: release the React drafts (gate + `dev` → `main`, needs OK); then Phase 7 next topic — recommended `nextjs` (Frontend track; builds on React ch 11–12).
-- Awaiting maintainer: Phase 5 reviews; wordmark redraw.
+- Repo renamed `isobath` (2026-11-05); `dev` not yet pushed since. Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); publish the dev.to draft "I rebuilt my interview prep repo…" (update counts if React ships first); pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
+- Next: fix the NOT_FOUND bug → release React → Phase 6 in order. Phase 7 (`nextjs`) waits until Phase 6 tier 1 ships.
+- Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
@@ -40,9 +41,31 @@ Non-goals: backend service, accounts, paid AI.
 ### 5 — Review and publish
 - [ ] Per question: maintainer review → `published`; update README status lines
 
+### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
+Tier 1:
+- [ ] 6.1 Fix NOT_FOUND on direct loads (`vercel.json` rewrite)
+- [ ] 6.2 Run code examples in CI: extract blocks with `// →` comments, run on Node, fail on mismatch
+- [ ] 6.3 Per-question `og:image` at build (`satori` + `@resvg/resvg-js`)
+- [ ] 6.4 Comments + reactions on question pages: Giscus (Discussions category "Questions", mapping by question id, lazy-loaded, themed from tokens; maintainer enables Discussions + installs the app)
+- [ ] 6.5 Printable chapter cheat sheet (all `tldr`s of a chapter)
+- [ ] 6.6 Anki export: one `.txt` deck per topic
+Tier 2:
+- [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
+- [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
+- [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`)
+- [ ] 6.10 Slim hydration data: pages embed their chapter, not the whole topic index (~131 KB of a 150 KB chapter page today)
+- [ ] 6.11 Weekly source link check (lychee) opening an issue
+- [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews
+Tier 3:
+- [ ] 6.13 "Run" for JS examples in a sandboxed Web Worker (replaces parked Sandpack)
+- [ ] 6.14 Build-time SVG diagrams (Mermaid) for event loop, rendering pipeline, Fiber
+- [ ] 6.15 DSA problems with tests on the 6.13 runner
+- [ ] 6.16 Script that opens a `good first issue` per planned stub / `→ —` gap
+Skip: AI features, accounts/sync, company tags, i18n (until traffic).
+
 ### 7 — Next topics
 - [ ] Per topic: chapters + stubs from its **Not yet mapped** list, then content
   - Browser-run examples (HTML, CSS, DOM and Web APIs) run in the installed Chrome and Firefox via puppeteer-core in the scratchpad, never in the repo; browser-specific behaviour names the browser and version.
 
 ## Parked (don't start without maintainer)
-Supabase sync/votes · in-browser AI (WebLLM + retrieval; no paid APIs, no fine-tuning) · PWA offline · runnable challenges (Sandpack)
+Supabase sync/votes · in-browser AI (WebLLM + retrieval; no paid APIs, no fine-tuning)
