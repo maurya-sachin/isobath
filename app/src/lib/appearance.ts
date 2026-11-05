@@ -21,6 +21,9 @@ export interface Appearance {
   contrast: 'auto' | 'high'
   /** `auto` follows the system's motion preference; `reduce` always minimises motion. */
   motion: 'auto' | 'reduce'
+  /** The face for long-form reading (question text, TL;DR, summaries); headings keep the brand serif. */
+  readingFont: 'serif' | 'sans'
+  spacing: 'comfortable' | 'relaxed'
 }
 
 export const DEFAULT_APPEARANCE: Appearance = {
@@ -29,6 +32,8 @@ export const DEFAULT_APPEARANCE: Appearance = {
   textSize: 100,
   contrast: 'auto',
   motion: 'auto',
+  readingFont: 'serif',
+  spacing: 'comfortable',
 }
 
 const normalizeHue = (value: unknown): number | null =>
@@ -49,6 +54,8 @@ export function parseAppearance(raw: string | null): Appearance {
     textSize: TEXT_SIZES.find((size) => size.percent === saved.textSize)?.percent ?? DEFAULT_APPEARANCE.textSize,
     contrast: saved.contrast === 'high' ? 'high' : 'auto',
     motion: saved.motion === 'reduce' ? 'reduce' : 'auto',
+    readingFont: saved.readingFont === 'sans' ? 'sans' : 'serif',
+    spacing: saved.spacing === 'relaxed' ? 'relaxed' : 'comfortable',
   }
 }
 
@@ -67,6 +74,8 @@ export function rootSettings(appearance: Appearance) {
     attributes: {
       'data-contrast': appearance.contrast === 'high' ? 'high' : null,
       'data-motion': appearance.motion === 'reduce' ? 'reduce' : null,
+      'data-reading-font': appearance.readingFont === 'sans' ? 'sans' : null,
+      'data-spacing': appearance.spacing === 'relaxed' ? 'relaxed' : null,
     },
     fontSize: appearance.textSize === 100 ? null : `${appearance.textSize}%`,
   }

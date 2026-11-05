@@ -20,6 +20,8 @@
         if (saved.textSize === 120 || saved.textSize === 145) root.style.fontSize = saved.textSize + '%'
         if (saved.contrast === 'high') root.setAttribute('data-contrast', 'high')
         if (saved.motion === 'reduce') root.setAttribute('data-motion', 'reduce')
+        if (saved.readingFont === 'sans') root.setAttribute('data-reading-font', 'sans')
+        if (saved.spacing === 'relaxed') root.setAttribute('data-spacing', 'relaxed')
       } catch (error) {}
     </script>
     <!--app-head-->

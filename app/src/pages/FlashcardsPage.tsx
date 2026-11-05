@@ -133,7 +133,7 @@ function Session({
               ref={answerRef}
               tabIndex={-1}
               aria-label="Answer"
-              className="font-serif text-lg leading-relaxed outline-none"
+              className="font-reading text-lg leading-relaxed outline-none"
             >
               <InlineHtml html={card.backHtml} className={CODE_STYLE} />
             </section>

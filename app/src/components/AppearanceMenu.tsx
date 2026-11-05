@@ -19,7 +19,10 @@ export function AppearanceMenu() {
           <SlidersHorizontal />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 gap-4 p-4">
+      <PopoverContent
+        align="end"
+        className="max-h-(--radix-popover-content-available-height) w-80 gap-4 overflow-y-auto p-4"
+      >
         <AppearancePanel />
       </PopoverContent>
     </Popover>
@@ -38,23 +41,30 @@ function AppearancePanel() {
     <>
       <h2 className="font-semibold">Appearance</h2>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 font-medium">Text size</legend>
-        <div role="radiogroup" aria-label="Text size" className="flex gap-2">
-          {TEXT_SIZES.map(({ percent, label }) => (
-            <button
-              key={percent}
-              type="button"
-              role="radio"
-              aria-checked={appearance.textSize === percent}
-              className={cn(CHOICE, 'flex-1')}
-              onClick={() => update({ textSize: percent })}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <ChoiceGroup
+        label="Text size"
+        value={appearance.textSize}
+        options={TEXT_SIZES.map(({ percent, label }) => ({ value: percent, label }))}
+        onChange={(textSize) => update({ textSize })}
+      />
+      <ChoiceGroup
+        label="Reading font"
+        value={appearance.readingFont}
+        options={[
+          { value: 'serif', label: 'Serif' },
+          { value: 'sans', label: 'Sans' },
+        ]}
+        onChange={(readingFont) => update({ readingFont })}
+      />
+      <ChoiceGroup
+        label="Line spacing"
+        value={appearance.spacing}
+        options={[
+          { value: 'comfortable', label: 'Comfortable' },
+          { value: 'relaxed', label: 'Relaxed' },
+        ]}
+        onChange={(spacing) => update({ spacing })}
+      />
 
       <HueSetting
         label={separate ? 'Accent, light mode' : 'Accent colour'}
@@ -108,6 +118,39 @@ function AppearancePanel() {
         Reset to defaults
       </Button>
     </>
+  )
+}
+
+/** One setting with a few exclusive choices, as a radio group of buttons. */
+function ChoiceGroup<T extends string | number>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: T
+  options: { value: T; label: string }[]
+  onChange: (value: T) => void
+}) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="mb-1 font-medium">{label}</legend>
+      <div role="radiogroup" aria-label={label} className="flex gap-2">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={value === option.value}
+            className={cn(CHOICE, 'flex-1')}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </fieldset>
   )
 }
 

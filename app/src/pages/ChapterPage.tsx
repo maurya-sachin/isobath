@@ -45,7 +45,7 @@ export function ChapterPage() {
       </h1>
       <InlineHtml
         html={chapter.summaryHtml}
-        className="mt-3 block max-w-2xl font-serif text-xl leading-relaxed text-muted-foreground [&_code]:font-mono [&_code]:text-[0.9em]"
+        className="mt-3 block max-w-2xl font-reading text-xl leading-relaxed text-muted-foreground [&_code]:font-mono [&_code]:text-[0.9em]"
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">

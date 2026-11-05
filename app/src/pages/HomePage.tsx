@@ -33,7 +33,7 @@ export function HomePage() {
           <h1 className="font-serif text-[2.75rem] leading-[1.05] font-medium tracking-[-0.025em] sm:text-6xl">
             {TAGLINE}.
           </h1>
-          <p className="mt-5 max-w-lg font-serif text-xl leading-relaxed text-muted-foreground">
+          <p className="mt-5 max-w-lg font-reading text-xl leading-relaxed text-muted-foreground">
             Every question opens with the answer you would give in the room, then goes down to the mechanism, the edge
             cases, and the spec or engine underneath.
           </p>
