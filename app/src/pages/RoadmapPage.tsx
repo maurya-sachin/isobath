@@ -1,11 +1,12 @@
+import { useLoaderData } from 'react-router'
 import { PageShell } from '@/components/PageShell'
 import { Roadmap, RoadmapSummary } from '@/components/Roadmap'
 import { DiagramLegend } from '@/components/RouteDiagram'
-import { useManifest } from '@/content/index-data'
+import type { ContentManifest } from '@/content/types'
 import { SITE_NAME } from '@/lib/site'
 
 export function RoadmapPage() {
-  const { topics, paths } = useManifest()
+  const { topics, paths } = useLoaderData<ContentManifest>()
   return (
     <PageShell crumbs={[]} wide>
       <title>{`Roadmap · ${SITE_NAME}`}</title>

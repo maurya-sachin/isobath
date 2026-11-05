@@ -6,13 +6,14 @@ import type {
   CheatsheetEntry,
   ChapterSummary,
   ContentManifest,
+  SiteIndex,
   Flashcard,
   QuestionPage as QuestionData,
   QuestionSummary,
   TopicSummary,
 } from './types.ts'
 
-export const MANIFEST_ROUTE_ID = 'root'
+export const SITE_ROUTE_ID = 'root'
 export const TOPIC_ROUTE_ID = 'topic'
 
 /** Reads a JSON file produced by content:build; its shape is trusted because both sides share `types.ts`. */
@@ -37,6 +38,12 @@ export function loadManifest(): Promise<ContentManifest> {
     throw error
   })
   return manifestPromise
+}
+
+/** The topic list every page's header needs; the full manifest stays with the pages that read it. */
+export async function loadSiteIndex(): Promise<SiteIndex> {
+  const { topics } = await loadManifest()
+  return { topics: topics.map(({ slug, title, track, chapterCount }) => ({ slug, title, track, chapterCount })) }
 }
 
 const topicPromises = new Map<string, Promise<TopicSummary>>()
@@ -94,9 +101,9 @@ export async function loadFlashcards(topicSlug: string | undefined) {
   return { topic, cards }
 }
 
-export function useManifest(): ContentManifest {
-  // Route loader data is untyped in data-router mode; MANIFEST_ROUTE_ID's loader returns loadManifest().
-  return useRouteLoaderData(MANIFEST_ROUTE_ID) as ContentManifest
+export function useSiteIndex(): SiteIndex {
+  // Route loader data is untyped in data-router mode; SITE_ROUTE_ID's loader returns loadSiteIndex().
+  return useRouteLoaderData(SITE_ROUTE_ID) as SiteIndex
 }
 
 /** The topic of the current `:topic` route, or `null` when the URL names no topic. Call it only from pages under that route. */

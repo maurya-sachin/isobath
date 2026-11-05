@@ -1,18 +1,21 @@
-import type { TopicOverview } from '@/content/types'
-
 /** Home-page order of tracks; a track not listed sorts last. */
 const TRACK_ORDER = ['Frontend', 'Backend', 'Infrastructure and delivery', 'Engineering practice']
 
-export interface TrackGroup {
+interface Trackable {
+  track: string
+  chapterCount: number
+}
+
+export interface TrackGroup<T extends Trackable> {
   name: string
-  topics: TopicOverview[]
+  topics: T[]
 }
 
 /**
  * Groups topics by track, with topics that already have chapters ahead of planned ones. That order suits the topic
  * switcher; the roadmap reorders each track by the role paths.
  */
-export function groupByTrack(topics: TopicOverview[]): TrackGroup[] {
+export function groupByTrack<T extends Trackable>(topics: T[]): TrackGroup<T>[] {
   const names = [...new Set(topics.map((topic) => topic.track))].sort((a, b) => rank(a) - rank(b))
   return names.map((name) => ({
     name,

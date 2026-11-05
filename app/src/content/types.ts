@@ -139,6 +139,13 @@ export interface Changelog {
   days: ChangelogDay[]
 }
 
+/** What the header needs of every topic; the root route's loader data, so every page embeds only this. */
+export type SiteTopic = Pick<TopicOverview, 'slug' | 'title' | 'track' | 'chapterCount'>
+
+export interface SiteIndex {
+  topics: SiteTopic[]
+}
+
 /** `data/manifest.json` */
 export interface ContentManifest {
   topics: TopicOverview[]
