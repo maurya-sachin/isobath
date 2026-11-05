@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
  */
 export function Wordmark({ className }: { className?: string }) {
   return (
-    <span className={cn('font-serif font-semibold tracking-tight', className)}>
+    <span data-brand className={cn('font-serif font-semibold tracking-tight', className)}>
       <span className="sr-only">{SITE_NAME}</span>
       <span aria-hidden="true" className="inline-flex items-baseline">
         is
