@@ -93,7 +93,8 @@ Use exactly these `##` headings, in this order. Leave out optional ones entirely
   - JavaScript must run as written in current Node.js or a modern browser; assume module code (strict mode) and say so when sloppy mode matters.
   - TypeScript must be type-checked with a real `tsc` (`--strict`); state the TypeScript version, and make every `// Error` comment match what `tsc` printed.
   - Configs and commands must be run for real (a scratch project, a container, a local database) before you show their output.
-  - Show output as `// → value` comments; in CSS use `/* → value */`, in HTML `<!-- → value -->`.
+  - Show output as `// → value` comments; in CSS use `/* → value */`, in HTML `<!-- → value -->`. Output that wraps continues on `//   …` lines directly below; `…` inside a comment elides output.
+  - CI runs every ```` ```js ```` example in `content/javascript/` that has a `// →` comment (`npm run examples:check`), as a strict ES module on Node. Fence meta: `js script` runs it as sloppy-mode CommonJS (sloppy semantics, `process.nextTick` order); `js no-run` skips it when it needs other files, Node flags, environment variables, packages, earlier blocks or timing. Every `// →` line in a runnable block must match the output in order, so mark every logged line.
   - HTML and CSS must be run in a real browser; say which browser and version when behaviour differs between engines.
 
 ## Research
@@ -206,6 +207,7 @@ Commands (Node 24, run in `app/`):
 | `npm run content:status [topic]` | Published counts per chapter and every `→ —` gap |
 | `npm run content:status -- --stale [topic]` | Written questions to re-check, oldest first: stale ones and any with `perishable` notes |
 | `npm run content:new -- <topic>/<chapter> <slug> "<title>" --difficulty <d> --frequency <1-5> [--core] [--number NNN]` | Creates a `planned` stub, then syncs READMEs |
+| `npm run examples:check` | Runs the JavaScript examples on Node and fails when a `// →` comment differs from the output |
 | `npm run content:build` | Compiles content into `app/public/data/` (draft and published questions; drafts are labelled Draft) |
 | `npm run dev` | Builds content and starts the app |
 
