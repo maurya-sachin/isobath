@@ -2,7 +2,7 @@
 // Each page becomes dist/<path>.html: the built template with the page's markup and head tags filled in.
 // Also writes dist/app-shell.html (the fallback for unknown URLs), sitemap.xml and robots.txt.
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { chapterStats } from '../src/content/stats.ts'
@@ -125,6 +125,7 @@ function headTags(title: string, page: Page): string {
   return [
     `<title>${title}</title>`,
     `<meta name="description" content="${description}" />`,
+    ...fontPreloads,
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
@@ -140,6 +141,7 @@ function appShellHeadTags(title: string, description: string): string {
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
     '<meta name="robots" content="noindex" />',
+    ...fontPreloads,
   ].join('\n    ')
 }
 
@@ -162,6 +164,18 @@ async function writePage(file: string, contents: string | Uint8Array): Promise<v
   await writeFile(file, contents)
 }
 
+/** Preloads the two latin variable fonts every page uses (UI and prose), so they download beside the CSS instead of after it. */
+async function fontPreloadTags(): Promise<string[]> {
+  const files = (await readdir(path.join(distDir, 'assets'))).filter((file) =>
+    /^(geist|newsreader)-latin-wght-normal-.+\.woff2$/.test(file),
+  )
+  if (files.length !== 2)
+    throw new Error(
+      `prerender: expected the Geist and Newsreader latin fonts in dist/assets, found ${files.join(', ') || 'none'}`,
+    )
+  return files.map((file) => `<link rel="preload" href="/assets/${file}" as="font" type="font/woff2" crossorigin />`)
+}
+
 const template = await readFile(path.join(distDir, 'index.html'), 'utf8')
 for (const placeholder of ['<!--app-head-->', '<!--app-html-->']) {
   if (!template.includes(placeholder))
@@ -172,6 +186,7 @@ for (const placeholder of ['<!--app-head-->', '<!--app-html-->']) {
 const fillTemplate = (head: string, markup: string) =>
   template.replace('<!--app-head-->', () => head).replace('<!--app-html-->', () => markup)
 
+const fontPreloads = await fontPreloadTags()
 serveDataFromDisk()
 const { render } = (await import(pathToFileURL(path.resolve(distDir, '../dist-server/entry-server.js')).href)) as {
   render: (path: string) => Promise<Rendered>
