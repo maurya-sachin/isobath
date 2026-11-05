@@ -126,7 +126,7 @@ A listener changes the exit code. With `process.on('unhandledRejection', …)` s
 
 ```js
 process.on('unhandledRejection', (reason) => {
-  console.error('fatal:', reason.message);
+  console.log('fatal:', reason.message);
   process.exitCode = 1;
 });
 Promise.reject(new Error('lost'));
