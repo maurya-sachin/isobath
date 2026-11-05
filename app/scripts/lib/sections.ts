@@ -69,59 +69,80 @@ function proseWords(lines: string[]): number {
   return countWords(prose.join(' '))
 }
 
-function checkSection(section: Section): string[] {
-  const { heading, lines } = section
-  const errors: string[] = []
+const outside = (count: number, min: number, max: number) => count < min || count > max
+
+function checkAnswer({ lines }: Section): string[] {
+  const words = proseWords(lines)
+  return words > 300 ? [`must be 300 words or fewer (has ${words})`] : []
+}
+
+function checkExample({ lines }: Section): string[] {
   const blocks = codeBlocks(lines)
+  if (blocks.length !== 1) return [`must have exactly 1 code block (has ${blocks.length})`]
+  return blocks[0] > 30 ? [`code block must be 30 lines or fewer (has ${blocks[0]})`] : []
+}
 
-  switch (heading) {
-    case 'Answer': {
-      const words = proseWords(lines)
-      if (words > 300) errors.push(`must be 300 words or fewer (has ${words})`)
-      break
-    }
-    case 'Example':
-      if (blocks.length !== 1) errors.push(`must have exactly 1 code block (has ${blocks.length})`)
-      else if (blocks[0] > 30) errors.push(`code block must be 30 lines or fewer (has ${blocks[0]})`)
-      break
-    case 'Pitfalls': {
-      const bullets = lines.filter((line) => line.startsWith('- ')).length
-      if (bullets < 1 || bullets > 4) errors.push(`must have 1–4 bullets (has ${bullets})`)
-      break
-    }
-    case 'Follow-ups': {
-      const questions = lines.filter((line) => line.startsWith(FOLLOW_UP_QUESTION))
-      const answers = lines.filter((line) => line.startsWith(FOLLOW_UP_ANSWER))
-      if (questions.length < 1 || questions.length > 4) errors.push(`must have 1–4 pairs (has ${questions.length})`)
-      if (questions.length !== answers.length) errors.push('every `**Q:**` line needs one `**A:**` line')
-      for (const answer of answers) {
-        const words = countWords(answer.slice(FOLLOW_UP_ANSWER.length))
-        if (words > 50) errors.push(`answers must be 50 words or fewer (one has ${words})`)
-      }
-      break
-    }
-    case 'Deep dive': {
-      const words = proseWords(lines)
-      if (words > 1500) errors.push(`must be 1,500 words or fewer (has ${words})`)
-      if (blocks.length > 5) errors.push(`must have 5 code blocks or fewer (has ${blocks.length})`)
-      const subsections = splitSections(lines, 3, section.line + 1).sections.map((sub) => sub.heading)
-      errors.push(...checkOrder(subsections, DEEP_DIVE_ORDER, '###'))
-      break
-    }
-    case 'Exercises': {
-      const exercises = splitSections(lines, 3, section.line + 1).sections
-      if (exercises.length < 1 || exercises.length > 3) errors.push(`must have 1–3 exercises (has ${exercises.length})`)
-      for (const exercise of exercises) {
-        if (codeBlocks(exercise.lines).length !== 1) errors.push(`"${exercise.heading}" must have exactly 1 code block`)
-        if (!exercise.lines.some((line) => line.startsWith(EXERCISE_ANSWER))) {
-          errors.push(`"${exercise.heading}" needs an \`**Answer:**\` line`)
-        }
-      }
-      break
-    }
+function checkPitfalls({ lines }: Section): string[] {
+  const bullets = lines.filter((line) => line.startsWith('- ')).length
+  return outside(bullets, 1, 4) ? [`must have 1–4 bullets (has ${bullets})`] : []
+}
+
+function checkFollowUps({ lines }: Section): string[] {
+  const questions = lines.filter((line) => line.startsWith(FOLLOW_UP_QUESTION))
+  const answers = lines.filter((line) => line.startsWith(FOLLOW_UP_ANSWER))
+  const errors: string[] = []
+  if (outside(questions.length, 1, 4)) errors.push(`must have 1–4 pairs (has ${questions.length})`)
+  if (questions.length !== answers.length) errors.push('every `**Q:**` line needs one `**A:**` line')
+  for (const answer of answers) {
+    const words = countWords(answer.slice(FOLLOW_UP_ANSWER.length))
+    if (words > 50) errors.push(`answers must be 50 words or fewer (one has ${words})`)
   }
-
   return errors
+}
+
+function checkDeepDive(section: Section): string[] {
+  const words = proseWords(section.lines)
+  const blocks = codeBlocks(section.lines)
+  const errors: string[] = []
+  if (words > 1500) errors.push(`must be 1,500 words or fewer (has ${words})`)
+  if (blocks.length > 5) errors.push(`must have 5 code blocks or fewer (has ${blocks.length})`)
+  const subsections = splitSections(section.lines, 3, section.line + 1).sections.map((sub) => sub.heading)
+  return [...errors, ...checkOrder(subsections, DEEP_DIVE_ORDER, '###')]
+}
+
+function checkExercise(exercise: Section): string[] {
+  const errors: string[] = []
+  if (codeBlocks(exercise.lines).length !== 1) errors.push(`"${exercise.heading}" must have exactly 1 code block`)
+  if (!exercise.lines.some((line) => line.startsWith(EXERCISE_ANSWER))) {
+    errors.push(`"${exercise.heading}" needs an \`**Answer:**\` line`)
+  }
+  return errors
+}
+
+function checkExercises(section: Section): string[] {
+  const exercises = splitSections(section.lines, 3, section.line + 1).sections
+  const errors = outside(exercises.length, 1, 3) ? [`must have 1–3 exercises (has ${exercises.length})`] : []
+  return [...errors, ...exercises.flatMap(checkExercise)]
+}
+
+/** The rule errors for one `##` section; sections without rules (none today) have no errors. */
+export function checkSection(section: Section): string[] {
+  switch (section.heading) {
+    case 'Answer':
+      return checkAnswer(section)
+    case 'Example':
+      return checkExample(section)
+    case 'Pitfalls':
+      return checkPitfalls(section)
+    case 'Follow-ups':
+      return checkFollowUps(section)
+    case 'Deep dive':
+      return checkDeepDive(section)
+    case 'Exercises':
+      return checkExercises(section)
+    default:
+      return []
+  }
 }
 
 /** Headings must come from `allowed`, each at most once, in that order. */
