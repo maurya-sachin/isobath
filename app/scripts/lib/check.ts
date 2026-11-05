@@ -1,6 +1,6 @@
 // Every rule content:check enforces, shared with content:build so nothing invalid ships.
 
-import type { Content } from './content.ts'
+import type { Chapter, Content } from './content.ts'
 import { targetMarkdownFile, visitLinks } from './links.ts'
 import { repoRelative, type Problem } from './paths.ts'
 import { validateRolePaths } from './rolepaths.ts'
@@ -14,49 +14,63 @@ function questionIdsOf(topics: Content['topics']): Set<string> {
   )
 }
 
-/** Problems that need more than one file to see. */
-function checkReferences({ topics }: Content): Problem[] {
+/** Question numbers and slugs are unique within a chapter, so ids are unique too. Returns the numbers in use. */
+function checkUniqueQuestions(chapter: Chapter): { problems: Problem[]; numbers: Set<string> } {
   const problems: Problem[] = []
-  const ids = questionIdsOf(topics)
+  const numbers = new Set<string>()
+  const slugs = new Set<string>()
+  for (const question of chapter.questions) {
+    const file = repoRelative(question.file)
+    if (numbers.has(question.number))
+      problems.push({ file, message: `number ${question.number} is used twice in this chapter` })
+    if (slugs.has(question.slug))
+      problems.push({ file, message: `slug \`${question.slug}\` is used twice, so the id isn't unique` })
+    numbers.add(question.number)
+    slugs.add(question.slug)
+  }
+  return { problems, numbers }
+}
 
-  for (const chapter of topics.flatMap((topic) => topic.chapters)) {
-    const readme = repoRelative(chapter.readmeFile)
-    const numbers = new Set<string>()
-    const slugs = new Set<string>()
-    for (const question of chapter.questions) {
-      const file = repoRelative(question.file)
-      if (numbers.has(question.number))
-        problems.push({ file, message: `number ${question.number} is used twice in this chapter` })
-      if (slugs.has(question.slug))
-        problems.push({ file, message: `slug \`${question.slug}\` is used twice, so the id isn't unique` })
-      numbers.add(question.number)
-      slugs.add(question.slug)
-    }
-
-    const covered = new Set<string>()
-    for (const subTopic of chapter.subTopics) {
-      for (const ref of subTopic.refs) {
-        covered.add(ref)
-        if (!numbers.has(ref)) {
-          problems.push({ file: readme, line: subTopic.line, message: `sub-topic points to missing question ${ref}` })
-        }
-      }
-    }
-    for (const question of chapter.questions) {
-      if (!covered.has(question.number)) {
-        problems.push({ file: readme, message: `question ${question.number} is not listed under any sub-topic` })
-      }
-    }
-
-    for (const question of chapter.questions) {
-      if (!question.meta || question.meta.status === 'planned') continue
-      for (const id of question.meta.related) {
-        if (!ids.has(id)) problems.push({ file: repoRelative(question.file), message: `related: unknown id \`${id}\`` })
+/** Every sub-topic points at questions that exist, and every question is listed under some sub-topic. */
+function checkSubTopicCoverage(chapter: Chapter, numbers: Set<string>): Problem[] {
+  const readme = repoRelative(chapter.readmeFile)
+  const problems: Problem[] = []
+  const covered = new Set<string>()
+  for (const subTopic of chapter.subTopics) {
+    for (const ref of subTopic.refs) {
+      covered.add(ref)
+      if (!numbers.has(ref)) {
+        problems.push({ file: readme, line: subTopic.line, message: `sub-topic points to missing question ${ref}` })
       }
     }
   }
-
+  for (const question of chapter.questions) {
+    if (!covered.has(question.number)) {
+      problems.push({ file: readme, message: `question ${question.number} is not listed under any sub-topic` })
+    }
+  }
   return problems
+}
+
+/** `related` ids of written questions name questions that exist. */
+function checkRelated(chapter: Chapter, ids: Set<string>): Problem[] {
+  return chapter.questions.flatMap((question) => {
+    if (!question.meta || question.meta.status === 'planned') return []
+    return question.meta.related
+      .filter((id) => !ids.has(id))
+      .map((id) => ({ file: repoRelative(question.file), message: `related: unknown id \`${id}\`` }))
+  })
+}
+
+/** Problems that need more than one file to see. */
+export function checkReferences({ topics }: Content): Problem[] {
+  const ids = questionIdsOf(topics)
+  return topics
+    .flatMap((topic) => topic.chapters)
+    .flatMap((chapter) => {
+      const unique = checkUniqueQuestions(chapter)
+      return [...unique.problems, ...checkSubTopicCoverage(chapter, unique.numbers), ...checkRelated(chapter, ids)]
+    })
 }
 
 /** Relative `.md` links in written questions must point at question files that exist. */
