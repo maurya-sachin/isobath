@@ -30,7 +30,9 @@ async function start() {
   )
   const root = document.getElementById('root')!
   // Prerendered pages arrive with markup to hydrate; the dev server and the app shell arrive with only a placeholder comment.
-  if (root.firstElementChild) hydrateRoot(root, app)
+  // The 404 page has markup for readers without JavaScript, but it is served for every unknown URL and the client's
+  // "not found" text depends on the URL, so it is replaced, not hydrated.
+  if (root.firstElementChild && !root.hasAttribute('data-client-render')) hydrateRoot(root, app)
   else createRoot(root).render(app)
 }
 
