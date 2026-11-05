@@ -3,7 +3,7 @@ export function Kbd({ children }: { children: string }) {
   return (
     <kbd
       aria-hidden="true"
-      className="ml-1.5 hidden rounded border px-1 font-mono text-[0.7rem] text-muted-foreground sm:inline"
+      className="ml-1.5 hidden rounded border border-current/40 px-1 font-mono text-[0.7rem] text-inherit sm:inline"
     >
       {children}
     </kbd>
