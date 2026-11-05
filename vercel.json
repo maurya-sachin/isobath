@@ -7,6 +7,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/flashcards/:topic", "destination": "/app-shell" },
+    { "source": "/cheatsheet/:topic/:chapter", "destination": "/app-shell" },
     { "source": "/practice/:topic", "destination": "/app-shell" },
     { "source": "/practice/:topic/:chapter", "destination": "/app-shell" }
   ],

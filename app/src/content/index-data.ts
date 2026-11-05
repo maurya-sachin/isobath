@@ -3,6 +3,7 @@
 import { useRouteLoaderData } from 'react-router'
 import type {
   Changelog,
+  CheatsheetEntry,
   ChapterSummary,
   ContentManifest,
   Flashcard,
@@ -71,6 +72,18 @@ export async function loadPractice(topicSlug: string | undefined, chapterSlug: s
     readable.map((question) => fetchData<QuestionData>(`questions/${question.id}.json`)),
   )
   return { topic, questions }
+}
+
+/** A chapter's readable questions with their 30-second answers, for the cheat sheet. */
+export async function loadCheatsheet(topicSlug: string | undefined, chapterSlug: string | undefined) {
+  const topic = await loadTopic(topicSlug)
+  const chapter = topic?.chapters.find((candidate) => candidate.slug === chapterSlug)
+  const hasReadable = chapter?.questions.some((question) => question.hasPage) ?? false
+  const entries =
+    topic && chapter && hasReadable
+      ? await fetchData<CheatsheetEntry[]>(`topics/${topic.slug}/${chapter.slug}/cheatsheet.json`)
+      : []
+  return { topic, chapter, entries }
 }
 
 /** One topic's flashcards, with the topic. Topics without a deck have no file to fetch. */
