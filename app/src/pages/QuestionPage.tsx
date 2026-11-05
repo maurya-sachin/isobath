@@ -8,6 +8,7 @@ import { InlineHtml } from '@/components/question/InlineHtml'
 import { MetaRow } from '@/components/question/MetaRow'
 import { Section } from '@/components/question/Section'
 import { Breadcrumbs, ComingSoon, NotFound } from '@/components/PageShell'
+import { QuestionComments } from '@/components/QuestionComments'
 import { QuestionTitle } from '@/components/QuestionTitle'
 import { findChapter, neighbours, questionId, questionPath, useTopic } from '@/content/index-data'
 import type { QuestionPage as QuestionData } from '@/content/types'
@@ -183,6 +184,8 @@ export function QuestionPage() {
               </Link>
             )}
           </nav>
+
+          {content && <QuestionComments questionId={question.id} />}
       </main>
 
       {showDepthRail && sections.length > 0 && (

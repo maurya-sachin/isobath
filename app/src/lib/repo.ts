@@ -21,3 +21,11 @@ export function suggestFixUrl(questionId: string, title: string, pageUrl: string
   })
   return `${REPO_URL}/issues/new?${params.toString()}`
 }
+
+/** Giscus keeps each question's comments in this repository's Discussions; both ids are public (`gh api graphql`). */
+export const COMMENTS = {
+  repo: 'maurya-sachin/isobath',
+  repoId: 'R_kgDOQNTxwg',
+  category: 'Questions',
+  categoryId: 'DIC_kwDOQNTxws4DKbVV',
+} as const
