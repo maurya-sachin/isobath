@@ -51,7 +51,7 @@ A garbage-collected language cannot leak memory that is unreachable. A **leak** 
 
 ## Example
 
-```js node=--expose-gc
+```js no-run
 import { EventEmitter } from 'node:events';
 const heapMB = () => {
   global.gc(); // for measuring only
