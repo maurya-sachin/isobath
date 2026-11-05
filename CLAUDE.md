@@ -16,6 +16,7 @@ One Markdown file per question in `content/`; the client-only app in `app/` read
 - No narration, session logs, rationale paragraphs, or dates a task doesn't need.
 - Per-question progress lives in README status lines and `content:status`, never in `PLAN.md`.
 - Same applies to `.claude/notes/style.md`: remove anything outdated.
+- Doc trim: when a phase or a 6A/6.x group finishes, and whenever `CLAUDE.md`, `PLAN.md`, `style.md` or the memory index passes ~150 lines, re-read them and delete outdated, duplicated, narrative or unrelated lines. Keep only what still guides work. Agent-facing files only (not README, templates or specs).
 
 ## Token rules
 - Never bulk-read `content/`, `app/public/data/`, or `app/dist/`. Find through READMEs, script output, or a title grep; open one file.
