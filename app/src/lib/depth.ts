@@ -3,8 +3,13 @@
 // Literal class names so Tailwind generates them.
 const DEPTH_STROKE = ['stroke-depth-1', 'stroke-depth-2', 'stroke-depth-3', 'stroke-depth-4'] as const
 
-/** The stroke class for contour `level` (0-based) of `levels`: the first level is the shallowest stop, the last the deepest. */
-export function depthStrokeClass(level: number, levels: number): (typeof DEPTH_STROKE)[number] {
+/** The stop (0-based, shallowest to deepest) for contour `level` (0-based) of `levels`: the first level is the shallowest stop, the last the deepest. */
+export function depthStop(level: number, levels: number): number {
   const deepest = DEPTH_STROKE.length - 1
-  return DEPTH_STROKE[levels <= 1 ? deepest : Math.round((level * deepest) / (levels - 1))]
+  return levels <= 1 ? deepest : Math.round((level * deepest) / (levels - 1))
+}
+
+/** The Tailwind stroke class for that stop. */
+export function depthStrokeClass(level: number, levels: number): (typeof DEPTH_STROKE)[number] {
+  return DEPTH_STROKE[depthStop(level, levels)]
 }
