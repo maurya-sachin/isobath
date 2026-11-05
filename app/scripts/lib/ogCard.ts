@@ -24,10 +24,11 @@ const TEXT_WIDTH = 680
 const LONG_TITLE_LENGTH = 70
 
 export interface CardData {
+  /** The line above the title: where the page sits, or what it is. */
+  kicker: string
   title: string
-  topicTitle: string
-  chapterTitle: string
-  difficulty: 'easy' | 'medium' | 'hard'
+  /** A short label at the foot of the card, after the author; empty for none. */
+  note: string
   /** Seeds the contour map: the topic's slug and shape, as on its cover. */
   map: { slug: string; chapterCount: number; hardShare: number }
 }
@@ -61,7 +62,7 @@ function contourMap({ slug, chapterCount, hardShare }: CardData['map']): string 
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
 }
 
-export function questionCard(data: CardData): Element {
+export function card(data: CardData): Element {
   const titleSize = data.title.length > LONG_TITLE_LENGTH ? 52 : 64
   return element(
     'div',
@@ -88,11 +89,7 @@ export function questionCard(data: CardData): Element {
         },
         [
           element('div', { display: 'flex', flexDirection: 'column', width: TEXT_WIDTH }, [
-            element(
-              'div',
-              { fontFamily: 'Geist', fontWeight: 600, fontSize: 28, color: ACCENT },
-              `${data.topicTitle} · ${data.chapterTitle}`,
-            ),
+            element('div', { fontFamily: 'Geist', fontWeight: 600, fontSize: 28, color: ACCENT }, data.kicker),
             element(
               'div',
               {
@@ -119,7 +116,7 @@ export function questionCard(data: CardData): Element {
             [
               element('div', {}, SITE_NAME),
               element('div', { color: MUTED, marginLeft: 20 }, `by ${AUTHOR}`),
-              element('div', { color: MUTED, marginLeft: 20 }, `· ${data.difficulty}`),
+              ...(data.note ? [element('div', { color: MUTED, marginLeft: 20 }, `· ${data.note}`)] : []),
             ],
           ),
         ],
