@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ComingSoon } from '@/components/PageShell'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,64 @@ import {
 } from '@/components/ui/command'
 import { loadSearchEngine, type SearchEngine } from '@/content/search'
 
+type Results = ReturnType<SearchEngine['search']>
+
+/** Toggles the dialog on Ctrl/⌘ + K. */
+function useToggleOnShortcut(toggle: () => void) {
+  const onShortcut = useEffectEvent(toggle)
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+        event.preventDefault()
+        onShortcut()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [])
+}
+
+interface SearchResultsProps {
+  failed: boolean
+  /** The trimmed query. */
+  query: string
+  /** Whether the search index has loaded. */
+  ready: boolean
+  results: Results
+  onSelect: (id: string) => void
+}
+
+function SearchResults({ failed, query, ready, results, onSelect }: SearchResultsProps) {
+  if (failed) return <p className="py-6 text-center text-sm">Search is unavailable. Run npm run content:build.</p>
+  if (!query) {
+    return <p className="py-6 text-center text-sm text-muted-foreground">Type to search titles, tags, and summaries.</p>
+  }
+  return (
+    <>
+      {ready && <CommandEmpty>No questions match “{query}”.</CommandEmpty>}
+      {results.length > 0 && (
+        <CommandGroup>
+          {results.map((doc) => (
+            <CommandItem key={doc.id} value={doc.id} onSelect={() => onSelect(doc.id)}>
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate">{doc.title}</span>
+                <span className="text-xs text-muted-foreground">
+                  {doc.topic} · {doc.chapter}
+                </span>
+              </div>
+              {!doc.hasPage && (
+                <span className="ml-auto">
+                  <ComingSoon />
+                </span>
+              )}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      )}
+    </>
+  )
+}
+
 export function SearchDialog() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -21,16 +79,7 @@ export function SearchDialog() {
   const [engine, setEngine] = useState<SearchEngine>()
   const [failed, setFailed] = useState(false)
 
-  useEffect(() => {
-    function toggleOnShortcut(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-        event.preventDefault()
-        setOpen((isOpen) => !isOpen)
-      }
-    }
-    document.addEventListener('keydown', toggleOnShortcut)
-    return () => document.removeEventListener('keydown', toggleOnShortcut)
-  }, [])
+  useToggleOnShortcut(() => setOpen((isOpen) => !isOpen))
 
   useEffect(() => {
     if (!open) return
@@ -68,39 +117,16 @@ export function SearchDialog() {
         <Command shouldFilter={false}>
           <CommandInput value={query} onValueChange={setQuery} placeholder="Search questions…" />
           <CommandList>
-            {failed && <p className="py-6 text-center text-sm">Search is unavailable. Run npm run content:build.</p>}
-            {!failed && !trimmed && (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                Type to search titles, tags, and summaries.
-              </p>
-            )}
-            {!failed && trimmed && engine && <CommandEmpty>No questions match “{trimmed}”.</CommandEmpty>}
-            {results.length > 0 && (
-              <CommandGroup>
-                {results.map((doc) => (
-                  <CommandItem
-                    key={doc.id}
-                    value={doc.id}
-                    onSelect={() => {
-                      handleOpenChange(false)
-                      void navigate(`/${doc.id}`)
-                    }}
-                  >
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate">{doc.title}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {doc.topic} · {doc.chapter}
-                      </span>
-                    </div>
-                    {!doc.hasPage && (
-                      <span className="ml-auto">
-                        <ComingSoon />
-                      </span>
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
+            <SearchResults
+              failed={failed}
+              query={trimmed}
+              ready={Boolean(engine)}
+              results={results}
+              onSelect={(id) => {
+                handleOpenChange(false)
+                void navigate(`/${id}`)
+              }}
+            />
           </CommandList>
         </Command>
       </CommandDialog>

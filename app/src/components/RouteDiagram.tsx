@@ -25,19 +25,24 @@ const FOCUS =
 const line = (planned: boolean) => (planned ? 'border-dashed border-muted-foreground/45' : 'border-border')
 const INLINE_CODE = '[&_code]:font-mono [&_code]:text-[0.9em]'
 const STATE_TEXT: Partial<Record<BranchState, string>> = { done: 'read', started: 'started', planned: 'planned' }
+const STATE_MARK: Partial<Record<BranchState, 'done' | 'in-progress'>> = { done: 'done', started: 'in-progress' }
 
-function Branch({ branch, side }: { branch: DiagramBranch; side: 'left' | 'right' }) {
-  const planned = branch.state === 'planned'
-  const body = (
+function BranchLabel({ branch }: { branch: DiagramBranch }) {
+  const mark = STATE_MARK[branch.state]
+  const stateText = STATE_TEXT[branch.state]
+  return (
     <>
       {branch.number && <span className="font-mono text-xs text-muted-foreground">{branch.number}</span>}
       <InlineHtml html={branch.labelHtml} className={cn('min-w-0 flex-1', INLINE_CODE)} />
-      {(branch.state === 'done' || branch.state === 'started') && (
-        <StationMark state={branch.state === 'done' ? 'done' : 'in-progress'} />
-      )}
-      {STATE_TEXT[branch.state] && <span className="sr-only">, {STATE_TEXT[branch.state]}</span>}
+      {mark && <StationMark state={mark} />}
+      {stateText && <span className="sr-only">, {stateText}</span>}
     </>
   )
+}
+
+function Branch({ branch, side }: { branch: DiagramBranch; side: 'left' | 'right' }) {
+  const planned = branch.state === 'planned'
+  const body = <BranchLabel branch={branch} />
   const box = cn(
     'flex min-h-9 items-center gap-3 rounded-lg border px-3 py-1.5 text-sm',
     side === 'left' && 'lg:flex-row-reverse lg:text-right',
