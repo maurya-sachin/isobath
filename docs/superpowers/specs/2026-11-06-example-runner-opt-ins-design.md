@@ -8,7 +8,7 @@
 | Several files in one fence, named by `// lib.cjs`-style header lines (modules, circular imports, JSON imports, `import.meta`) | about 16 | `files` and `run=` fence meta |
 | Continues an earlier block (an exercise calls `bind`, `runTasks`, `MyPromise` from the Example) | about 9 | `continues` fence meta |
 | Needs an environment variable | 1 | `env=` fence meta |
-| Already passes (stale opt-out) | 1 | remove `no-run` |
+| Looked stale (passed once); GC event counts vary between runs, so it stays `no-run` | 1 | none |
 | Timing output (2 regex, 2 more), racy values (SharedArrayBuffer, 2), npm polyfill `@js-temporal/polyfill` (4), iterator helpers this Node lacks (1) | about 10 | stay `no-run` |
 
 ## Mechanisms
@@ -19,8 +19,8 @@
 - Meta tokens do not change rendering (the build already checks that meta is stripped from output).
 
 ## Result (built 2026-11-06)
-- 295 ran, 25 skipped, 0 failed (was 272 and 48). Converted: `node=` 8, `env=` 1, `continues` 6, `files`/`run=` 7, stale 1 = 23 blocks, in nine per-chapter commits that change only the fence line; the rendered pages and question JSON are byte-identical.
-- The estimate of about 38 was too high. 25 stay `no-run`: about 11 refer to files or earlier fences the block never shows (`./counter.mjs`, `./state.mjs`, a self-importing `ns.mjs`, `bind` and `runTasks` defined in a block that is not the nearest one), 4 timings, 2 racy values, 4 `@js-temporal/polyfill`, 1 iterator helper missing from this Node, 3 needing a flag outside the allow-list or output the run can't reproduce (`--no-lazy-feedback-allocation`, `| grep`, GC timing). Running the first group would need a way to name the files or earlier fences to include; that is a separate design.
+- 294 ran, 26 skipped, 0 failed over 8 consecutive runs (was 272 and 48). Converted: `node=` 8, `env=` 1, `continues` 6, `files`/`run=` 7 = 22 blocks, in nine per-chapter commits that change only the fence line; the rendered pages and question JSON are byte-identical.
+- The estimate of about 38 was too high. 26 stay `no-run`: the GC-count example (counts vary 78 vs 79 between runs; one passing run misled me), about 11 refer to files or earlier fences the block never shows (`./counter.mjs`, `./state.mjs`, a self-importing `ns.mjs`, `bind` and `runTasks` defined in a block that is not the nearest one), 4 timings, 2 racy values, 4 `@js-temporal/polyfill`, 1 iterator helper missing from this Node, 3 needing a flag outside the allow-list or output the run can't reproduce (`--no-lazy-feedback-allocation`, `| grep`, GC timing). Running the first group would need a way to name the files or earlier fences to include; that is a separate design.
 
 ## Not doing
 - Running TypeScript, browser or Temporal examples (they wait for 6.13) or installing packages.
