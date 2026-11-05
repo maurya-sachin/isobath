@@ -6,10 +6,9 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/app-shell"
-    }
+    { "source": "/flashcards/:topic", "destination": "/app-shell" },
+    { "source": "/practice/:topic", "destination": "/app-shell" },
+    { "source": "/practice/:topic/:chapter", "destination": "/app-shell" }
   ],
   "redirects": [
     {
