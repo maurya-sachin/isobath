@@ -110,7 +110,7 @@ The five rules in the answer are therefore one mechanism. `new` and bound functi
 
 Sloppy versus strict, and the top level, run as CommonJS here because modules are always strict:
 
-```js
+```js script
 // Run as CommonJS: node example.cjs
 function sloppy() { return this; }
 function strict() { 'use strict'; return this; }

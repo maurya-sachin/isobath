@@ -123,7 +123,7 @@ console.log(typeof inner); // → undefined
 
 - **Annex B for sloppy code.** *Legacy:* in non-strict scripts on web-compatible hosts, a block function also creates a function-scoped `var` binding (initialized to `undefined`) if that wouldn't cause an early error. When the declaration is evaluated, the block's value is copied to that `var`, which holds `undefined` until then. Node.js wraps each CommonJS file in a plain function, which is sloppy, so this runs there too, but ES modules don't see it:
 
-```js
+```js script
 // Sloppy script or CommonJS file, not an ES module
 console.log(typeof legacy); // → undefined
 if (true) {

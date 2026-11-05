@@ -39,7 +39,7 @@ Why avoid it: it isn't an array, the aliasing is surprising and only exists in l
 
 ## Example
 
-```js
+```js script
 // CommonJS (sloppy) so `arguments` is mapped; ES modules are strict.
 function mapped(a, b) {
   arguments[0] = 'changed'; // writes through to `a`

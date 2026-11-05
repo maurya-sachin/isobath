@@ -133,7 +133,7 @@ readFile(import.meta.filename, () => {
 // → timeout
 ```
 
-```js
+```js script
 // File: order.cjs (CommonJS; run with node)
 Promise.resolve().then(() => {
   console.log('promise 1');
