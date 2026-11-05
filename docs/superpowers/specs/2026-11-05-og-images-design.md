@@ -20,4 +20,4 @@ Shared links to a question page show a card with its title instead of a bare lin
 ## Not doing
 - Cards for topic, chapter, path or home pages (the home page gets none until there's a reason).
 - A dark variant, per-theme images, or a title-length text-measuring pass beyond the one size step.
-- Caching between builds: measure first; skip if the full run stays under a minute.
+- Caching between builds: 412 cards add about 13 s. Resvg must not scan system fonts (`loadSystemFonts: false`); that scan made a render 8× slower.
