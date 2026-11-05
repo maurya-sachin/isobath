@@ -139,7 +139,7 @@ export function RouteDiagram({ nodes, label }: { nodes: DiagramNode[]; label: st
                 to={node.to}
                 aria-current={node.current ? 'step' : undefined}
                 className={cn(
-                  'grid w-full grid-cols-[auto_1fr] items-baseline gap-x-3 rounded-xl px-4 py-3 ring-6 ring-background transition-transform hover:-translate-y-0.5',
+                  'grid w-full grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 rounded-xl px-4 py-3 ring-6 ring-background transition-transform hover:-translate-y-0.5',
                   node.planned
                     ? 'border-2 border-dashed border-muted-foreground/45 bg-background text-muted-foreground'
                     : 'bg-link text-background',

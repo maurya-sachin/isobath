@@ -17,12 +17,15 @@ const MAIN_LINKS = [
 export function Layout() {
   return (
     <>
-      <header className="flex items-center gap-4 border-b bg-background/85 px-6 py-3 backdrop-blur">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b bg-background/85 px-6 py-3 backdrop-blur">
         <div className="flex items-baseline gap-2.5">
           <Link to="/" className="text-foreground">
             <Wordmark className="text-xl" />
           </Link>
-          <a href={AUTHOR_URL} className="hidden text-xs text-muted-foreground hover:text-foreground sm:inline">
+          <a
+            href={AUTHOR_URL}
+            className="hidden text-xs whitespace-nowrap text-muted-foreground hover:text-foreground lg:inline"
+          >
             by {AUTHOR}
           </a>
         </div>

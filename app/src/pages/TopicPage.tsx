@@ -156,7 +156,7 @@ function Topic({ topic }: { topic: TopicSummary }) {
                     return (
                       <li key={chapter.slug} className="border-b">
                         <details open={filtering} className="group">
-                          <summary className="grid cursor-pointer list-none grid-cols-[2.5rem_1fr] items-center gap-x-4 gap-y-2 py-4 sm:grid-cols-[2.5rem_1fr_11rem] [&::-webkit-details-marker]:hidden">
+                          <summary className="grid cursor-pointer list-none grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-2 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)_11rem] [&::-webkit-details-marker]:hidden">
                             <span className="font-mono text-sm text-muted-foreground">{chapter.number}</span>
                             <InlineHtml
                               html={chapter.titleHtml}

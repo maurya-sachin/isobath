@@ -46,7 +46,7 @@ export function ChangelogPage() {
               day.topics.map((topic) => (
                 <li
                   key={`${day.date}/${topic.slug}`}
-                  className="grid grid-cols-[4.5rem_1fr] gap-x-4 border-b border-dashed py-3 last:border-b-0"
+                  className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 border-b border-dashed py-3 last:border-b-0"
                 >
                   <time dateTime={day.date} className="font-mono text-sm text-muted-foreground">
                     {formatDay(day.date)}

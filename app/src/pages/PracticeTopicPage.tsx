@@ -41,7 +41,7 @@ export function PracticeTopicPage() {
             <li key={chapter.slug} className="border-b">
               <Link
                 to={`/practice/${topic.slug}/${chapter.slug}`}
-                className="grid grid-cols-[2.5rem_1fr_auto] items-baseline gap-4 py-4 hover:text-link"
+                className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 hover:text-link"
               >
                 <span className="font-mono text-sm text-muted-foreground">{chapter.number}</span>
                 <InlineHtml

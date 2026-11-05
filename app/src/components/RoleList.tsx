@@ -24,7 +24,7 @@ export function RoleList({ paths }: { paths: RolePath[] }) {
           <li key={path.slug} className="border-t">
             <Link
               to={`/paths/${path.slug}`}
-              className="group grid grid-cols-[1fr_auto] items-baseline gap-x-4 gap-y-3 py-4 hover:bg-linear-to-r hover:from-muted hover:to-transparent"
+              className="group grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-3 py-4 hover:bg-linear-to-r hover:from-muted hover:to-transparent"
             >
               <span>
                 <span className="block font-serif text-[1.375rem] leading-tight font-medium">{path.title}</span>
