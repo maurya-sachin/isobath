@@ -2,7 +2,7 @@
 
 The site is static, has no accounts and stores nothing server-side, so the aim is small: stop it being framed, stop MIME sniffing, limit what a script that did get in could load, and keep third-party code to the one thing it needs (giscus comments).
 
-## What a page contains (production build, 2026-11-06)
+## What a page contains (production build, 2026-11-05)
 - Inline scripts: the theme and Appearance script (1.3 kB, identical on every page, runs before paint) and, on prerendered pages, the router's hydration data (50–58 kB, different on every page). JSON-LD blocks are data, not executed, so CSP does not cover them.
 - External script: the app bundle, same origin; `@giscus/react` adds `https://giscus.app/client.js` and an iframe from `giscus.app` on question pages.
 - Styles: no `<style>` in the HTML, but 18–132 inline `style` attributes per page, and Radix (`react-remove-scroll`) adds `<style>` elements at runtime.
@@ -42,7 +42,7 @@ object-src 'none'; base-uri 'self'; form-action 'self'
 - A nonce (needs a server per request), `'strict-dynamic'`, Trusted Types, reporting endpoints, `Report-Only` mode (a meta policy cannot report), COEP/CORP, SRI on same-origin assets.
 - Hashing the JSON-LD blocks.
 
-## Result (checked 2026-11-06)
+## Result (checked 2026-11-05)
 - Served with the same headers and rewrites: no CSP console errors and Lighthouse best practices 100 on home, topic, chapter, question, roadmap, paths, practice hub, practice topic, flashcards and cheat sheet; the 404 and app-shell pages carry the policy.
 - Enforcement confirmed: a script injected into a question page was blocked (`script-src-elem inline`) and did not run. Giscus loaded its iframe from `giscus.app` with no violation; the Radix topic menu works.
 - Not tested: signing in to giscus (needs a GitHub login), Firefox and Safari, the live site's response headers (after the next deploy).
