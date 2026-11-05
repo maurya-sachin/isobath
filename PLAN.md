@@ -52,6 +52,11 @@ Non-goals: backend service, accounts, paid AI.
 - [ ] F3 Reading font (serif/sans) and line spacing in the Appearance panel
 - [ ] T6 Giscus custom theme from the palette (after deploy)
 
+### 6B — Quality gate: SEO, accessibility, performance (after 6A; each item gets a short spec first)
+- [ ] Q1 SEO: JSON-LD (`BreadcrumbList` everywhere, `LearningResource` on questions), real 404 status for unknown paths (today `app-shell` answers 200 with `noindex`), `og:image` for home/topic/chapter pages, `theme-color` and apple-touch-icon, sitemap `lastmod` from `verified`, unique titles/descriptions check; Rich Results and Search Console checks after deploy (maintainer)
+- [ ] Q2 Lighthouse (mobile and desktop) on home, topic, chapter, question, practice: fix perf, a11y, best-practices, SEO findings; split the 511 kB main chunk; keep a budget
+- [ ] Q3 Security headers in `vercel.json` (CSP that allows giscus and the inline theme script, nosniff, referrer and permissions policy)
+
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
 Tier 1:
 - [ ] 6.1 Fix NOT_FOUND on direct loads (`vercel.json` rewrite)
