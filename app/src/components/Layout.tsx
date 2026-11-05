@@ -17,6 +17,12 @@ const MAIN_LINKS = [
 export function Layout() {
   return (
     <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:border focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium"
+      >
+        Skip to content
+      </a>
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b bg-background/85 px-6 py-3 backdrop-blur">
         <div className="flex items-baseline gap-2.5">
           <Link to="/" className="text-foreground">

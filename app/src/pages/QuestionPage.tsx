@@ -50,11 +50,11 @@ export function QuestionPage() {
 
   return (
     <div className="mx-auto grid max-w-340 gap-12 px-6 py-8 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,45rem)_14rem] xl:justify-center">
-      <aside className="hidden lg:block">
+      <aside aria-label="Questions in this chapter" className="hidden lg:block">
         <ChapterNav topicSlug={topic.slug} chapter={chapter} currentId={question.id} />
       </aside>
 
-      <main className="min-w-0">
+      <main id="main" tabIndex={-1} className="min-w-0 outline-none">
         <Breadcrumbs
           crumbs={[
             { label: 'Topics', to: '/' },
@@ -198,7 +198,7 @@ export function QuestionPage() {
       </main>
 
       {showDepthRail && sections.length > 0 && (
-        <aside>
+        <aside aria-label="On this page">
           <DepthRail stops={sections} />
         </aside>
       )}
