@@ -19,7 +19,7 @@ One Markdown file per question in `content/`; the client-only app in `app/` read
 
 ## Token rules
 - Never bulk-read `content/`, `app/public/data/`, or `app/dist/`. Find through READMEs, script output, or a title grep; open one file.
-- v1 lives only on tag `v1-archive` (built site on `gh-pages`) — never read it or reuse its text.
+- v1 lives only on tags `v1-archive` (source) and `v1-site-archive` (built site) — never read it or reuse its text.
 - Validate with `content:check` (in `app/`); don't re-read files you just wrote.
 
 ## Working rules
