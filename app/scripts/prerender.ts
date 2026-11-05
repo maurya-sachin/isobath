@@ -8,9 +8,10 @@ import { pathToFileURL } from 'node:url'
 import { chapterStats } from '../src/content/stats.ts'
 import type { ContentManifest, SearchDoc, TopicSummary } from '../src/content/types.ts'
 import { SITE_NAME, SITE_URL, TAGLINE } from '../src/lib/site.ts'
+import { faviconSvg, touchIconSvg } from '../src/theme/icons.ts'
 import { hex } from '../src/theme/palette.ts'
 import { CARD_HEIGHT, CARD_WIDTH, type CardData } from './lib/ogCard.ts'
-import { renderCard } from './lib/ogImage.ts'
+import { renderCard, svgToPng } from './lib/ogImage.ts'
 import {
   breadcrumbList,
   duplicates,
@@ -31,6 +32,8 @@ interface Page {
   path: string
   description: string
   type: 'website' | 'article'
+  /** Last fact check as `YYYY-MM-DD`, for the sitemap. */
+  lastmod?: string
   /** Structured data for the page, one JSON-LD script each. */
   jsonLd?: object[]
   /** The social card: its URL path under `/og/` and its alt text. Rendered once per path (see `cards`). */
@@ -155,6 +158,7 @@ async function listPages(): Promise<Page[]> {
           description,
           type: 'article',
           image,
+          lastmod: question.verified ? `${question.verified}-01` : undefined,
           jsonLd: [
             techArticle({ title: question.title, description: metaDescription(description), path: `/${question.id}` }),
             breadcrumbList([...chapterCrumbs, { name: question.title, path: `/${question.id}` }]),
@@ -165,6 +169,12 @@ async function listPages(): Promise<Page[]> {
   }
   return pages
 }
+
+/** PNG fallbacks for browsers that ignore the SVG favicon, and the iOS home-screen icon (written below). */
+const iconTags = [
+  '<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />',
+  '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+]
 
 /** The browser's address-bar and overscroll colour: the page background of each mode. */
 const themeColorTags = [
@@ -191,6 +201,7 @@ function headTags(title: string, page: Page): string {
     `<meta name="description" content="${description}" />`,
     ...fontPreloads,
     ...themeColorTags,
+    ...iconTags,
     '<meta name="robots" content="index, follow, max-image-preview:large" />',
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     `<meta property="og:title" content="${title}" />`,
@@ -210,6 +221,7 @@ function appShellHeadTags(title: string, description: string): string {
     '<meta name="robots" content="noindex" />',
     ...fontPreloads,
     ...themeColorTags,
+    ...iconTags,
   ].join('\n    ')
 }
 
@@ -287,6 +299,7 @@ await writePage(
       '<meta name="robots" content="noindex" />',
       ...fontPreloads,
       ...themeColorTags,
+      ...iconTags,
     ].join('\n    '),
     notFoundParts.markup,
   ),
@@ -309,12 +322,18 @@ if (sharedTitles.length > 0)
   )
 
 const urls = pages.map(
-  (page) => `  <url><loc>${escapeHtml(page.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${page.path}`)}</loc></url>`,
+  (page) =>
+    `  <url><loc>${escapeHtml(pageUrl(page.path))}</loc>${page.lastmod ? `<lastmod>${page.lastmod}</lastmod>` : ''}</url>`,
 )
 await writeFile(
   path.join(distDir, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`,
 )
-await writeFile(path.join(distDir, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`)
+await writeFile(
+  path.join(distDir, 'robots.txt'),
+  `User-agent: *\nAllow: /\nDisallow: /data/\nSitemap: ${SITE_URL}/sitemap.xml\n`,
+)
+await writeFile(path.join(distDir, 'favicon-32.png'), svgToPng(faviconSvg(), 32))
+await writeFile(path.join(distDir, 'apple-touch-icon.png'), svgToPng(touchIconSvg(), 180))
 
-console.log(`✔ prerendered ${pages.length} pages, ${cards.size} social cards, sitemap.xml and robots.txt`)
+console.log(`✔ prerendered ${pages.length} pages, ${cards.size} social cards, sitemap.xml, robots.txt and icons`)

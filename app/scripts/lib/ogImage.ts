@@ -24,6 +24,11 @@ const fonts = await Promise.all(
   })),
 )
 
+/** Rasterises an SVG at the given width. */
+export function svgToPng(svg: string, width: number): Uint8Array {
+  return new Resvg(svg, { fitTo: { mode: 'width', value: width }, font: { loadSystemFonts: false } }).render().asPng()
+}
+
 export async function renderCard(data: CardData): Promise<Uint8Array> {
   const svg = await satori(card(data) as Parameters<typeof satori>[0], {
     width: CARD_WIDTH,

@@ -7,3 +7,4 @@ package-lock.json
 src/components/ui
 src/theme/palette.css
 src/theme/fonts.css
+public/favicon.svg
