@@ -1,6 +1,6 @@
 // Links into the content repository, for "Edit on GitHub" and "Suggest a fix".
 
-export const REPO_URL = 'https://github.com/maurya-sachin/javascript-interview-deep-dive'
+export const REPO_URL = 'https://github.com/maurya-sachin/isobath'
 const DEFAULT_BRANCH = 'main'
 
 /** The writing guide, where a contributor starts. */
