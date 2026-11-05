@@ -45,13 +45,13 @@ Non-goals: backend service, accounts, paid AI.
 
 ### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`; before 6.5)
 - [ ] T3 Verify in a no-drafts build (Chrome and Firefox, four widths, light/dark and 145 % text checked on the full build)
-- [ ] T5 Accessibility audit (axe-core, keyboard, 200 % zoom, forced colours, colour-blind check) and fixes; contrast and motion settings are in; input borders still 1.3:1; 3 px overflow on the home page at 145 % text and 375 px
+- [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer); 3 px home-page overflow at 145 % text and 375 px
 - [ ] T6 Giscus custom theme from the palette (after deploy)
 
 ### 6B — Quality gate: SEO, accessibility, performance (after 6A; each item gets a short spec first)
 - [ ] Q1 SEO: JSON-LD (`BreadcrumbList` everywhere, `LearningResource` on questions), real 404 status for unknown paths (today `app-shell` answers 200 with `noindex`), `og:image` for home/topic/chapter pages, `theme-color` and apple-touch-icon, sitemap `lastmod` from `verified`, unique titles/descriptions check; Rich Results and Search Console checks after deploy (maintainer)
 - [ ] Q2 Lighthouse (mobile and desktop) on home, topic, chapter, question, practice: fix perf, a11y, best-practices, SEO findings; split the 511 kB main chunk; keep a budget
-- [ ] Q4 Responsive and cross-browser smoke in CI: `puppeteer-core` against the built site (Chrome and Firefox; 375/768/1024/1440 px; light, dark and 145 % text; fails on horizontal overflow or console errors); the harness now lives only in a scratchpad. Safari (macOS and iOS) and Android Chrome are maintainer checks on real devices after deploy
+- [ ] Q4 Responsive and cross-browser smoke in CI: `puppeteer-core` against the built site (Chrome and Firefox; 375/768/1024/1440 px; light, dark and 145 % text; fails on horizontal overflow, console errors or axe violations; the axe and keyboard scripts also live only in the scratchpad); the harness now lives only in a scratchpad. Safari (macOS and iOS) and Android Chrome are maintainer checks on real devices after deploy
 - [ ] Q3 Security headers in `vercel.json` (CSP that allows giscus and the inline theme script, nosniff, referrer and permissions policy)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
