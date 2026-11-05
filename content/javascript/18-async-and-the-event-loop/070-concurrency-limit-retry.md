@@ -92,7 +92,7 @@ async function runTasks(tasks, { limit, retries = 0, baseDelayMs = 100 }) {
 
 ### Trace the pool
 
-```js no-run
+```js continues
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const job = (name, ms) => async () => {
   console.log('start', name);
