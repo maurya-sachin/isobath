@@ -146,6 +146,49 @@ function borderMaximum(field: number[][]): number {
   return Math.max(...border)
 }
 
+type Segment = [Edge, Edge]
+
+/** The segments that cross one grid cell at `height`, from its four corners (the saddle cases also read the centre). */
+function cellSegments(field: number[][], row: number, column: number, height: number): Segment[] {
+  const topLeft = field[row][column]
+  const topRight = field[row][column + 1]
+  const bottomRight = field[row + 1][column + 1]
+  const bottomLeft = field[row + 1][column]
+  const pattern =
+    Number(topLeft > height) * 8 +
+    Number(topRight > height) * 4 +
+    Number(bottomRight > height) * 2 +
+    Number(bottomLeft > height)
+  const saddle = SADDLE[pattern]
+  if (!saddle) return SEGMENTS[pattern] ?? []
+  const centreInside = (topLeft + topRight + bottomRight + bottomLeft) / 4 > height
+  return centreInside ? saddle.centreInside : saddle.centreOutside
+}
+
+/** Where the contour crosses a grid edge, by linear interpolation between the two samples the edge joins. */
+function crossing(field: number[][], height: number, row: number, column: number, horizontal: boolean): Point {
+  const start = field[row][column]
+  const end = horizontal ? field[row][column + 1] : field[row + 1][column]
+  const along = (height - start) / (end - start)
+  return horizontal ? [column + along, row] : [column, row + along]
+}
+
+/** Follows the linked crossing points from `start` back to itself. */
+function walkRing(start: string, points: Map<string, Point>, neighbours: Map<string, string[]>, visited: Set<string>) {
+  const ringPoints: Point[] = []
+  let previous: string | undefined
+  let current = start
+  do {
+    visited.add(current)
+    ringPoints.push(points.get(current)!)
+    const [first, second] = neighbours.get(current)!
+    const next = first !== previous ? first : second
+    previous = current
+    current = next
+  } while (current !== start)
+  return ringPoints
+}
+
 function ringsAtHeight(field: number[][], height: number, level: number, size: number): Ring[] {
   const points = new Map<string, Point>()
   const neighbours = new Map<string, string[]>()
@@ -157,11 +200,7 @@ function ringsAtHeight(field: number[][], height: number, level: number, size: n
     const edgeColumn = edge === 'right' ? column + 1 : column
     const key = `${horizontal ? 'h' : 'v'}${edgeRow},${edgeColumn}`
     if (!points.has(key)) {
-      const start = field[edgeRow][edgeColumn]
-      const end = horizontal ? field[edgeRow][edgeColumn + 1] : field[edgeRow + 1][edgeColumn]
-      const along = (height - start) / (end - start)
-      const x = horizontal ? edgeColumn + along : edgeColumn
-      const y = horizontal ? edgeRow : edgeRow + along
+      const [x, y] = crossing(field, height, edgeRow, edgeColumn, horizontal)
       points.set(key, [(x / GRID) * size, (y / GRID) * size])
     }
     return key
@@ -174,38 +213,16 @@ function ringsAtHeight(field: number[][], height: number, level: number, size: n
 
   for (let row = 0; row < GRID; row++) {
     for (let column = 0; column < GRID; column++) {
-      const topLeft = field[row][column]
-      const topRight = field[row][column + 1]
-      const bottomRight = field[row + 1][column + 1]
-      const bottomLeft = field[row + 1][column]
-      const pattern =
-        Number(topLeft > height) * 8 +
-        Number(topRight > height) * 4 +
-        Number(bottomRight > height) * 2 +
-        Number(bottomLeft > height)
-      const saddle = SADDLE[pattern]
-      const centreInside = (topLeft + topRight + bottomRight + bottomLeft) / 4 > height
-      const segments = saddle ? (centreInside ? saddle.centreInside : saddle.centreOutside) : (SEGMENTS[pattern] ?? [])
-      for (const [from, to] of segments) link(edgePoint(row, column, from), edgePoint(row, column, to))
+      for (const [from, to] of cellSegments(field, row, column, height)) {
+        link(edgePoint(row, column, from), edgePoint(row, column, to))
+      }
     }
   }
 
   const rings: Ring[] = []
   const visited = new Set<string>()
   for (const start of neighbours.keys()) {
-    if (visited.has(start)) continue
-    const ringPoints: Point[] = []
-    let previous: string | undefined
-    let current = start
-    do {
-      visited.add(current)
-      ringPoints.push(points.get(current)!)
-      const [first, second] = neighbours.get(current)!
-      const next = first !== previous ? first : second
-      previous = current
-      current = next
-    } while (current !== start)
-    rings.push({ level, points: ringPoints })
+    if (!visited.has(start)) rings.push({ level, points: walkRing(start, points, neighbours, visited) })
   }
   return rings
 }

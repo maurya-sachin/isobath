@@ -29,31 +29,40 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/** Reads an exported file. Throws with a message for the reader when it isn't a valid isobath backup. */
-export function parseBackup(text: string): Backup {
-  let data: unknown
+function parseJson(text: string): unknown {
   try {
-    data = JSON.parse(text)
+    return JSON.parse(text)
   } catch {
     throw new Error('This file is not valid JSON.')
   }
-  if (!isRecord(data) || data.format !== BACKUP_FORMAT || data.version !== 1)
-    throw new Error('This is not an isobath progress file.')
+}
 
-  const { progress, reviews } = data
+function readIds(progress: unknown): string[] {
   if (!isRecord(progress) || !Array.isArray(progress.read) || !progress.read.every((id) => typeof id === 'string')) {
     throw new Error("The file's reading progress is damaged.")
   }
-  const reviewsValid =
+  return progress.read
+}
+
+function readReviews(reviews: unknown): Reviews {
+  const valid =
     isRecord(reviews) && Object.entries(reviews).every(([id, card]) => CARD_ID.test(id) && isValidCard(card))
-  if (!reviewsValid) throw new Error("The file's flashcard history is damaged.")
+  if (!valid) throw new Error("The file's flashcard history is damaged.")
+  return reviews as Reviews
+}
+
+/** Reads an exported file. Throws with a message for the reader when it isn't a valid isobath backup. */
+export function parseBackup(text: string): Backup {
+  const data = parseJson(text)
+  if (!isRecord(data) || data.format !== BACKUP_FORMAT || data.version !== 1)
+    throw new Error('This is not an isobath progress file.')
 
   return {
     format: BACKUP_FORMAT,
     version: 1,
     exportedAt: typeof data.exportedAt === 'string' ? data.exportedAt : '',
-    progress: { read: progress.read },
-    reviews: reviews as Reviews,
+    progress: { read: readIds(data.progress) },
+    reviews: readReviews(data.reviews),
   }
 }
 

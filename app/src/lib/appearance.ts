@@ -39,15 +39,18 @@ export const DEFAULT_APPEARANCE: Appearance = {
 const normalizeHue = (value: unknown): number | null =>
   typeof value === 'number' && Number.isFinite(value) ? ((Math.round(value) % 360) + 360) % 360 : null
 
-/** Reads saved settings; anything missing or invalid falls back to the default, so a bad value never breaks the page. */
-export function parseAppearance(raw: string | null): Appearance {
-  let saved: Record<string, unknown> = {}
+function parseSaved(raw: string | null): Record<string, unknown> {
   try {
     const parsed: unknown = raw ? JSON.parse(raw) : {}
-    if (typeof parsed === 'object' && parsed !== null) saved = parsed as Record<string, unknown>
+    return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {}
   } catch {
-    // Corrupt JSON: use the defaults.
+    return {} // Corrupt JSON: use the defaults.
   }
+}
+
+/** Reads saved settings; anything missing or invalid falls back to the default, so a bad value never breaks the page. */
+export function parseAppearance(raw: string | null): Appearance {
+  const saved = parseSaved(raw)
   return {
     hueLight: normalizeHue(saved.hueLight),
     hueDark: normalizeHue(saved.hueDark),
