@@ -68,6 +68,11 @@ function Topic({ topic }: { topic: TopicSummary }) {
                   <Link to={`/flashcards/${topic.slug}`}>Study {topic.flashcardCount} flashcards</Link>
                 </Button>
               )}
+              {topic.flashcardCount > 0 && (
+                <a href={`/data/topics/${topic.slug}/anki.txt`} download={`${SITE_NAME}-${topic.slug}-anki.txt`} className="self-start text-sm text-link hover:text-link-hover">
+                  Download for Anki
+                </a>
+              )}
             </div>
           )}
           {topic.chapters.length > 0 && (
