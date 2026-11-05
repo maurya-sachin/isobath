@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
+import { AppearanceMenu } from '@/components/AppearanceMenu'
 import { SearchDialog } from '@/components/SearchDialog'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { TopicSwitcher } from '@/components/TopicSwitcher'
@@ -41,6 +42,7 @@ export function Layout() {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <SearchDialog />
+          <AppearanceMenu />
           <ThemeToggle />
         </div>
       </header>
