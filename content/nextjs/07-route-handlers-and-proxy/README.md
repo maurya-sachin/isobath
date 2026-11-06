@@ -33,7 +33,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 020 | [What is `proxy.ts`, what should run there, and why was `middleware` renamed?](020-proxy-ts-and-middleware-rename.md) | medium | 🟡 draft |
 | 030 | [Why is Proxy not enough for authorization?](030-proxy-not-enough-for-auth.md) | hard | 🟡 draft |
 | 040 | [What does `after` run, and when does it run relative to the response?](040-after-api.md) | medium | 🟡 draft |
-| 050 | [What do `instrumentation.ts` and `onRequestError` hook into?](050-instrumentation-and-request-errors.md) | medium | 🔴 planned |
+| 050 | [What do `instrumentation.ts` and `onRequestError` hook into?](050-instrumentation-and-request-errors.md) | medium | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
