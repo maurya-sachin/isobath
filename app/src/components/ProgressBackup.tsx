@@ -14,7 +14,9 @@ export function ProgressBackup() {
 
   function download() {
     const now = new Date()
-    const blob = new Blob([JSON.stringify(createBackup(progress, loadReviews(), now), null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify(createBackup(progress, loadReviews(), now), null, 2)], {
+      type: 'application/json',
+    })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -39,7 +41,9 @@ export function ProgressBackup() {
       }
       const read = merged.progress.read.length
       const reviewed = Object.keys(merged.reviews).length
-      setMessage(`Progress imported: ${read} ${read === 1 ? 'question' : 'questions'} read, ${reviewed} ${reviewed === 1 ? 'card' : 'cards'} reviewed.`)
+      setMessage(
+        `Progress imported: ${read} ${read === 1 ? 'question' : 'questions'} read, ${reviewed} ${reviewed === 1 ? 'card' : 'cards'} reviewed.`,
+      )
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'The file could not be read.')
     }
@@ -50,7 +54,10 @@ export function ProgressBackup() {
       <h2 id="your-progress" className="text-base font-semibold">
         Your progress
       </h2>
-      <p className="mt-2 max-w-xl text-sm text-muted-foreground">Reading progress and flashcard history live only in this browser. Download a copy to keep it, or to move it to another device; importing adds to what is here.</p>
+      <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+        Reading progress and flashcard history live only in this browser. Download a copy to keep it, or to move it to
+        another device; importing adds to what is here.
+      </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={download}>
           Download progress

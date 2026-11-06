@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#2F4FD8">
-  <style>@media (prefers-color-scheme: dark) { svg { stroke: #9DAEF7 } circle { fill: #9DAEF7 } }</style>
-  <path d="M4 16.5c0-7 5.5-12.3 12.2-12.3S28 9.2 28 16s-5.2 12-11.9 12S4 23.5 4 16.5Z" stroke-width="5.2"/>
-  <circle cx="16.2" cy="16.4" r="3.4" fill="#2F4FD8" stroke="none"/>
-</svg>

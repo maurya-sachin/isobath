@@ -110,7 +110,7 @@ The five rules in the answer are therefore one mechanism. `new` and bound functi
 
 Sloppy versus strict, and the top level, run as CommonJS here because modules are always strict:
 
-```js
+```js script
 // Run as CommonJS: node example.cjs
 function sloppy() { return this; }
 function strict() { 'use strict'; return this; }
@@ -142,10 +142,11 @@ class Dog extends Animal {
     this.legs = 4; // allowed now: super() initialised the binding
   }
 }
+const dog = new Dog(); // logs the ReferenceError above
 console.log(Animal.create() === Animal); // → true
 const { speak } = new Animal();
 console.log(speak()); // → undefined
-console.log(new Dog().legs); // → 4
+console.log(dog.legs); // → 4
 ```
 
 A static method's `this` is the class because the call is `Animal.create()`; it is still the ordinary reference rule.

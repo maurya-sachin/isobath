@@ -105,7 +105,7 @@ console.log(point instanceof Point, point instanceof OnYAxis); // → true false
 
 Extend the example's `bind` so `bind(add, null, 1)` has `name` `"bound add"` and `length` `2` for `function add(a, b, c)`.
 
-```js
+```js no-run
 function add(a, b, c) {
   return a + b + c;
 }

@@ -42,7 +42,7 @@ Everything here is **V8 behaviour**, not part of the language. Other engines hav
 
 ## Example
 
-```js
+```js node=--allow-natives-syntax
 // shapes.mjs. Run: node --allow-natives-syntax shapes.mjs (Node 24.19, V8 13.6).
 // %HaveSameMap and %HasFastProperties are debug-only natives, not public API.
 const p1 = { x: 1, y: 2 };
@@ -117,7 +117,7 @@ Two takeaways. The Map, not the object, holds the names. And a different route t
 
 Whether two objects share a Map depends on the route that built them, not only on their final keys:
 
-```js
+```js node=--allow-natives-syntax
 // routes.mjs. Run: node --allow-natives-syntax routes.mjs
 const literal = { x: 1, y: 2 };
 const built = {};
@@ -138,7 +138,7 @@ Other transitions out of the fast path: `delete` switched to dictionary mode in 
 
 A constructor that adds a field conditionally splits one class into two shapes. This pattern is the case study in V8's own Indicium post, where the fix was to always initialise the property.
 
-```js
+```js no-run
 // vec.mjs. Run: node --allow-natives-syntax --no-lazy-feedback-allocation vec.mjs
 class Vec {
   constructor(x, y) {

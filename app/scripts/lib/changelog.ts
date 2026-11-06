@@ -46,7 +46,11 @@ export function parseGitLog(output: string): Commit[] {
  * Turns commits (newest first) into one row per day per topic listing the questions that changed.
  * Files that are not a question with a page in this build (READMEs, flashcards, paths, deleted files) are dropped.
  */
-export function summarizeChanges(commits: Commit[], questionsByPath: Map<string, ChangelogQuestion>, maxDays = MAX_DAYS): Changelog {
+export function summarizeChanges(
+  commits: Commit[],
+  questionsByPath: Map<string, ChangelogQuestion>,
+  maxDays = MAX_DAYS,
+): Changelog {
   // Insertion order follows the commits, so days and topics stay newest first.
   type TopicRow = { topic: ChangelogQuestion; questions: Map<string, string> }
   const days = new Map<string, Map<string, TopicRow>>()

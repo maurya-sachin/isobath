@@ -12,5 +12,6 @@ export default defineConfig(({ isSsrBuild }) => ({
     },
   },
   // The server build only feeds the prerender; the client build already ships public/.
-  build: { copyPublicDir: !isSsrBuild },
+  // The main chunk is 453 kB (React DOM and Router are 295 kB of it); Vite warns past 470 kB.
+  build: { copyPublicDir: !isSsrBuild, chunkSizeWarningLimit: 470 },
 }))

@@ -12,18 +12,24 @@ export type Reviews = Record<string, CardInput>
 
 const NUMERIC_FIELDS = ['stability', 'difficulty', 'elapsed_days', 'scheduled_days', 'learning_steps', 'reps', 'lapses']
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 function isTime(value: unknown): boolean {
   return (typeof value === 'string' || typeof value === 'number') && Number.isFinite(new Date(value).getTime())
 }
 
+function isCardState(value: unknown): boolean {
+  return Number.isInteger(value) && (value as number) >= 0 && (value as number) <= 3
+}
+
 /** Whether `value` has every field ts-fsrs reads, so a damaged stored or imported card can't break scheduling. */
 export function isValidCard(value: unknown): value is CardInput {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
-  const card = value as Record<string, unknown>
+  if (!isPlainObject(value)) return false
+  const card = value
   return (
-    Number.isInteger(card.state) &&
-    (card.state as number) >= 0 &&
-    (card.state as number) <= 3 &&
+    isCardState(card.state) &&
     NUMERIC_FIELDS.every((field) => Number.isFinite(card[field])) &&
     isTime(card.due) &&
     (card.last_review == null || isTime(card.last_review))
@@ -34,8 +40,10 @@ export function isValidCard(value: unknown): value is CardInput {
 export function parseReviews(raw: string | null): Reviews {
   try {
     const data: unknown = raw ? JSON.parse(raw) : {}
-    if (typeof data !== 'object' || data === null || Array.isArray(data)) return {}
-    return Object.fromEntries(Object.entries(data).filter(([, card]) => isValidCard(card)))
+    if (!isPlainObject(data)) return {}
+    return Object.fromEntries(
+      Object.entries(data).filter((entry): entry is [string, CardInput] => isValidCard(entry[1])),
+    )
   } catch {
     return {}
   }
@@ -78,7 +86,12 @@ function reviewsOf(topic: string, reviews: Reviews) {
  * Cards due now and cards never seen, for one topic's deck of `cardCount` cards. Ids of cards since removed are clamped away.
  * Counts assume card ids never change once published (templates/README.md, Flashcards).
  */
-export function deckStatus(topic: string, cardCount: number, reviews: Reviews, now: Date): { due: number; unseen: number } {
+export function deckStatus(
+  topic: string,
+  cardCount: number,
+  reviews: Reviews,
+  now: Date,
+): { due: number; unseen: number } {
   const seen = reviewsOf(topic, reviews)
   const due = seen.filter(([, card]) => new Date(card.due) <= now).length
   return { due: Math.min(due, cardCount), unseen: Math.max(cardCount - seen.length, 0) }

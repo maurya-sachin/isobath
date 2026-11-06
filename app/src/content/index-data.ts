@@ -1,9 +1,19 @@
 // Loading and querying the data built by content:build: a manifest for every page, then one shard per topic.
 
 import { useRouteLoaderData } from 'react-router'
-import type { Changelog, ChapterSummary, ContentManifest, Flashcard, QuestionPage as QuestionData, QuestionSummary, TopicSummary } from './types.ts'
+import type {
+  Changelog,
+  CheatsheetEntry,
+  ChapterSummary,
+  ContentManifest,
+  SiteIndex,
+  Flashcard,
+  QuestionPage as QuestionData,
+  QuestionSummary,
+  TopicSummary,
+} from './types.ts'
 
-export const MANIFEST_ROUTE_ID = 'root'
+export const SITE_ROUTE_ID = 'root'
 export const TOPIC_ROUTE_ID = 'topic'
 
 /** Reads a JSON file produced by content:build; its shape is trusted because both sides share `types.ts`. */
@@ -28,6 +38,12 @@ export function loadManifest(): Promise<ContentManifest> {
     throw error
   })
   return manifestPromise
+}
+
+/** The topic list every page's header needs; the full manifest stays with the pages that read it. */
+export async function loadSiteIndex(): Promise<SiteIndex> {
+  const { topics } = await loadManifest()
+  return { topics: topics.map(({ slug, title, track, chapterCount }) => ({ slug, title, track, chapterCount })) }
 }
 
 const topicPromises = new Map<string, Promise<TopicSummary>>()
@@ -59,20 +75,35 @@ export async function loadPractice(topicSlug: string | undefined, chapterSlug: s
   const topic = await loadTopic(topicSlug)
   const chapter = topic?.chapters.find((candidate) => candidate.slug === chapterSlug)
   const readable = chapter?.questions.filter((question) => question.hasPage) ?? []
-  const questions = await Promise.all(readable.map((question) => fetchData<QuestionData>(`questions/${question.id}.json`)))
+  const questions = await Promise.all(
+    readable.map((question) => fetchData<QuestionData>(`questions/${question.id}.json`)),
+  )
   return { topic, questions }
+}
+
+/** A chapter's readable questions with their 30-second answers, for the cheat sheet. */
+export async function loadCheatsheet(topicSlug: string | undefined, chapterSlug: string | undefined) {
+  const topic = await loadTopic(topicSlug)
+  const chapter = topic?.chapters.find((candidate) => candidate.slug === chapterSlug)
+  const hasReadable = chapter?.questions.some((question) => question.hasPage) ?? false
+  const entries =
+    topic && chapter && hasReadable
+      ? await fetchData<CheatsheetEntry[]>(`topics/${topic.slug}/${chapter.slug}/cheatsheet.json`)
+      : []
+  return { topic, chapter, entries }
 }
 
 /** One topic's flashcards, with the topic. Topics without a deck have no file to fetch. */
 export async function loadFlashcards(topicSlug: string | undefined) {
   const topic = await loadTopic(topicSlug)
-  const cards = topic && topic.flashcardCount > 0 ? await fetchData<Flashcard[]>(`topics/${topic.slug}/flashcards.json`) : []
+  const cards =
+    topic && topic.flashcardCount > 0 ? await fetchData<Flashcard[]>(`topics/${topic.slug}/flashcards.json`) : []
   return { topic, cards }
 }
 
-export function useManifest(): ContentManifest {
-  // Route loader data is untyped in data-router mode; MANIFEST_ROUTE_ID's loader returns loadManifest().
-  return useRouteLoaderData(MANIFEST_ROUTE_ID) as ContentManifest
+export function useSiteIndex(): SiteIndex {
+  // Route loader data is untyped in data-router mode; SITE_ROUTE_ID's loader returns loadSiteIndex().
+  return useRouteLoaderData(SITE_ROUTE_ID) as SiteIndex
 }
 
 /** The topic of the current `:topic` route, or `null` when the URL names no topic. Call it only from pages under that route. */

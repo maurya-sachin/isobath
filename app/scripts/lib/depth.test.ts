@@ -11,6 +11,9 @@ test('the first level is the shallowest stop and the last level the deepest, for
 
 test('levels in between move down the scale without skipping back', () => {
   const stops = Array.from({ length: 9 }, (_, level) => Number(depthStrokeClass(level, 9).at(-1)))
-  assert.deepEqual(stops, [...stops].sort((a, b) => a - b))
+  assert.deepEqual(
+    stops,
+    [...stops].sort((a, b) => a - b),
+  )
   assert.deepEqual(depthStrokeClass(1, 3), 'stroke-depth-3')
 })

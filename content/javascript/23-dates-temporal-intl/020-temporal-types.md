@@ -57,7 +57,7 @@ Rules that make the API safe:
 
 ## Example
 
-```js
+```js no-run
 // Same output natively in Node 26.11.1 and Chrome 155, and with @js-temporal/polyfill 0.5.1 on Node 24.19.0
 import { Temporal } from '@js-temporal/polyfill';
 
@@ -113,7 +113,7 @@ A type is defined by which fields it stores. `Instant` holds one BigInt of epoch
 
 `ZonedDateTime` serializes to RFC 9557: `2026-03-07T09:00:00-05:00[America/New_York]`. The offset records the moment; the bracketed id lets a reader re-apply the zone's rules later. `Duration` holds signed integer fields for each unit (all non-zero fields share one sign) and is **not** balanced on creation. Converting between calendar units and exact units needs a reference point:
 
-```js
+```js no-run
 import { Temporal } from '@js-temporal/polyfill';
 
 const month = Temporal.Duration.from({ months: 1 });
@@ -139,7 +139,7 @@ Output above matches natively in Node 26.11.1 and Chrome 155, and with the polyf
 
 A monthly billing date anchored on the 31st. Chaining `add({ months: 1 })` drifts, because each clamp loses the original day. Add the total offset to the **anchor** instead:
 
-```js
+```js no-run
 import { Temporal } from '@js-temporal/polyfill';
 
 const anchor = Temporal.PlainDate.from('2026-01-31');

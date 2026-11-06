@@ -72,7 +72,9 @@ export async function loadContent(): Promise<Content> {
     await access(contentDir)
   } catch {
     // Hosts that build from a sub-folder (e.g. a Vercel Root Directory of `app`) can't see ../content.
-    throw new Error(`Cannot find ${contentDir}. The build needs the whole repository: on Vercel, leave Root Directory blank.`)
+    throw new Error(
+      `Cannot find ${contentDir}. The build needs the whole repository: on Vercel, leave Root Directory blank.`,
+    )
   }
 
   const problems: Problem[] = []
@@ -198,6 +200,18 @@ function parseFrontmatter(yaml: string, file: string, problems: Problem[]): Fron
   return null
 }
 
+/** One `- Concept → 010, 030` line: the sub-topic, or the problem with it. */
+function parseSubTopicLine(line: string, lineNumber: number, file: string): SubTopic | Problem {
+  const where = { file: repoRelative(file), line: lineNumber }
+  const match = SUB_TOPIC.exec(line)
+  if (!match) return { ...where, message: 'sub-topic must end with `→ NNN, NNN` or `→ —`' }
+  const [, text, target] = match
+  const refs = target === GAP ? [] : target.split(',').map((ref) => ref.trim())
+  const badRef = refs.find((ref) => !/^\d{3}$/.test(ref))
+  if (badRef !== undefined) return { ...where, message: `\`${badRef}\` is not a question number` }
+  return { text, refs, line: lineNumber }
+}
+
 /** Reads the `## Sub-topics` list: `- Concept → 010, 030` or `- Concept → —`. */
 function parseSubTopics(readme: string, file: string, problems: Problem[]): SubTopic[] {
   const subTopics: SubTopic[] = []
@@ -210,21 +224,10 @@ function parseSubTopics(readme: string, file: string, problems: Problem[]): SubT
   }
 
   for (let index = start + 1; index < lines.length && !lines[index].startsWith('## '); index++) {
-    const line = lines[index]
-    if (!line.startsWith('- ')) continue
-    const match = SUB_TOPIC.exec(line)
-    if (!match) {
-      problems.push({ file: repoRelative(file), line: index + 1, message: 'sub-topic must end with `→ NNN, NNN` or `→ —`' })
-      continue
-    }
-    const [, text, target] = match
-    const refs = target === GAP ? [] : target.split(',').map((ref) => ref.trim())
-    const badRef = refs.find((ref) => !/^\d{3}$/.test(ref))
-    if (badRef !== undefined) {
-      problems.push({ file: repoRelative(file), line: index + 1, message: `\`${badRef}\` is not a question number` })
-      continue
-    }
-    subTopics.push({ text, refs, line: index + 1 })
+    if (!lines[index].startsWith('- ')) continue
+    const parsed = parseSubTopicLine(lines[index], index + 1, file)
+    if ('message' in parsed) problems.push(parsed)
+    else subTopics.push(parsed)
   }
 
   return subTopics

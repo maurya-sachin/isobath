@@ -13,7 +13,9 @@ export interface SearchEngine {
 async function createEngine(): Promise<SearchEngine> {
   const [{ default: MiniSearchClass }, { topics }] = await Promise.all([import('minisearch'), loadManifest()])
   const shards = await Promise.all(
-    topics.filter((topic) => topic.chapterCount > 0).map((topic) => fetchData<SearchDoc[]>(`topics/${topic.slug}/search.json`)),
+    topics
+      .filter((topic) => topic.chapterCount > 0)
+      .map((topic) => fetchData<SearchDoc[]>(`topics/${topic.slug}/search.json`)),
   )
   const docs = shards.flat()
   const index: MiniSearch<SearchDoc> = new MiniSearchClass({

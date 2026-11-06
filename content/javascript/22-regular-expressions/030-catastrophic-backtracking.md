@@ -52,7 +52,7 @@ Defences, from best to weakest:
 
 ## Example
 
-```js
+```js no-run
 const ms = (re, input) => {
   const start = performance.now();
   re.test(input);
@@ -113,7 +113,7 @@ The overlapping-alternative and delimiter-optional forms behave the same. On the
 
 The quadratic case needs no nesting:
 
-```js
+```js no-run
 const trailingSpaces = /\s+$/;
 for (const n of [10_000, 20_000]) {
   const input = ' '.repeat(n) + 'x';

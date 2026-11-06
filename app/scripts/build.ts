@@ -5,7 +5,20 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { isStale } from '../src/content/freshness.ts'
-import type { ContentManifest, Exercise, Flashcard, FollowUp, QuestionPage, QuestionSummary, RolePath, SearchDoc, StartQuestion, TopicSummary } from '../src/content/types.ts'
+import type {
+  CheatsheetEntry,
+  ContentManifest,
+  Exercise,
+  Flashcard,
+  FollowUp,
+  QuestionPage,
+  QuestionSummary,
+  RolePath,
+  SearchDoc,
+  StartQuestion,
+  TopicSummary,
+} from '../src/content/types.ts'
+import { ankiDeck } from './lib/anki.ts'
 import { readChangelog, type ChangelogQuestion } from './lib/changelog.ts'
 import { collectProblems, printProblems } from './lib/check.ts'
 import { loadContent, type Question, type Topic } from './lib/content.ts'
@@ -61,7 +74,8 @@ async function buildPage(question: Question, meta: WrittenMeta): Promise<Questio
   }
   const renderRequired = async (heading: string) => {
     const html = await renderSection(heading)
-    if (html === null) throw new Error(`${repoRelative(question.file)}: missing ## ${heading} after content:check passed`)
+    if (html === null)
+      throw new Error(`${repoRelative(question.file)}: missing ## ${heading} after content:check passed`)
     return html
   }
 
@@ -89,7 +103,11 @@ async function buildPage(question: Question, meta: WrittenMeta): Promise<Questio
     followUps: await renderFollowUps(sectionNamed('Follow-ups'), question.file),
     deepDiveHtml: await renderSection('Deep dive'),
     exercises: exercises
-      ? await Promise.all(splitSections(exercises.lines, 3, exercises.line + 1).sections.map((exercise) => renderExercise(exercise, question.file)))
+      ? await Promise.all(
+          splitSections(exercises.lines, 3, exercises.line + 1).sections.map((exercise) =>
+            renderExercise(exercise, question.file),
+          ),
+        )
       : [],
   }
 }
@@ -120,7 +138,10 @@ for (const question of questions) {
   pageIds.add(question.id)
 }
 
-const decks: Deck[] = content.decks.map((deck) => ({ ...deck, cards: deck.cards.filter((card) => pageIds.has(card.question)) }))
+const decks: Deck[] = content.decks.map((deck) => ({
+  ...deck,
+  cards: deck.cards.filter((card) => pageIds.has(card.question)),
+}))
 
 async function summarize(question: Question): Promise<QuestionSummary> {
   const meta = metaOf(question)
@@ -176,7 +197,9 @@ const topics: TopicSummary[] = await Promise.all(
     track: trackOf(topic.readme),
     covers: coversOf(topic.readme),
     ...(await summaryOf(topic.readme)),
-    plannedAreasHtml: await Promise.all(plannedAreas(topic.readme).map(async (area) => (await renderInline(area)).html)),
+    plannedAreasHtml: await Promise.all(
+      plannedAreas(topic.readme).map(async (area) => (await renderInline(area)).html),
+    ),
     flashcardCount: decks.find((deck) => deck.topic === topic.slug)?.cards.length ?? 0,
     chapters: await Promise.all(
       topic.chapters.map(async (chapter) => {
@@ -232,11 +255,18 @@ async function startQuestion(id: string | null): Promise<StartQuestion | null> {
   if (!question) return null
   const meta = metaOf(question)
   if (!hasPage(meta)) return null
-  return { id: question.id, titleHtml: (await renderInline(meta.title)).html, tldrHtml: (await renderInline(meta.tldr)).html }
+  return {
+    id: question.id,
+    titleHtml: (await renderInline(meta.title)).html,
+    tldrHtml: (await renderInline(meta.tldr)).html,
+  }
 }
 
 const paths: RolePath[] = await Promise.all(
-  resolveRolePaths(content.paths, topics).map(async ({ startId, ...rolePath }) => ({ ...rolePath, start: await startQuestion(startId) })),
+  resolveRolePaths(content.paths, topics).map(async ({ startId, ...rolePath }) => ({
+    ...rolePath,
+    start: await startQuestion(startId),
+  })),
 )
 
 const manifest: ContentManifest = { topics: topics.map(toOverview), paths }
@@ -248,7 +278,12 @@ for (const topic of content.topics) {
     for (const question of chapter.questions) {
       const meta = metaOf(question)
       if (meta.status !== 'published') continue
-      changelogQuestions.set(repoRelative(question.file), { id: question.id, title: (await renderInline(meta.title)).text, topic: topic.slug, topicTitle: topic.title })
+      changelogQuestions.set(repoRelative(question.file), {
+        id: question.id,
+        title: (await renderInline(meta.title)).text,
+        topic: topic.slug,
+        topicTitle: topic.title,
+      })
     }
   }
 }
@@ -257,6 +292,18 @@ await writeJson(path.join(outDir, 'changelog.json'), changelog)
 
 const topicDir = (slug: string) => path.join(outDir, 'topics', slug)
 for (const topic of topics) await writeJson(path.join(topicDir(topic.slug), 'index.json'), topic)
+
+for (const topic of content.topics) {
+  for (const chapter of topic.chapters) {
+    const entries: CheatsheetEntry[] = []
+    for (const question of chapter.questions) {
+      const meta = metaOf(question)
+      if (hasPage(meta))
+        entries.push({ id: question.id, tldrHtml: (await renderInline(meta.tldr, question.file)).html })
+    }
+    if (entries.length > 0) await writeJson(path.join(topicDir(topic.slug), chapter.slug, 'cheatsheet.json'), entries)
+  }
+}
 
 const allSearchDocs: SearchDoc[] = []
 for (const topic of content.topics) {
@@ -272,6 +319,9 @@ for (const deck of decks) {
   const cards = await flashcardsOf(deck)
   allFlashcards.push(...cards)
   await writeJson(path.join(topicDir(deck.topic), 'flashcards.json'), cards)
+  const topicTitle = topics.find((topic) => topic.slug === deck.topic)?.title
+  if (!topicTitle) throw new Error(`${repoRelative(deck.file)}: no topic "${deck.topic}" for this deck`)
+  await writeFile(path.join(topicDir(deck.topic), 'anki.txt'), ankiDeck(topicTitle, cards))
 }
 
 console.log(

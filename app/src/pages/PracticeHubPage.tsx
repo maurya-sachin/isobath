@@ -1,12 +1,11 @@
-import { Link } from 'react-router'
+import { Link, useLoaderData } from 'react-router'
 import { PageShell } from '@/components/PageShell'
 import { ProgressBackup } from '@/components/ProgressBackup'
 import { TopicCover } from '@/components/TopicCover'
 import { Button } from '@/components/ui/button'
-import { useManifest } from '@/content/index-data'
 import { deckStatus, NEW_CARDS_PER_SESSION, nextDue, type Reviews } from '@/content/review'
 import { useReviews } from '@/content/reviewStore'
-import type { TopicOverview } from '@/content/types'
+import type { ContentManifest, TopicOverview } from '@/content/types'
 import { SITE_NAME } from '@/lib/site'
 import { formatUntil } from '@/lib/time'
 import { useHydrated } from '@/lib/useHydrated'
@@ -29,7 +28,9 @@ function NextUp({ decks, reviews, now }: { decks: Deck[]; reviews: Reviews; now:
   const soonest =
     Object.keys(reviews).length === 0
       ? null
-      : decks.flatMap(({ topic }) => nextDue(topic.slug, reviews, now) ?? []).sort((a, b) => a.getTime() - b.getTime())[0]
+      : decks
+          .flatMap(({ topic }) => nextDue(topic.slug, reviews, now) ?? [])
+          .sort((a, b) => a.getTime() - b.getTime())[0]
 
   return (
     <section aria-labelledby="next-up" className="mt-8 min-h-44 rounded-xl border bg-card p-6">
@@ -53,9 +54,13 @@ function NextUp({ decks, reviews, now }: { decks: Deck[]; reviews: Reviews; now:
           <h2 id="next-up" className="font-serif text-2xl leading-snug">
             {totalNew} new {totalNew === 1 ? 'flashcard' : 'flashcards'} to start
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">Each session introduces up to {NEW_CARDS_PER_SESSION} new cards.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Each session introduces up to {NEW_CARDS_PER_SESSION} new cards.
+          </p>
           <Button asChild className="mt-5">
-            <Link to={`/flashcards/${mostNew.topic.slug}`}>Start with {Math.min(mostNew.unseen, NEW_CARDS_PER_SESSION)}</Link>
+            <Link to={`/flashcards/${mostNew.topic.slug}`}>
+              Start with {Math.min(mostNew.unseen, NEW_CARDS_PER_SESSION)}
+            </Link>
           </Button>
         </>
       ) : (
@@ -63,7 +68,9 @@ function NextUp({ decks, reviews, now }: { decks: Deck[]; reviews: Reviews; now:
           <h2 id="next-up" className="font-serif text-2xl leading-snug">
             Nothing is due
           </h2>
-          {soonest && <p className="mt-2 text-sm text-muted-foreground">The next card is due {formatUntil(soonest, now)}.</p>}
+          {soonest && (
+            <p className="mt-2 text-sm text-muted-foreground">The next card is due {formatUntil(soonest, now)}.</p>
+          )}
         </>
       )}
     </section>
@@ -71,7 +78,7 @@ function NextUp({ decks, reviews, now }: { decks: Deck[]; reviews: Reviews; now:
 }
 
 export function PracticeHubPage() {
-  const { topics } = useManifest()
+  const { topics } = useLoaderData<ContentManifest>()
   const reviews = useReviews()
   const practisable = topics.filter((topic) => topic.stats.readable > 0)
   const hydrated = useHydrated()
@@ -84,7 +91,9 @@ export function PracticeHubPage() {
     <PageShell crumbs={[]} wide>
       <title>{`Practice · ${SITE_NAME}`}</title>
       <h1 className="font-serif text-4xl font-medium tracking-tight">Practice</h1>
-      <p className="mt-2 max-w-xl text-muted-foreground">Answer questions out loud before you reveal the answer, or review flashcards when they are due.</p>
+      <p className="mt-2 max-w-xl text-muted-foreground">
+        Answer questions out loud before you reveal the answer, or review flashcards when they are due.
+      </p>
 
       {decks.length > 0 &&
         (hydrated ? (
@@ -100,14 +109,22 @@ export function PracticeHubPage() {
         </h2>
         {practisable.length === 0 ? (
           <p className="mt-3 text-muted-foreground">
-            Nothing is published to practice yet. <Link to="/roadmap" className="text-link hover:text-link-hover">See the roadmap</Link>
+            Nothing is published to practice yet.{' '}
+            <Link to="/roadmap" className="text-link hover:text-link-hover">
+              See the roadmap
+            </Link>
           </p>
         ) : (
           <ul className="mt-4 border-t">
             {practisable.map(({ slug, title, chapterCount, stats }) => (
               <li key={slug} className="border-b">
                 <Link to={`/practice/${slug}`} className="flex items-center gap-4 py-4 hover:text-link">
-                  <TopicCover slug={slug} chapterCount={chapterCount} hardShare={stats.total === 0 ? 0 : stats.byDifficulty.hard / stats.total} className="size-12 shrink-0 rounded-md bg-muted" />
+                  <TopicCover
+                    slug={slug}
+                    chapterCount={chapterCount}
+                    hardShare={stats.total === 0 ? 0 : stats.byDifficulty.hard / stats.total}
+                    className="size-12 shrink-0 rounded-md bg-muted"
+                  />
                   <span>
                     <span className="block font-semibold">{title}</span>
                     <span className="block text-sm text-muted-foreground">{plural(stats.readable, 'question')}</span>
@@ -129,10 +146,16 @@ export function PracticeHubPage() {
           <ul className="mt-4 border-t">
             {decks.map(({ topic, due, unseen }) => (
               <li key={topic.slug} className="border-b">
-                <Link to={`/flashcards/${topic.slug}`} className="flex items-baseline justify-between gap-4 py-4 hover:text-link">
+                <Link
+                  to={`/flashcards/${topic.slug}`}
+                  className="flex items-baseline justify-between gap-4 py-4 hover:text-link"
+                >
                   <span className="font-semibold">{topic.title}</span>
                   {hydrated && (
-                    <span className="text-sm text-muted-foreground">{[due > 0 && `${due} due`, unseen > 0 && `${unseen} new`].filter(Boolean).join(', ') || 'Nothing due'}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {[due > 0 && `${due} due`, unseen > 0 && `${unseen} new`].filter(Boolean).join(', ') ||
+                        'Nothing due'}
+                    </span>
                   )}
                 </Link>
               </li>

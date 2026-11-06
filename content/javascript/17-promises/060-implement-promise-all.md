@@ -99,7 +99,7 @@ console.log(await promiseAll(5).catch((e) => e.constructor.name));
 
 Compared with the native method (in Node 24), the implementation gives the same result for strings, `Set`s, generators, holes, thenables, rejections, non-iterables and `undefined`.
 
-```js
+```js continues
 function* lazy() {
   yield wait(5, 'a');
   yield 'b';

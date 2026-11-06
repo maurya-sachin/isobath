@@ -44,7 +44,7 @@ The language has one Number type: the spec defines it as an IEEE 754 double-prec
 
 ## Example
 
-```js
+```js no-run
 // smi.mjs. Run: node --allow-natives-syntax smi.mjs (Node 24.19, V8 13.6, 64-bit,
 // pointer compression off). %IsSmi is a debug-only native, not public API.
 const MAX = 2 ** 31 - 1;

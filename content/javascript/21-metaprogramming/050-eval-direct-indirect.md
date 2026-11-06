@@ -57,7 +57,7 @@ Prefer `JSON.parse` for data, bracket access for dynamic keys, and callbacks or 
 
 CommonJS, sloppy mode (a module is always strict, so `eval('var …')` would stay local):
 
-```js
+```js script
 globalThis.x = 'global';
 function demo() {
   const x = 'local';

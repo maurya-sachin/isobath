@@ -13,9 +13,17 @@ export function DifficultyMix({ counts, className }: { counts: Record<Difficulty
   const levels: Difficulty[] = ['easy', 'medium', 'hard']
   const label = levels.map((level) => `${counts[level]} ${level}`).join(', ')
   return (
-    <span role="img" aria-label={label} title={label} className={cn('flex h-1.5 gap-0.5 overflow-hidden rounded-full', className)}>
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className={cn('flex h-1.5 gap-0.5 overflow-hidden rounded-full', className)}
+    >
       {levels.map(
-        (level) => counts[level] > 0 && <span key={level} style={{ flexGrow: counts[level] }} className={SEGMENT_STYLE[level]} />,
+        (level) =>
+          counts[level] > 0 && (
+            <span key={level} style={{ flexGrow: counts[level] }} className={SEGMENT_STYLE[level]} />
+          ),
       )}
     </span>
   )

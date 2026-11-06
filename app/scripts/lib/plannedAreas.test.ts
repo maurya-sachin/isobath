@@ -23,7 +23,12 @@ Areas this topic owns that have no chapter yet.
 `
 
 test('reads the area names under Not yet mapped only', () => {
-  assert.deepEqual(plannedAreas(readme), ['Semantic HTML', 'The `<dialog>` element', 'Transitions and animations', 'Design patterns'])
+  assert.deepEqual(plannedAreas(readme), [
+    'Semantic HTML',
+    'The `<dialog>` element',
+    'Transitions and animations',
+    'Design patterns',
+  ])
 })
 
 test('a README without the section has no planned areas', () => {

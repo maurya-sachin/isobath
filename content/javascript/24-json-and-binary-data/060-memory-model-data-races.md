@@ -52,7 +52,7 @@ So `x++` on shared memory loses updates (read, add, write can interleave), and a
 
 ## Example
 
-```js
+```js no-run
 import { Worker } from 'node:worker_threads';
 
 const counters = new Int32Array(new SharedArrayBuffer(8)); // [plain, atomic]

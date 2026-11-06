@@ -42,7 +42,7 @@ That gives `PACKED_SMI_ELEMENTS`, `PACKED_DOUBLE_ELEMENTS`, `PACKED_ELEMENTS` an
 
 ## Example
 
-```js
+```js no-run
 // kinds.mjs. Run: node --allow-natives-syntax kinds.mjs | grep -o "elements kind: .*"
 // %DebugPrint is a debug-only native, not public API. Node 24.19, V8 13.6.
 const a = [1, 2, 3];

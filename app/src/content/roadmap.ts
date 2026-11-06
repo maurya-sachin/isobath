@@ -18,7 +18,8 @@ export function topicState(topic: TopicOverview): TopicState {
  */
 export function orderTrack(topics: TopicOverview[], paths: RolePath[]): TopicOverview[] {
   const slugs = new Set(topics.map((topic) => topic.slug))
-  const stepsOf = (path: RolePath) => [...new Set(path.steps.map((step) => step.topic))].filter((slug) => slugs.has(slug))
+  const stepsOf = (path: RolePath) =>
+    [...new Set(path.steps.map((step) => step.topic))].filter((slug) => slugs.has(slug))
 
   let lead: string[] = []
   for (const path of paths) {
