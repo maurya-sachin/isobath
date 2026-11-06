@@ -31,7 +31,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 |---|---|---|---|
 | 010 | [When do you write a route handler instead of a Server Action?](010-route-handler-vs-server-action.md) | medium | 🟡 draft |
 | 020 | [What is `proxy.ts`, what should run there, and why was `middleware` renamed?](020-proxy-ts-and-middleware-rename.md) | medium | 🟡 draft |
-| 030 | [Why is Proxy not enough for authorization?](030-proxy-not-enough-for-auth.md) | hard | 🔴 planned |
+| 030 | [Why is Proxy not enough for authorization?](030-proxy-not-enough-for-auth.md) | hard | 🟡 draft |
 | 040 | [What does `after` run, and when does it run relative to the response?](040-after-api.md) | medium | 🔴 planned |
 | 050 | [What do `instrumentation.ts` and `onRequestError` hook into?](050-instrumentation-and-request-errors.md) | medium | 🔴 planned |
 <!-- generated:questions:end -->
