@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { createBrowserRouter, matchRoutes, RouterProvider } from 'react-router'
 import './index.css'
+import { initAnalytics } from './lib/analytics.ts'
 import { routes } from './routes.tsx'
 
 const basename = import.meta.env.BASE_URL
@@ -34,6 +35,7 @@ async function start() {
   // "not found" text depends on the URL, so it is replaced, not hydrated.
   if (root.firstElementChild && !root.hasAttribute('data-client-render')) hydrateRoot(root, app)
   else createRoot(root).render(app)
+  initAnalytics()
 }
 
 void start()
