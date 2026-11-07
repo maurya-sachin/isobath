@@ -14,5 +14,9 @@ export function initAnalytics() {
     // The site is a client-routed SPA: count route changes, not just the first load.
     capture_pageview: 'history_change',
     person_profiles: 'identified_only',
+    capture_performance: { web_vitals: true },
+    capture_exceptions: true,
+    capture_dead_clicks: true,
+    capture_heatmaps: true,
   })
 }
