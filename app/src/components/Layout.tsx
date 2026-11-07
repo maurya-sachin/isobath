@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 import { AppearanceMenu } from '@/components/AppearanceMenu'
+import { ConsentBanner, CookieSettingsButton } from '@/components/ConsentBanner'
 import { SearchDialog } from '@/components/SearchDialog'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { TopicSwitcher } from '@/components/TopicSwitcher'
@@ -81,7 +82,12 @@ export function Layout() {
         <a href={REPO_URL} className="text-link hover:text-link-hover">
           GitHub
         </a>
+        <Link to="/privacy" className="text-link hover:text-link-hover">
+          Privacy
+        </Link>
+        <CookieSettingsButton />
       </footer>
+      <ConsentBanner />
       <ScrollRestoration />
     </>
   )
