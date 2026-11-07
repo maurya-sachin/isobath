@@ -1,4 +1,5 @@
 import posthog from 'posthog-js'
+import { POSTHOG_API_HOST } from './posthogHost.ts'
 
 const key = import.meta.env.VITE_POSTHOG_KEY
 
@@ -9,7 +10,7 @@ const key = import.meta.env.VITE_POSTHOG_KEY
 export function initAnalytics() {
   if (!key) return
   posthog.init(key, {
-    api_host: 'https://eu.i.posthog.com',
+    api_host: POSTHOG_API_HOST,
     cookieless_mode: 'always',
     // The site is a client-routed SPA: count route changes, not just the first load.
     capture_pageview: 'history_change',
