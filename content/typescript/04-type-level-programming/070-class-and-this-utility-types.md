@@ -41,7 +41,7 @@ They work on one signature and they don't keep generics. An overloaded construct
 
 ## Example
 
-```ts
+```ts node=--experimental-transform-types
 // TypeScript 7.0.2 and 6.0.3, --strict; run on Node 24.19
 class Box<T> { constructor(public value: T) {} }
 
