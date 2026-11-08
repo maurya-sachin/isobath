@@ -42,7 +42,7 @@ Runtime: Node 24.19 has no `Symbol.metadata`, and TypeScript's helper then passe
 
 ## Example
 
-```ts
+```ts no-run
 // TypeScript 7.0.2 and 6.0.3, --strict --target es2022 --lib esnext; Node 24.19
 (Symbol as { metadata?: symbol }).metadata ??= Symbol("Symbol.metadata"); // Node 24 has none
 
