@@ -45,7 +45,7 @@ tldr: >
 
 ## Example
 
-```ts
+```ts no-run
 // node_modules/@types/globlib/index.d.ts: declare const GLOB: string;
 // node_modules/@types/modlib/index.d.ts:  export declare const m: number;
 // src/index.ts

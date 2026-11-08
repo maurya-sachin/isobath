@@ -37,7 +37,7 @@ Emit flags do not depend on errors: `noEmitOnError` defaults to `false`, so outp
 
 ## Example
 
-```ts
+```ts no-run
 // TypeScript 7.0.2, Node.js 24.19.0 (the 6.0.3 greet.d.ts.map was byte-identical)
 // tsconfig: { "compilerOptions": { "outDir": "out", "rootDir": "src", "declaration": true, "declarationMap": true, "sourceMap": true, ... } }
 // src/greet.ts:  line 2:  if (name === "") throw new Error("empty name");
