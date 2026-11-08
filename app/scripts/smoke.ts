@@ -122,6 +122,13 @@ async function visit(browser: Browser, origin: string, run: Run, axeSource: stri
   }
 }
 
+const onlyPage = process.argv[process.argv.indexOf('--page') + 1]
+const runs = runMatrix().filter((run) => !process.argv.includes('--page') || run.page.path === onlyPage)
+if (runs.length === 0) {
+  console.error(`✖ --page ${onlyPage} is not in the smoke page list (scripts/lib/smoke.ts → PAGES)`)
+  process.exit(1)
+}
+
 const name = browserName()
 const distDir = path.resolve('dist')
 const config = JSON.parse(await readFile(path.resolve('..', 'vercel.json'), 'utf8')) as VercelConfig
@@ -129,8 +136,6 @@ const axeSource = await readFile(createRequire(import.meta.url).resolve('axe-cor
 const server = await startServer(distDir, config)
 const browser = await puppeteer.launch({ browser: name, executablePath: executablePath(name), headless: true })
 
-const onlyPage = process.argv[process.argv.indexOf('--page') + 1]
-const runs = runMatrix().filter((run) => !process.argv.includes('--page') || run.page.path === onlyPage)
 const findings: Finding[] = []
 try {
   for (const run of runs) {

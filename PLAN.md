@@ -3,13 +3,10 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`; production `main` = release of 2026-10-30 (browser drafts). Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
+- Branch `dev`; production `main`. Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
-- On `dev`, unmerged (maintainer merges at EOD): 6.1 rewrite fix (then curl `/flashcards/react` live), 6.2 example runner (272 JS examples run, 48 `no-run`), 6.3 og cards (412 PNGs, +13 s build; check a shared link with a card validator after deploy), 6.4 giscus comments (built-in light/dark theme; `giscus.json` origins apply once merged to `main`), 6.6 Anki decks (`/data/topics/<slug>/anki.txt`; import into Anki once to confirm).
-- Repo renamed `isobath` (2026-11-05); `dev` not yet pushed since. Awaiting maintainer: run the Pages shutdown (`gh api -X DELETE repos/maurya-sachin/isobath/pages`, delete `gh-pages`, delete env `github-pages`); publish the dev.to draft "I rebuilt my interview prep repo…" (update counts if React ships first); pin isobath on dev.to; Phase 5 reviews; wordmark redraw.
-- Now: Phase 6 tier 1 is done except 6.1 (on `dev`, waits for your merge to `main`); then Phase 7 (`nextjs`) can start. Done since the last merge: 6A theme and a11y, 6B Q1–Q4 (SEO, Lighthouse 99–100, security headers and CSP, browser smoke test), 6C complexity, 6.2b, 6.5, 6.10. Left in 6A: T3 no-drafts build check, T5 manual passes, T6 after deploy.
-- After the next deploy (maintainer): `curl -I` for the new headers; the first CI run of the `smoke` job (runner browser paths unconfirmed); Rich Results and Search Console checks. Tier 2 items each need a spec and OK.
-- Open question: relax the review gate to "examples pass CI (6.2) + one maintainer pass per chapter"?
+- Next: Phase 7 (`nextjs`) on Opus, spec first. Starter issues #3–#8 are open; answer contributors there.
+- Awaiting maintainer: Phase 5 chapter passes (R24); Rich Results and Search Console checks; a card-validator check; import one Anki deck; 6A T5; wordmark redraw.
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
@@ -37,24 +34,19 @@ Non-goals: backend service, accounts, paid AI.
 - R20 Freshness: stale = verified 12+ months before the build month; labels Draft/Reviewed/Legacy come from `status` and `legacy`; `Covers` is authored in topic READMEs directly above Track; the changelog lists published questions only.
 - R23 Colour has one source: `src/theme/palette.ts`; never hard-code a colour elsewhere. Users pick a hue only; lightness is fixed so contrast holds.
 - R22 JS examples with `// →` run in CI (`examples:check`, spec `docs/superpowers/specs/2026-11-05-example-runner-design.md`); fence meta `script`/`no-run`; a new example must pass or say why it can't.
+- R24 Publishing is per chapter: once its examples pass CI where a runner exists and the maintainer has read it, the whole chapter goes `published` on the maintainer's OK.
 - R21 Content accuracy work (writing questions, audits) runs on Opus; Sonnet only for mechanical work such as flashcards from finished text.
 
 ## Phases
 
 ### 5 — Review and publish
-- [ ] Per question: maintainer review → `published`; update README status lines
+- [ ] Per chapter (R24): maintainer pass → `published`; `content:sync` updates README status lines
 
-### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`; before 6.5)
-- [ ] T3 Verify in a no-drafts build (Chrome and Firefox, four widths, light/dark and 145 % text checked on the full build)
+### 6A — Theme "Chart" and accessibility (spec `docs/superpowers/specs/2026-11-05-theme-and-accessibility-design.md`)
 - [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer)
-- [ ] T6 Giscus custom theme from the palette (after deploy)
-
-### 6B — Quality gate: SEO, accessibility, performance (after 6A; each item gets a short spec first)
-- [ ] Q1 SEO: JSON-LD (`BreadcrumbList` everywhere, `LearningResource` on questions), real 404 status for unknown paths (today `app-shell` answers 200 with `noindex`), `og:image` for home/topic/chapter pages, `theme-color` and apple-touch-icon, sitemap `lastmod` from `verified`, unique titles/descriptions check; Rich Results and Search Console checks after deploy (maintainer)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
 Tier 1:
-- [ ] 6.1 Fix NOT_FOUND on direct loads (`vercel.json` rewrite)
 - [ ] 6.2c TypeScript examples on the runner (6.13 for browser topics); 28 JS blocks stay `no-run` (reasons in the 6.2b spec)
 Tier 2:
 - [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
