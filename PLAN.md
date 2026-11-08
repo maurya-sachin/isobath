@@ -3,10 +3,11 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`; production `main`. Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
-- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
-- Next: Phase 7 (`nextjs`) on Opus, spec first. Starter issues #3–#8 are open; answer contributors there.
-- Awaiting maintainer: Phase 5 chapter passes (R24); Rich Results and Search Console checks; a card-validator check; import one Anki deck; 6A T5; wordmark redraw.
+- Branch `dev`, equal to `main` (released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
+- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
+- Next: Phase 7 (`nextjs`) on Opus, spec first. Also: issue #7 has two corrections from a contributor to verify with a real run (React ch 5: "instance" wording for function components; index keys are fine for append-only lists even when items hold state), then fix the chapter and reply (reply needs OK).
+- Decide: publish all chapters at once instead of per chapter (R24)? Then the site's Draft label and the dev.to post's "everything is Draft" paragraph must change with it.
+- Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
