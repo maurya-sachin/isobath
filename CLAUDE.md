@@ -20,5 +20,5 @@ One Markdown file per question in `content/`; the client-only app in `app/` read
 
 ## Working rules
 - Work on branch `dev`, cut from `main`; `main` deploys to production. Commit after every finished task, one concern each (deletion, docs, dependency, feature, one question or chapter), with conventional messages (`feat:`, `docs:`, `content:`, `chore:`).
-- Marking a question `published` needs the maintainer's OK each time.
+- Marking questions `published` (a chapter at a time, PLAN R24) needs the maintainer's OK each time.
 - Content follows `templates/README.md`; write it with the `write-question` skill (Batch mode for chapters and flashcards).
