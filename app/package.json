@@ -18,7 +18,8 @@
     "content:build": "node scripts/build.ts",
     "theme:build": "node scripts/theme.ts",
     "smoke": "node scripts/smoke.ts",
-    "examples:check": "node scripts/examples.ts"
+    "examples:check": "node scripts/examples.ts",
+    "sources:list": "node scripts/sources.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
