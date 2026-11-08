@@ -33,7 +33,7 @@ export function QuestionComments({ questionId }: { questionId: string }) {
               reactionsEnabled="1"
               emitMetadata="0"
               inputPosition="top"
-              theme={dark ? 'dark' : 'light'}
+              theme={`${window.location.origin}/giscus/${dark ? 'dark' : 'light'}.css`}
               lang="en"
               loading="lazy"
             />
