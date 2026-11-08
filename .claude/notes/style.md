@@ -15,6 +15,7 @@ Record here only conventions not covered there (e.g., maintainer corrections). D
 - Browser-only stores live apart from pure logic so Node tests never compile DOM code: `src/content/reviewStore.ts` (flashcard history) vs `src/content/review.ts`; `src/lib/progress.ts` vs `src/lib/progressTypes.ts`. Never add `/// <reference lib="dom" />` to shared modules.
 - Prerendered pages show browser-only counts only after hydration (`useHydrated`), with the space reserved, so the first paint is neutral.
 - Route visuals (`RouteDiagram`, `RouteSummary`): states differ by shape as well as colour (check, filled, half, hollow).
+- Testing comments locally: `giscus.json` allows only production and `localhost:5173`, and browsers block giscus.app from loading our `localhost` theme CSS (local network access). Serve on `localhost:5173` and launch the test browser with Chrome `--disable-features=LocalNetworkAccessChecks` or Firefox pref `network.lna.enabled=false`.
 
 ## Content (`content/`)
 - New chapters are appended after the last number (JS 27, 28) rather than renumbering folders; question ids carry no numbers, so order is the only cost.
