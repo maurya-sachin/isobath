@@ -3,9 +3,9 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`, equal to `main` (released 2026-11-08, second release the same day); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
+- Branch `dev`, ahead of `main` (last released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
-- Built on `dev`, unpushed: TypeScript example check (6.2c), weekly source link check (6.11, `links.yml`, untested until first run on GitHub), `issues:plan`/`issues:open` (6.16; the 5 current gaps are unshipped proposals, so don't open). Reply on issue #7 posted; close it after the release.
+- On `dev`, unreleased: "Suggest a fix" from selected text (spec `2026-11-08-suggest-fix-design.md`). After release, open the form once from the live site and check the section and quote fields fill in (GitHub reads the template from `main` only).
 - Next: Phase 7 (`nextjs`) on Opus, spec first, after the maintainer items below.
 - Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
