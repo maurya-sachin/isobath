@@ -5,7 +5,7 @@ Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene
 ## Now
 - Branch `dev`, equal to `main` (released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
 - Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
-- Next: Phase 7 (`nextjs`) on Opus, spec first. Also: issue #7 has two corrections from a contributor to verify with a real run (React ch 5: "instance" wording for function components; index keys are fine for append-only lists even when items hold state), then fix the chapter and reply (reply needs OK).
+- Next: Phase 7 (`nextjs`) on Opus, spec first. Also: reply on issue #7 (both corrections verified and fixed in 1b00798; reply needs OK).
 - Decide: publish all chapters at once instead of per chapter (R24)? Then the site's Draft label and the dev.to post's "everything is Draft" paragraph must change with it.
 - Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
