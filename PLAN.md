@@ -48,7 +48,7 @@ Non-goals: backend service, accounts, paid AI.
 - [ ] T6 Giscus custom theme from the palette (after deploy)
 
 ### 6B — Quality gate: SEO, accessibility, performance (after 6A; each item gets a short spec first)
-- [ ] Q1 SEO: JSON-LD (`BreadcrumbList` everywhere, `LearningResource` on questions), real 404 status for unknown paths (today `app-shell` answers 200 with `noindex`), `og:image` for home/topic/chapter pages, `theme-color` and apple-touch-icon, sitemap `lastmod` from `verified`, unique titles/descriptions check; Rich Results and Search Console checks after deploy (maintainer)
+- [ ] Q1 SEO left: `theme-color` and apple-touch-icon; Rich Results and Search Console checks (maintainer)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
 Tier 1:
