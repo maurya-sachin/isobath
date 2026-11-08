@@ -45,7 +45,7 @@ Since `require()` can load synchronous ES modules (unflagged in Node 22.12 and 2
 
 ## Example
 
-```ts
+```ts no-run
 // node_modules/greet-broken: no "type" field, one shared index.d.ts
 //   "exports": { ".": { "types": "./index.d.ts", "import": "./index.mjs", "require": "./index.cjs" } }
 //   index.d.ts: export default function greet(name: string): string;

@@ -37,7 +37,7 @@ TypeScript lets you add to types you do not own with **declaration merging**. Th
 
 ## Example
 
-```ts
+```ts no-run
 // src/map.ts  (TypeScript 7.0.2 and 6.0.3, strict, --module esnext)
 import { Observable } from "./observable";
 declare module "./observable" {
