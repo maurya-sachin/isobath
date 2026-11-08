@@ -1,0 +1,342 @@
+# 01 App Router
+- id: segment-reachable-needs-page-or-route
+  front: "What makes an `app/` folder reachable as a URL?"
+  back: "A `page.js` (UI) or `route.js` (a handler) in it. Every folder is a route segment, but anything else colocated there, such as a component file, isn't served."
+  question: nextjs/app-router/app-router-component-tree
+- id: segment-folders-with-no-url-part
+  front: "Which `app/` folder forms add no URL part, and which opts a folder out of routing?"
+  back: "`(group)` and `@slot` folders add no URL part. `_folder` (a private folder) opts a folder out of routing. `[id]` makes a segment dynamic."
+  question: nextjs/app-router/app-router-component-tree
+- id: special-file-order-in-segment
+  front: "In what order, outermost first, does Next.js render the special files inside one segment?"
+  back: "`layout.js`, `template.js`, `error.js`, `loading.js`, `not-found.js`, then `page.js` or the next segment's layout."
+  question: nextjs/app-router/app-router-component-tree
+- id: special-files-react-primitives
+  front: "Which React primitive does each of `error.js`, `loading.js` and `not-found.js` correspond to in the component tree?"
+  back: "`error.js` is a React error boundary, `loading.js` is a `<Suspense>` boundary, and `not-found.js` is a boundary for `notFound()`."
+  question: nextjs/app-router/app-router-component-tree
+- id: child-segment-nesting
+  front: "Where is a child segment's whole stack rendered relative to its parent's files?"
+  back: "Where the parent's `page.js` would be, so it sits inside the parent's layout, template and boundaries."
+  question: nextjs/app-router/app-router-component-tree
+- id: layout-props
+  front: "What props does a layout receive?"
+  back: "The child stack as `children`, plus `params` and, with parallel routes, one prop per slot. It gets no `searchParams`."
+  question: nextjs/app-router/app-router-component-tree
+- id: error-loading-below-own-layout
+  front: "Can a segment's `error.js` or `loading.js` handle a problem in that same segment's `layout.js`?"
+  back: "No. They sit below the layout in the tree. The parent segment's files do that, and the root layout needs `global-error.js`."
+  question: nextjs/app-router/app-router-component-tree
+- id: parent-boundaries-wrap-child-layout
+  front: "Does a parent segment's `loading.js` cover a slow layout in a child segment?"
+  back: "Yes. The parent's boundaries wrap the child segment's layout, so the parent's `loading.js` covers a slow child layout."
+  question: nextjs/app-router/app-router-component-tree
+- id: error-js-must-be-client
+  front: "Which special file must be a Client Component, while layouts and pages default to Server Components?"
+  back: "`error.js`. Layouts and pages are Server Components by default."
+  question: nextjs/app-router/app-router-component-tree
+- id: layout-no-searchparams-why
+  front: "Why does a layout get no `searchParams`?"
+  back: "Layouts persist and don't re-render on navigation within the segment; only the page changes. Read the URL in the page or in a Client Component with `useSearchParams` or `usePathname`."
+  question: nextjs/app-router/app-router-component-tree
+- id: loading-next-to-slow-layout-no-cache-components
+  front: "Without Cache Components, what happens if you add `loading.js` next to a slow layout?"
+  back: "The navigation blocks until the layout finishes and the fallback never shows."
+  question: nextjs/app-router/app-router-component-tree
+- id: layout-cannot-pass-data-to-page
+  front: "Can a layout pass data to its page, and how do you avoid fetching twice?"
+  back: "No. Fetch in both and deduplicate with React `cache` or Next's `fetch` dedup."
+  question: nextjs/app-router/app-router-component-tree
+- id: root-layout-and-global-error
+  front: "What must the root layout render, and what sits above it?"
+  back: "`<html>` and `<body>`. Only `global-error.js` sits above it, replacing it when the root layout itself throws."
+  question: nextjs/app-router/app-router-component-tree
+- id: not-found-inside-suspense-why
+  front: "Why is the not-found boundary inside the Suspense boundary?"
+  back: "So `notFound()` thrown while the page streams still renders that segment's `not-found.js` inside the layout, under the same loading fallback."
+  question: nextjs/app-router/app-router-component-tree
+- id: colocated-files-404-observed
+  front: "In a scratch app on Next.js 16.4.5 (`next build && next start`), what did the route table and requests show for a colocated `Button.jsx` and a `_c/` folder?"
+  back: "The route table listed only folders with a `page.jsx`. The colocated `Button.jsx` and `_c/` were absent and answered `404`."
+  question: nextjs/app-router/app-router-component-tree
+
+- id: layout-keeps-state-why
+  front: "Why does a layout's Client Component keep its state on a `<Link>` navigation?"
+  back: "Next.js keeps the layouts shared by old and new routes and renders only segments below. The elements stay at the same position with the same types, so React keeps state. That is ordinary reconciliation, not a Next.js cache."
+  question: nextjs/app-router/layout-state-and-template
+- id: link-navigation-renders-below-shared-layout
+  front: "On a `<Link>` navigation, which part of the tree does Next.js render?"
+  back: "Only the segments below the deepest layout shared by the old and new routes. The document is not reloaded."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-key-remount
+  front: "What does `template.js` receive that a layout doesn't, and what does it cause?"
+  back: "A key for its own segment. When that segment's value changes (`/blog/a` to `/blog/b`), React remounts it: Client Component state resets, the DOM is recreated and effects re-run."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-no-remount-deeper-or-search
+  front: "Which navigations do not remount a template?"
+  back: "Deeper navigations don't remount a higher template, and search-param-only changes remount nothing."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-use-cases
+  front: "When do you reach for a template instead of a layout?"
+  back: "When something should start fresh per page while living above it: an enter animation, an effect that must re-run for each page, or form state to clear. Often a `key` on one component is enough."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-vs-layout-key-at-follow-up
+  front: "Why not put `key={pathname}` on a layout's children?"
+  back: "A layout can't read the pathname on the server, so you'd need a Client Component wrapper. A template already is a keyed wrapper at the right level."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-observed-reset-result
+  front: "In the Next.js 16.4.5 test (Chrome 156, Firefox 159, `next start`, Cache Components off), what did the layout and template read after a `<Link>` from `/t/a` to `/t/b`?"
+  back: "The layout still read `layout: 2` with its typed text. The template read `template: 0` with an empty input, and the console showed `template unmounted`, `template mounted`."
+  question: nextjs/app-router/layout-state-and-template
+- id: search-param-link-no-template-remount
+  front: "In Next.js 16.4.5 (Chrome 156, Firefox 159), does following `<Link href=\"/t/a?q=1\">` from `/t/a` remount the template?"
+  back: "No. The button still read `template: 1` and nothing was logged. Templates key on the segment and its dynamic params, and a search-param-only change keeps the same key."
+  question: nextjs/app-router/layout-state-and-template
+- id: layout-resets-on-other-top-level-route
+  front: "With Cache Components off in Next.js 16.4.5, what happened going from `/t/a` to `/other` and back?"
+  back: "It logged `layout unmounted` and `template unmounted`, and coming back showed both at `0`. A layout keeps state only while shared by both routes."
+  question: nextjs/app-router/layout-state-and-template
+- id: cache-components-activity-hides-route
+  front: "With `cacheComponents: true`, how does Next.js treat the route you leave, and how many does it keep?"
+  back: "It hides the route with React `<Activity>` instead of unmounting it, and keeps up to three (Next.js 16.4)."
+  question: nextjs/app-router/layout-state-and-template
+- id: cache-components-template-restores
+  front: "With Cache Components on, does a template reset when you return to a recently visited segment?"
+  back: "No. The hidden instance is shown again, state included: the test restored `template: 2` and the typed text. The template still resets on a first visit."
+  question: nextjs/app-router/layout-state-and-template
+- id: cache-components-back-observed
+  front: "With Cache Components on in Next.js 16.4.5, what did going to `/other` and pressing Back show, and what happened to effects?"
+  back: "`layout: 2` and `template: 3`, the values left behind. Effects still logged `unmounted` and `mounted`, because Activity cleans up effects when hiding. The left route stayed in the DOM with `display: none`."
+  question: nextjs/app-router/layout-state-and-template
+- id: bfcacheid-reset-key
+  front: "With Cache Components, what do the docs recommend keying on to reset on every fresh push while keeping Back/Forward restoration?"
+  back: "`useRouter().bfcacheId`."
+  question: nextjs/app-router/layout-state-and-template
+- id: usepathname-no-template-needed
+  front: "Do you need a template just to read the new pathname?"
+  back: "No. A Client Component calling `usePathname` already re-renders on navigation without losing state."
+  question: nextjs/app-router/layout-state-and-template
+
+- id: loading-js-is-suspense-fallback
+  front: "What does Next.js turn `loading.js` into?"
+  back: "A `<Suspense>` boundary whose fallback is the file, placed below the segment's layout and wrapping the page and child segments."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: loading-js-prefetched-instant
+  front: "Why does a `<Link>` click show the `loading.js` fallback at once?"
+  back: "The fallback is part of the prefetched route, so it shows while the page renders on the server and streams in. On a first load it's in the initial HTML."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: loading-js-cannot-cover-own-layout
+  front: "Observed in Next.js 16.4.5, what happened to a `<Link>` navigation when a layout awaited uncached data and `loading.js` sat in the same folder?"
+  back: "Navigation was blocked for 1-2 seconds with the old page still showing, and the same-folder fallback never appeared. The parent's `loading.js` can cover it."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: error-js-catches-server-component-errors
+  front: "Does `error.js` catch Server Component errors?"
+  back: "Yes. It catches errors from rendering the page and child segments, including Server Component errors, which Next.js forwards to the client."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: error-production-message-digest
+  front: "In production, what do `error.message` and `error.digest` hold for a Server Component error?"
+  back: "`error.message` is React's generic error #441. `error.digest` matches the server log, so log and match on `digest`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: retry-vs-reset
+  front: "What is the difference between `retry()` and `reset()` in `error.js`?"
+  back: "`retry()` (stable since 16.3) refetches the segment from the server and re-renders it. `reset()` only clears the boundary's state and re-renders with what the client already has."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: error-js-not-own-layout
+  front: "Which `error.js` catches an error thrown by a segment's own `layout.jsx`?"
+  back: "The parent's. In the test, an error in `app/err/layout-throw/layout.jsx` rendered `app/err/error.jsx`, not the sibling file. `global-error.js` covers the root layout."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: not-found-triggers
+  front: "When does `not-found.js` render, and what meta tag does Next.js add?"
+  back: "When `notFound()` is thrown in the segment or below, and for unmatched URLs at the root. Next.js adds `<meta name=\"robots\" content=\"noindex\">`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-404-before-streaming
+  front: "When does `notFound()` yield a real `404` status?"
+  back: "Before anything has streamed. Once a `loading.js` or `<Suspense>` fallback has been sent, the headers are gone and the response stays `200` with `noindex`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-cache-components-200
+  front: "With Cache Components, what status does a request-time `notFound()` give, and how do you get a real `404`?"
+  back: "`200`, because the prerendered shell is sent first. Check before streaming starts, for example in `proxy.ts`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-soft-404-risk
+  front: "What is the SEO risk of relying on `notFound()` in a streamed page?"
+  back: "The response is `200` with `noindex`, so crawlers may count it as a soft 404."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-observed-timing
+  front: "In Next.js 16.4.5 under `next start`, Cache Components off, what status did `/products/nope` answer when `loading.jsx` existed, and without it for `/nf/x`?"
+  back: "`200` with `loading.jsx`, the `noindex` tag streaming in at 0.56 s. Without `loading.jsx`, the same shape at `/nf/x` answered `404`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: not-found-sent-with-every-route
+  front: "Why should the root `not-found.js` stay light?"
+  back: "The docs say each `not-found.js` is sent with every route under its segment. The not-found text was in the `/products/mug` response too."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: boundaries-not-event-handlers
+  front: "Do `error.js` and the other boundaries catch errors in event handlers?"
+  back: "No. Like any React error boundary they catch rendering errors. Errors in event handlers or after an `await` in a callback need your own `try`/`catch`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+
+- id: slot-definition
+  front: "What is a parallel-route slot and how does the layout receive it?"
+  back: "An `@folder` is a slot, passed to the parent layout as a prop with that name. `children` is an implicit slot (`app/page.js` is `app/@children/page.js`)."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-not-a-segment
+  front: "Does an `@slot` folder add a URL segment?"
+  back: "No. `app/dash/@team/settings/page.js` serves `/dash/settings`."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-own-loading-error
+  front: "What can each slot have of its own so a panel streams or fails independently?"
+  back: "Its own `loading.js` and `error.js`."
+  question: nextjs/app-router/parallel-routes-default
+- id: soft-navigation-slot-keeps-page
+  front: "On soft navigation (`<Link>`, `router.push`), what does an unmatched slot show?"
+  back: "Its last active page. Going from `/dash` to `/dash/settings` swaps only `@team`; the other slots keep their `/dash` pages even though the URL no longer matches."
+  question: nextjs/app-router/parallel-routes-default
+- id: hard-navigation-default-js
+  front: "On hard navigation (reload, pasted URL), what does an unmatched slot render?"
+  back: "Its `default.js`, because the memory of the slot's active page is gone."
+  question: nextjs/app-router/parallel-routes-default
+- id: default-js-options
+  front: "What can a slot's `default.js` return or do?"
+  back: "Return `null` (a closed modal slot), call `notFound()`, or render a real fallback. It receives `params`."
+  question: nextjs/app-router/parallel-routes-default
+- id: strict-route-matching-16-4
+  front: "In Next.js 16.4.5, what does strict route matching (on by default since 16.4.0) do about missing defaults?"
+  back: "A missing `default.js` for any slot, `children` included, fails `next build`."
+  question: nextjs/app-router/parallel-routes-default
+- id: loose-route-matching-flag
+  front: "Before strict route matching, what did a missing named-slot default cause, and how do you restore it?"
+  back: "A `404` at request time, which some docs pages still describe. `deprecated.looseRouteMatching: true` restores it."
+  question: nextjs/app-router/parallel-routes-default
+- id: slots-share-rendering-mode
+  front: "If one parallel-route slot is dynamic, what about the others?"
+  back: "Slots are combined into one page for the segment, so they share its rendering mode: all of them are dynamic."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-role-hiding-still-renders
+  front: "If a layout picks a slot by role, does the hidden slot still run?"
+  back: "Yes. Both slots render and fetch on the server; the condition only picks the output. Authorize inside each slot."
+  question: nextjs/app-router/parallel-routes-default
+- id: build-error-missing-children-default
+  front: "What did the Next.js 16.4.5 build print without `app/dash/default.jsx`?"
+  back: "`/dash/settings is missing a matching page or default.tsx in children`."
+  question: nextjs/app-router/parallel-routes-default
+- id: build-output-no-defaults
+  front: "What did the 16.4.5 build print with no defaults at all?"
+  back: "`Parallel route slots cannot render the same URLs` naming `@analytics, children`, plus `Unmatched app pages` for `@team/settings/page.jsx`, and a warning that strict route matching is on by default."
+  question: nextjs/app-router/parallel-routes-default
+- id: use-selected-layout-segment-slot
+  front: "How do you read which page a slot is showing, and what is the argument?"
+  back: "In a Client Component, `useSelectedLayoutSegment('analytics')`. The argument is the slot name, without `@`."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-default-needed-modal-no-page
+  front: "In 16.4.5, when does a slot need a `default.js` even if it has no sub-route?"
+  back: "Whenever any sibling matches a URL the slot doesn't. A modal slot with no page for `/feed` failed the build until `default.jsx` returning `null` was added."
+  question: nextjs/app-router/parallel-routes-default
+
+- id: modal-two-conventions
+  front: "Which two conventions combine to give a modal its own URL?"
+  back: "A parallel route slot (`@modal`, whose `default.js` returns `null`) and an intercepting route inside it, named with a marker plus the target path, such as `(..)photo/[id]`."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-client-nav-only
+  front: "When does an intercepting route apply?"
+  back: "On a client-side navigation from under the layout holding the slot to the target path. The feed stays mounted with its state and the intercepted page renders in the slot."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-refresh-canonical
+  front: "What renders on a refresh or pasted URL of an intercepted route?"
+  back: "Nothing is intercepted, since it is a hard navigation. The canonical `app/photo/[id]/page.js` renders as a full page."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-back-forward
+  front: "What do Back and Forward do for an intercepted modal?"
+  back: "Back pops to `/feed` and the modal disappears; Forward brings it back."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-markers
+  front: "What do the interception markers `(.)`, `(..)`, `(..)(..)` and `(...)` mean?"
+  back: "`(.)` same level, `(..)` one level up, `(..)(..)` two up, `(...)` from the `app` root. They count route segments, not folders."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: markers-slots-groups-not-segments
+  front: "Why does `app/feed/@modal/(..)photo` reach `/photo` with `(..)`?"
+  back: "Slots and route groups aren't segments. The intercepting folder is two folders below `feed/` but only one segment."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-canonical-build-16-4
+  front: "What does `next build` do since Next.js 16.4.0 with an intercepting route that has no matching canonical route?"
+  back: "It rejects the build, which catches a wrong marker."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-wrong-marker-error
+  front: "What did `app/feed/@modal/(.)photo` print on the 16.4.5 build?"
+  back: "`Interception routes must have a canonical route`, `/feed/(.)photo/[id] (expected /feed/photo/[id])`."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-only-within-layout
+  front: "Does a link to `/photo/1` from `/other` open the modal?"
+  back: "No. Interception happens only where the layout holding the slot is rendered. It loaded the full photo page, client-side. The docs' login modal puts its slot in the root layout so it opens from any page."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-close-with-link-fails
+  front: "Why did a `<Link>` to `/feed` inside the intercepted dialog change the URL but not close it, and what closes it?"
+  back: "The slot kept its last page. Use `router.back()`, or give the slot a `page.js` or catch-all that returns `null`."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-triple-up-marker-error
+  front: "What did `(..)(..)photo` do in `app/feed/@modal`, and what worked instead on 16.4.5?"
+  back: "The build failed: `Cannot use (..)(..) marker at the root level or one level up.` `(...)photo` built and intercepted correctly."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-vs-usestate
+  front: "Why not build the modal with `useState` instead?"
+  back: "It has no URL: it can't be shared, refresh closes it, and Back leaves the page instead of closing the modal."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-observed-behaviour
+  front: "Next.js 16.4.5, `next start`, Chrome 156 and Firefox 159: what happened on clicking the photo link from `/feed` with a counter at 1, then reloading?"
+  back: "URL `/photo/1`, the dialog shown, the feed still reading 1. Reload showed the full page with no feed."
+  question: nextjs/app-router/intercepting-routes-modal
+
+- id: route-group-no-url
+  front: "Does a `(group)` folder change the URL or `params`?"
+  back: "No. `app/(shop)/cart/page.js` serves `/cart`. The group name is dropped from the path and never appears in `params`; only layout nesting changes."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: route-groups-same-path-error
+  front: "What happens if two route groups resolve to the same path, such as `(marketing)/about` and `(shop)/about`?"
+  back: "The build fails. The 16.4.5 build stopped with `You cannot have two parallel pages that resolve to the same path.`"
+  question: nextjs/app-router/route-groups-root-layouts
+- id: group-layout-scope
+  front: "How far does a layout inside a route group (under a shared root layout) persist?"
+  back: "It wraps only the group's routes. Moving between two routes in the group keeps it mounted with its state; moving out unmounts it. The navigation is still client-side."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: multiple-root-layouts-how
+  front: "How do you create multiple root layouts?"
+  back: "Delete `app/layout.js` and give each route group its own layout with `<html>` and `<body>`."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: cross-root-layout-full-load
+  front: "What happens on a `<Link>` between routes under different root layouts, and why?"
+  back: "A full page load: a new document request, with JavaScript state and client caches gone. A root layout owns the document, so the router can't swap one for another in the same React tree."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: same-root-layout-soft
+  front: "Is navigation within one root layout soft or a full load?"
+  back: "Soft (client-side)."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: multiple-roots-when
+  front: "When are multiple root layouts justified, and what is the cost?"
+  back: "When sections differ at the document level: separate fonts, global CSS, `<html lang>`, or an admin app sharing nothing with marketing. The cost is a full reload whenever users cross between them."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: no-root-layout-home-in-group
+  front: "Without `app/layout.js`, where must the home page live, and what is missing?"
+  back: "In a group, such as `app/(shop)/page.js`. There is no single layout for a global 404; the experimental `global-not-found.js` covers that."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: global-not-found-experimental
+  front: "What is the status of `global-not-found.js` in Next.js 16.4?"
+  back: "Experimental, behind the `globalNotFound` flag."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: dynamic-segment-root-layout
+  front: "Is a root layout under a dynamic segment such as `app/[lang]/layout.js` several root layouts?"
+  back: "No, it is still one root layout. Switching `/en` to `/fr` stayed client-side in testing."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: root-layout-shared-header-remounts
+  front: "Does a shared header persist across different root layouts?"
+  back: "No. Each root renders its own copy, and crossing remounts it from scratch."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: detect-full-load
+  front: "How can you tell a navigation was a full load?"
+  back: "The Network panel shows a document request instead of an RSC fetch, and anything stored on `window` or in React state is gone."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: multiple-roots-observed
+  front: "Next.js 16.4.5 under `next start`, Chrome 156 and Firefox 159: which navigations kept a marker set on `window`?"
+  back: "`/cart` to `/account` (same root) kept it with no document request. `/account` to `/blog` and `/blog` to `/cart` each made a document request and lost it."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: unknown-url-two-roots
+  front: "What did an unknown URL return with two root layouts and no `not-found.js`?"
+  back: "`/nope` answered `404` with Next.js's built-in \"This page could not be found.\" page."
+  question: nextjs/app-router/route-groups-root-layouts
