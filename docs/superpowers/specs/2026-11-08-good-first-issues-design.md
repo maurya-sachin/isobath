@@ -13,5 +13,8 @@ Contributors find work through issues. The repo has no planned stubs now and 5 `
 - Closing issues when a stub is written; the pull request does that with `Closes #n`.
 - A scheduled run.
 
+## Result (built 2026-11-08)
+- `issues:plan` on the current repo lists the 5 gaps: Decorators, Error stack accessor, Import defer, ShadowRealm, Legacy RegExp statics. All are TC39 proposals not yet shipped, left as gaps on purpose, so they are not good first issues and `issues:open` has not been run. It becomes useful when a chapter has `planned` stubs.
+
 ## Verification
 - Unit tests on the candidate list from fixture READMEs (stub, gap, none) and the duplicate-title skip. A real run of `issues:plan` against the repo, checked by hand, before `issues:open` ever runs.

@@ -47,18 +47,15 @@ Non-goals: backend service, accounts, paid AI.
 - [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
-Tier 1:
 Tier 2:
 - [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
 - [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
 - [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`)
-- [ ] 6.11 Weekly source link check (lychee) opening an issue
 - [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews
 Tier 3:
 - [ ] 6.13 "Run" for JS examples in a sandboxed Web Worker (replaces parked Sandpack)
 - [ ] 6.14 Build-time SVG diagrams (Mermaid) for event loop, rendering pipeline, Fiber
 - [ ] 6.15 DSA problems with tests on the 6.13 runner
-- [ ] 6.16 Script that opens a `good first issue` per planned stub / `→ —` gap
 Skip: AI features, accounts/sync, company tags, i18n (until traffic).
 
 ### 7 — Next topics
