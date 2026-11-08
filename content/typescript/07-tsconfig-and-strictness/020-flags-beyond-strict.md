@@ -42,7 +42,7 @@ I leave `noUnusedLocals` and `noUnusedParameters` to the linter, which can auto-
 
 ## Example
 
-```ts
+```ts no-run
 // TypeScript 7.0.2 and 6.0.3; strict plus the four flags below
 const nums = [10, 20, 30];
 const first: number = nums[0];

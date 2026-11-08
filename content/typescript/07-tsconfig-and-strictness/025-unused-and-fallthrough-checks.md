@@ -37,7 +37,7 @@ What I do: keep `noFallthroughCasesInSwitch` in `tsconfig`, since a silent fallt
 
 ## Example
 
-```ts
+```ts no-run
 // tsc --strict --noUnusedLocals --noUnusedParameters --noFallthroughCasesInSwitch (6.0.3 and 7.0.2)
 import { a, b } from "./helper.js";
 // Error TS6192: All imports in import declaration are unused.

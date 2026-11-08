@@ -46,7 +46,7 @@ A **declaration file** (`.d.ts`) describes the shape of JavaScript that lives in
 
 ## Example
 
-```ts
+```ts no-run
 // src/untyped-lib.d.ts  (TypeScript 7.0.2 and 6.0.3, strict)
 declare module "untyped-lib" {
   export function greet(name: string): string;

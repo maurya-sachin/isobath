@@ -41,7 +41,7 @@ Both are claims, not checks. The declaration says what the bundler will return; 
 
 ## Example
 
-```ts
+```ts no-run
 // types/assets.d.ts (no import/export, so the declarations are global)
 declare module "*.module.css" {
   const classes: { readonly [className: string]: string };

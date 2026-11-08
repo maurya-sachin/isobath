@@ -3,10 +3,12 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`; production `main`. Tags `v1-archive` (v1 source), `v1-site-archive` (v1 built site), `archive/improvements` (unmerged v1 fixes).
-- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Limits are labelled in the text (React runs: 19.3.1 in Chrome 156 + Firefox 159, server APIs on Node 24; browser runs: Chrome 156 + Firefox 159 headless, Safari from compat data; JS ch 18–22 Chrome 155 only; TS 7.1 from 7.1.0-beta; V8 natives on Node 24.19).
-- Next: Phase 7 (`nextjs`) on Opus, spec first. Starter issues #3–#8 are open; answer contributors there.
-- Awaiting maintainer: Phase 5 chapter passes (R24); Rich Results and Search Console checks; a card-validator check; import one Anki deck; 6A T5; wordmark redraw.
+- Branch `dev`, equal to `main` (released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
+- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
+- Built on `dev`, unpushed: TypeScript example check (6.2c), weekly source link check (6.11, `links.yml`, untested until first run on GitHub), `issues:plan`/`issues:open` (6.16; the 5 current gaps are unshipped proposals, so don't open). Reply on issue #7 posted; close it after the release.
+- Next: Phase 7 (`nextjs`) on Opus, spec first, after the maintainer items below.
+- Decide: publish all chapters at once instead of per chapter (R24)? Then the site's Draft label and the dev.to post's "everything is Draft" paragraph must change with it.
+- Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
@@ -46,19 +48,15 @@ Non-goals: backend service, accounts, paid AI.
 - [ ] T5 Remaining: screen-reader pass (VoiceOver, NVDA) and a forced-colours look on real Windows (maintainer)
 
 ### 6 — Product features (free, OSS deps only; each gets a short spec + OK before code)
-Tier 1:
-- [ ] 6.2c TypeScript examples on the runner (6.13 for browser topics); 28 JS blocks stay `no-run` (reasons in the 6.2b spec)
 Tier 2:
 - [ ] 6.7 Mock interview mode: timed random questions from a path, reveal `tldr`, self-grade into FSRS
 - [ ] 6.8 Cross-topic search with Pagefind (may replace minisearch)
 - [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`)
-- [ ] 6.11 Weekly source link check (lychee) opening an issue
 - [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews
 Tier 3:
 - [ ] 6.13 "Run" for JS examples in a sandboxed Web Worker (replaces parked Sandpack)
 - [ ] 6.14 Build-time SVG diagrams (Mermaid) for event loop, rendering pipeline, Fiber
 - [ ] 6.15 DSA problems with tests on the 6.13 runner
-- [ ] 6.16 Script that opens a `good first issue` per planned stub / `→ —` gap
 Skip: AI features, accounts/sync, company tags, i18n (until traffic).
 
 ### 7 — Next topics

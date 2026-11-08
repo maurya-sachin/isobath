@@ -1,5 +1,5 @@
-// Runnable code examples: finds ```js blocks that state their output with `// →` comments
-// and compares that claim with what Node prints. Pure logic; scripts/examples.ts runs the code.
+// Runnable code examples: finds ```js and ```ts blocks that state their output with `// →` comments
+// and compares that claim with what Node prints (TypeScript runs through Node's type stripping). Pure logic; scripts/examples.ts runs the code.
 
 import type { Code, Nodes } from 'mdast'
 import { parseMarkdown } from './markdown.ts'
@@ -29,7 +29,9 @@ const OUTPUT_COMMENT = /\/\/ →\s*(.*)$/
 const OUTPUT_CONTINUATION = /^\s*\/\/ {2,}(\S.*)$/
 /** A line that starts a file in a `files` fence: `// lib.cjs`, optionally followed by a note (`// main.mjs: what it shows`). */
 const FILE_HEADER = /^\/\/ ([\w.-]+\.(?:mjs|cjs|js|json))(?![\w.-])/
-const ALLOWED_NODE_FLAGS = ['--expose-gc', '--allow-natives-syntax']
+const ALLOWED_NODE_FLAGS = ['--expose-gc', '--allow-natives-syntax', '--experimental-transform-types']
+/** A `// Error TSnnnn` comment: a claim that the line above does not compile. */
+export const COMPILER_ERROR_COMMENT = /\/\/\s*(?:\d[\d.]* )?[Ee]rror:?\s*(TS\d+(?:\s*(?:,|and)\s*TS\d+)*)/
 const ELISION = /…|\.\.\./
 
 interface Meta {
@@ -72,31 +74,52 @@ function parseMeta(node: Code): Meta {
   }
 }
 
-/** The ```js blocks of a Markdown file that claim an output; blocks marked `no-run` are counted in `skipped`. */
-export function extractExamples(markdown: string): { examples: Example[]; skipped: number } {
+export type ExampleLanguage = 'js' | 'ts'
+
+/** The fenced blocks of a Markdown file in one language, in source order. */
+export function fencedBlocks(markdown: string, lang: ExampleLanguage): Code[] {
   const blocks: Code[] = []
   visitCode(parseMarkdown(markdown), (node) => {
-    if (node.lang === 'js') blocks.push(node)
+    if (node.lang === lang) blocks.push(node)
   })
+  return blocks
+}
+
+/** Whether the fence opts out of running and checking. */
+export const isNoRun = (node: Code): boolean => parseMeta(node).noRun
+
+/** The blocks of a Markdown file in one language that claim an output; blocks marked `no-run` are counted in `skipped`. */
+export function extractExamples(
+  markdown: string,
+  lang: ExampleLanguage = 'js',
+): { examples: Example[]; skipped: number } {
+  const blocks = fencedBlocks(markdown, lang)
   const examples: Example[] = []
   let skipped = 0
   blocks.forEach((node, index) => {
     const expected = expectedOutput(node.value)
     if (expected.length === 0) return
     const meta = parseMeta(node)
-    if (meta.noRun) skipped++
-    else examples.push(toExample(blocks, index, meta, expected))
+    if (meta.noRun || claimsCompilerError(lang, node)) skipped++
+    else examples.push(toExample(blocks, index, meta, expected, lang))
   })
   return { examples, skipped }
 }
 
-function toExample(blocks: Code[], index: number, meta: Meta, expected: string[]): Example {
+/** A TypeScript block that must not compile is type-checked, not run: its output claim describes the code without the failing line. */
+const claimsCompilerError = (lang: ExampleLanguage, node: Code) =>
+  lang === 'ts' && COMPILER_ERROR_COMMENT.test(node.value)
+
+function toExample(blocks: Code[], index: number, meta: Meta, expected: string[], lang: ExampleLanguage): Example {
   const node = blocks[index]
   const code = fullCode(blocks, index)
-  const files = meta.files ? splitFiles(node, code) : [{ name: meta.script ? 'example.cjs' : 'example.mjs', code }]
+  const files = meta.files ? splitFiles(node, code) : [{ name: singleFileName(lang, meta), code }]
   const entries = meta.files ? entriesOf(node, meta, files) : [files[0].name]
   return { line: node.position?.start.line ?? 0, files, entries, nodeFlags: meta.nodeFlags, env: meta.env, expected }
 }
+
+const singleFileName = (lang: ExampleLanguage, meta: Meta) =>
+  `example.${lang === 'ts' ? (meta.script ? 'cts' : 'mts') : meta.script ? 'cjs' : 'mjs'}`
 
 /** The files named by `run=`, which must exist. */
 function entriesOf(node: Code, meta: Meta, files: ExampleFile[]): string[] {
@@ -110,7 +133,7 @@ function entriesOf(node: Code, meta: Meta, files: ExampleFile[]): string[] {
 function fullCode(blocks: Code[], index: number): string {
   const node = blocks[index]
   if (!parseMeta(node).continues) return node.value
-  if (index === 0) fail(node, '`continues` needs an earlier js fence')
+  if (index === 0) fail(node, '`continues` needs an earlier fence of the same language')
   return `const __log = console.log\nconsole.log = () => {}\n${fullCode(blocks, index - 1)}\nconsole.log = __log\n${node.value}`
 }
 

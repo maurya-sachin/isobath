@@ -42,7 +42,7 @@ With stable keys from the data (`key={todo.id}`), React keeps the instance for e
 - Not a prop. The component doesn't receive it; reading `props.key` gives `undefined` and a development warning. Pass the id separately: `<Profile key={id} userId={id} />`.
 - Missing keys produce the development warning `Each child in a list should have a unique "key" prop.` and React falls back to the index.
 
-**Index keys** tie identity to the position. Insert an item at the top and every existing item shifts to the next key. React re-renders each instance with its new neighbour's props, so the text looks right, but whatever lives in the instance or the DOM stays put: state, uncontrolled input values, a checked box, focus. It now sits next to a different item. Index keys are acceptable only for lists that never reorder, filter or insert anywhere but the end, and whose items hold no state.
+**Index keys** tie identity to the position. Insert an item at the top and every existing item shifts to the next key. React re-renders each instance with its new neighbour's props, so the text looks right, but whatever lives in the instance or the DOM stays put: state, uncontrolled input values, a checked box, focus. It now sits next to a different item. Index keys are acceptable only for lists that never reorder, filter, or insert or remove anywhere but the end. An append-only list is safe even with stateful items: existing items keep their index.
 
 **Random keys** (`key={Math.random()}`) never match the previous render, so every item remounts on every render: slow, and typed input is lost.
 
@@ -87,7 +87,7 @@ Chrome 156 and Firefox 159, development and production builds of React 19.3.1, t
 ## Follow-ups
 
 **Q:** When is an index key fine?
-**A:** When the list is static or only appended to, is never sorted or filtered, and its items have no state or uncontrolled inputs, for example a fixed list of labels.
+**A:** When the list is static or only appended to, and is never sorted, filtered, or inserted into or removed from before its end, for example a fixed list of labels or a log that only grows. Item state is safe then, because every existing item keeps its index.
 
 **Q:** Does adding a key outside a list do anything?
 **A:** Yes. Changing a component's `key` makes React treat it as a different instance: it unmounts the old one and mounts a fresh one. That's the standard way to reset state on purpose.

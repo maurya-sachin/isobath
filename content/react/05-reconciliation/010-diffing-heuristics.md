@@ -45,7 +45,7 @@ It compares the element at each position:
 
 - **Different type** (`<div>` → `<section>`, `<Article>` → `<Comment>`): React doesn't look inside. It unmounts the whole old subtree (effect cleanups run, DOM nodes are removed, state is gone) and mounts the new one from scratch.
 - **Same DOM type**: React keeps the DOM node, updates only the changed attributes (only the changed `style` properties too), then recurses into the children.
-- **Same component type**: the instance and its state stay; React renders it with the new props and recurses into its output.
+- **Same component type**: React keeps its state and renders it again with the new props, then recurses into its output.
 - **Lists of children** are matched by position, or by `key` when there is one.
 
 "Type" is compared by reference: the string `'div'`, or the component function itself. A wrapper like `memo(Field)` is a different type from `Field`.
