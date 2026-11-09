@@ -717,3 +717,296 @@
   front: "Is ◐ a failure with Cache Components on?"
   back: "No. A partial route is expected there. Use `ensureStatic` only where per-request server work is truly unwanted."
   question: nextjs/rendering/keeping-route-static
+# 03 Cache Components
+- id: uck-what-is-cached
+  front: "What does `'use cache'` store, and what does it need?"
+  back: "The function's return value, serialized with React's Server Components format (a component's entry is its rendered RSC output). It marks an async function, async component or whole file, and needs `cacheComponents: true` (Next.js 16)."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-key-parts
+  front: "What are the four parts of a `use cache` key, per the docs?"
+  back: "The build ID (or `deploymentId` if set), a function ID (a hash of where the function is defined), the serialized arguments (props for a component), and, in `next dev` only, an HMR hash."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-closure-bound
+  front: "How do values a cached function closes over affect its key?"
+  back: "The compiler binds them in as hidden arguments, so an inner cached function reading a parent's `userId` gets one entry per user. You can't hide an input."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-serialized-not-semantic
+  front: "Under `next build && next start`, do `getItem(1)` and `getItem('1')` share an entry? What about `{ a: 1, b: 2 }` and `{ b: 2, a: 1 }`?"
+  back: "No to both: two entries each. The key is the serialized bytes, not semantic equality."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-shared-across-routes
+  front: "Does a cached function called from two routes with the same argument run twice?"
+  back: "No, it ran once. Entries belong to the function, not the page."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-nonserializable-args
+  front: "What happens to non-serializable arguments of a `use cache` function?"
+  back: "They become opaque references that can be passed through (as `children` or to a Client Component) but not read. A component's `children` don't join its key, so a cached layout can wrap per-request content."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-children-hole
+  front: "What happened when a cached `Card` received `children` reading `cookies()` inside `<Suspense>`?"
+  back: "`Card` ran once at build and never at request time, yet requests with `who=sam` and `who=kim` each showed their own value. Children are serialized as a reference slot: not in the key, not frozen in the entry."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-where-entries-live
+  front: "Where do `use cache` results live, build time versus request time?"
+  back: "Results computed during `next build` go into the prerendered shell on disk. Request-time results go to the cache handler, by default an in-memory LRU per process, lost on restart and not shared between instances."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-class-instance-error
+  front: "What fails in 16.4.5 when a cached function reads a class instance argument, or calls a function argument?"
+  back: "The build failed with `Cannot access id on the server. You cannot dot into a temporary client reference from a server component.` for the instance, and `Attempted to call a temporary Client Reference from the server but it is on the client.` for the function."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-url-argument
+  front: "What happened in 16.4.5 when a `URL` was passed to a cached function?"
+  back: "It didn't fail. Inside, it was a string (`typeof url` printed `string`, `url.pathname` was `undefined`), its href, and the page rendered an empty paragraph with no warning. The docs list class instances, functions, symbols and `URL` as unsupported."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-build-vs-request-reuse
+  front: "Does a build-time `use cache` result get reused by a request-time call with the same arguments in 16.4.5 under `next start`?"
+  back: "No. `getItem('seed')` ran at build for a static page and ran again for a dynamic page. The build result lives in that page's prerendered HTML, not the in-memory handler."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-deploy-invalidates
+  front: "What happens to cache entries on deploy?"
+  back: "They are unreachable. The build ID is part of every key, so old-build entries, even in a remote handler, never match new keys."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-return-jsx
+  front: "Can a `use cache` function return JSX, and can it take JSX as an argument?"
+  back: "Returns can be JSX: return values use the richer Client Component serialization. Arguments use the stricter Server Component rules, where JSX is only passed through."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-file-level
+  front: "What rules apply to a file-level `'use cache'`?"
+  back: "Every export is cached and must be async. For a route segment, `'use cache'` at the top of `page` or `layout` follows the same rule, and the docs note each segment is its own entry."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-restart-reruns
+  front: "What happened to request-time entries after restarting `next start` on the same build?"
+  back: "Every one re-ran (the API counter went from 1 to 2 for each argument), and `.next/cache` got no new files. The default handler for `use cache` and `use cache: remote` is an in-memory LRU sized by `cacheMaxMemorySize`."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-high-cardinality
+  front: "Why does caching `getProducts(filters)` on `searchParams` give a near-zero hit rate?"
+  back: "Every combination of filters, and every ordering of the same filters in the object, is a new entry. Normalise the input (sorted keys or a small set of strings) and cache on the low-cardinality dimension."
+  question: nextjs/cache-components/use-cache-keys
+- id: cfrd-why-throws
+  front: "Why does Next.js forbid `cookies()` inside a `use cache` function?"
+  back: "The output is shared by every request with matching arguments and may be computed at build time with no request. Request data isn't in the key, so user A's cookie would decide what user B sees."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-which-throw
+  front: "Which request APIs throw inside a cached scope, and what is the documented exception?"
+  back: "`cookies()`, `headers()`, `searchParams` and `connection()`. `draftMode().isEnabled` is the exception. The rule follows the call stack: a helper that reads `headers()` fails the same way."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-fix-pattern
+  front: "What is the fix for needing request data in cached work?"
+  back: "An uncached component reads `cookies()` (inside `<Suspense>`, so it is a hole in the shell), extracts only what the cached work depends on, and passes it to the cached function as an argument, which joins the key."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-smallest-value
+  front: "Which value should you pass from a cookie into a cached function?"
+  back: "The smallest value that decides the output. A session ID makes one entry per user; a currency gives a handful shared by everyone."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-example-runs
+  front: "In the 16.4.5 `getPrices(currency)` example, what ran for requests with `currency=USD`, `USD`, `EUR`?"
+  back: "Only `RUN getPrices USD` and `RUN getPrices EUR`; the route built as `◐ /c-pass`."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-private-escape
+  front: "When is `use cache: private` the alternative to passing values as arguments?"
+  back: "When refactoring isn't practical, or per-user data must stay out of shared server caches. It allows request APIs at the cost of no server-side reuse across requests."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-static-route-build-error
+  front: "What happened in 16.4.5 when a cached function read `cookies()` on a static route?"
+  back: "The build failed: `Route \"/c-static\": `cookies()` can't be read inside `\"use cache\"`. Read it outside the cached function and pass what you need as an argument.`"
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-green-build-trap
+  front: "What happened when a helper reading `headers()` was called from a cached function on a ◐ route?"
+  back: "The build passed. Every request then failed in the hole with the same message, served with status 200."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-status-200
+  front: "Why does the request-time failure still return 200?"
+  back: "The shell was already sent. The error happened while resuming the postponed boundary, after headers went out, so it surfaced as an error digest in the stream for the nearest error boundary."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-pass-promise
+  front: "What happens in 16.4.5 if you pass the `cookies()` promise itself as a prop to a cached function?"
+  back: "The build stalled about 50 seconds, then failed with `A \"use cache\" function took too long during prerendering.` The docs still quote an older \"Filling a cache during prerender timed out\" message."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-top-of-page-no-suspense
+  front: "What is wrong with reading `cookies()` at the top of the page without `<Suspense>` under Cache Components?"
+  back: "Cache Components rejects request data outside a boundary."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-cookie-arg-risk
+  front: "Is passing a cookie value as an argument a risk of serving one user's data to another?"
+  back: "Not for that value: it is in the key. The risk returns if the cached function reaches other per-user state another way, such as a module-level variable set earlier in the request."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-params-in-cache
+  front: "Can a cached function read `params`?"
+  back: "Pass the resolved value. `params` is a promise; awaiting request-time data inside the cache is the same hang as passing `cookies()`."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: clp-three-numbers
+  front: "What are the three numbers in a `cacheLife` profile?"
+  back: "In seconds: `stale` (client router reuse with no request), `revalidate` (server: after this the entry is due for regeneration), `expire` (server: after this the old entry may not be served; must be greater than `revalidate`)."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-stale-header
+  front: "How does `stale` reach the browser, and what does the router enforce?"
+  back: "As `x-nextjs-stale-time`, not `Cache-Control`. The docs say the router enforces at least 30 s."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-expire-semantics
+  front: "What happens after a prerendered page passes `revalidate`, and after `expire`?"
+  back: "Past `revalidate`, it is served stale while regenerating in the background, like ISR. Past `expire`, the old entry may not be served and the next request waits for fresh output."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-presets
+  front: "What are the Next.js 16.4.5 presets (`stale` / `revalidate` / `expire`)?"
+  back: "`default` 5m/15m/1y; `seconds` 30s/1s/1m; `minutes` 5m/1m/1h; `hours` 5m/1h/1d; `days` 5m/1d/1w; `weeks` 5m/1w/30d; `max` 5m/30d/1y (m = minutes, s = seconds, h = hours, d = days, w = weeks, y = year)."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-custom-profiles
+  front: "How can you supply a `cacheLife` profile besides a preset?"
+  back: "Pass an inline object, define named profiles under `cacheLife` in `next.config`, or redefine the presets."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-outside-scope
+  front: "What does `cacheLife` do when called outside a `use cache` scope?"
+  back: "It throws. It sets the lifetime of the `use cache` scope it's called in."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-cache-control
+  front: "What `Cache-Control` header does a prerendered page get from its profile?"
+  back: "`s-maxage=<revalidate>, stale-while-revalidate=<expire − revalidate>`. For `{ stale: 30, revalidate: 10, expire: 300 }`, 16.4.5 sent `s-maxage=10, stale-while-revalidate=290`."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-short-lifetimes
+  front: "Which `cacheLife` values exclude a scope from prerendering, and which preset is affected?"
+  back: "`revalidate: 0`, `expire` under 5 minutes, or `stale` under 30 s. The scope becomes a request-time hole that needs `<Suspense>`. Only `seconds` crosses a threshold."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-nesting
+  front: "What lifetime does a `use cache` without its own `cacheLife` get when it contains other caches?"
+  back: "The shortest lifetime of the caches inside it; an explicit `cacheLife` always wins. An outer cache rendering a `cacheLife('minutes')` child built as `1m 1h`: shorter inner lifetimes pull the default down, longer ones can't extend it."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-nested-short-error
+  front: "What fails the build when a `seconds` cache is nested in a `use cache` with no `cacheLife`?"
+  back: "``A nested `\"use cache\"` with a short `expire` (under 5 minutes) is inside an outer `\"use cache\"` that has no `cacheLife()`.``"
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-isr-observed
+  front: "In the 16.4.5 `/isr` example, what happened 11 seconds after a fresh copy with `revalidate: 10`?"
+  back: "A request returned the old `v3` instantly with `x-nextjs-cache: STALE`; three seconds later the page said `v4` with `HIT`. The 2-second fetch never delayed a response. The route table showed `○ /isr  10s  5m`."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-request-time-no-swr
+  front: "Do request-time cache entries get stale-while-revalidate like prerendered pages?"
+  back: "Not with the built-in handler. A cached function inside a `<Suspense>` hole (`revalidate: 5`, `expire: 15`) blocked for the full 2 s once past `revalidate`, since the handler drops entries at `revalidate`. The docs say a custom handler may serve them until `expire`."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-default-never-expires
+  front: "The docs say `default` never expires. What did 16.4.5 show?"
+  back: "The build printed `15m 1y`, and the header was `stale-while-revalidate=31535100`, one year minus 900 s."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-stale-under-30-built
+  front: "How did a `cacheLife({ stale: 10 })` cache inside `<Suspense>` build in 16.4.5?"
+  back: "As ◐ with its fallback in the shell: any `stale` under 30 s can't be prerendered."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-action-revalidate
+  front: "Does a Server Action's `revalidateTag` wait for `stale` to run out in the browser?"
+  back: "No. The docs say a revalidation call from a Server Action clears the whole client cache immediately."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-legacy-prefix
+  front: "What were `cacheLife` and `cacheTag` called in Next.js 15?"
+  back: "`unstable_cacheLife` and `unstable_cacheTag`. 16.0 dropped the prefix."
+  question: nextjs/cache-components/cachelife-profiles
+- id: prc-private-what
+  front: "What does `use cache: private` allow, and what does it forbid?"
+  back: "`cookies()`, `headers()` and `searchParams` are allowed inside; `connection()` is not."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-storage
+  front: "Where is a `use cache: private` result kept in production?"
+  back: "Not in a server cache across requests. Matching calls within one request reuse it, and the client router keeps the rendered output for its `stale` time."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-shell
+  front: "Can `use cache: private` be in the static shell, or use a custom handler?"
+  back: "No to both. It runs only at request time, and custom handlers can't be configured for it."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-when
+  front: "When do the docs reserve `use cache: private`?"
+  back: "Compliance cases, or code you can't refactor to pass values as arguments."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-observed
+  front: "In the 16.4.5 `getRecs` example with cookies `user=ann`, `ann`, `bo`, what was printed?"
+  back: "`recs 1 1`, `recs 2 2`, `recs 1 1`: one run per request (two calls, one execution), and no reuse between requests."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-not-per-user-cache
+  front: "Why is `private` the wrong tool to cache per user?"
+  back: "It removes server reuse entirely. Reading the cookie outside and passing the value to `use cache` gives a real, shared entry per value."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-cachelife
+  front: "Why does `use cache: private` take a `cacheLife`?"
+  back: "Its `stale` sets how long the browser's router reuses the output, and the route uses the shortest `stale` among its entries. `stale: Infinity` keeps a request-dedup-only function from lowering it."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-rules
+  front: "What rules does `use cache: remote` keep, and what does it change?"
+  back: "The same as `use cache`: no request APIs, pass values as arguments. Entries go to the `remote` cache handler instead."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-why
+  front: "Why use `use cache: remote`, and what does it cost?"
+  back: "At request time, content in a `<Suspense>` hole runs on every request, and per-instance memory (especially serverless) gives low hit rates. A shared store (Redis, key-value service) gives every instance the same entries, protecting slow or rate-limited backends, at the cost of a network lookup per call and storage. It pays off only when keys have few distinct values."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-no-handler
+  front: "What does `use cache: remote` do in 16.4.5 self-hosted with no `cacheHandlers.remote`?"
+  back: "It uses an in-memory LRU like the default handler, so `remote` changes nothing. Ports 3041 and 3042 each ran the function once, and a restart ran it again."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-configured
+  front: "How did a configured file-based `cacheHandlers.remote` behave across instances?"
+  back: "Port 3062 reused the entry port 3061 had written, and a restarted server reused it too. The plain `use cache` page on the same servers ran once per instance."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-rebuild
+  front: "What happened to a remote handler's entries after a rebuild?"
+  back: "They missed: the new build ID made a new key, and the store held two files. That is by design, so old-shaped data never reaches new code."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-nesting-error
+  front: "What happens when a `private` function is called inside a `remote` one?"
+  back: "It failed at request time: `\"use cache: private\"` can't be nested inside `\"use cache\"` because a shared cached function can't depend on private request data."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-session-key
+  front: "Why is keying a remote cache on a session ID a pitfall?"
+  back: "Each user gets an entry that is never hit again. Key on low-cardinality values (locale, currency)."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: ucvo-scope-axes
+  front: "On which two axes do React `cache`, `use cache` and `unstable_cache` differ?"
+  back: "How long a result lives and who shares it."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache
+  front: "What does React's `cache(fn)` do, and when is it dropped?"
+  back: "Request-scoped memoization for Server Components: calls with the same arguments in one server render return the same result, and React drops it all when the request ends. It stores live values, not serialized ones."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache-equality
+  front: "How does React's `cache` compare arguments?"
+  back: "With `Object.is`, so objects are compared by reference."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache-job
+  front: "What is React's `cache` for, and not for?"
+  back: "Deduplication: three components calling `getUser(id)` cause one query. It never reused a result between requests, so it does not cut database load across requests."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-use-cache-persistent
+  front: "How long does a `use cache` result live and who shares it?"
+  back: "It is serialized into a cache handler (default: in-process memory) and reused by later requests and other routes until its `cacheLife` runs out or a `cacheTag` is invalidated. Entries don't survive a new build."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-unstable-cache-key
+  front: "What forms an `unstable_cache` key?"
+  back: "Your `keyParts` plus the arguments and the function's source text. A closed-over variable must be added to `keyParts` by hand; `use cache` binds closed-over values into the key automatically."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-unstable-cache-persist
+  front: "Where does `unstable_cache` store entries, and does it survive a deploy?"
+  back: "In Next's data cache (on disk under `next start`, in `.next/cache/fetch-cache`, one file per key). The docs say it persists across deployments, which `use cache` does not. On hosting that wipes `.next`, persistence depends on the platform's data cache."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-unstable-cache-with-cc
+  front: "Does `unstable_cache` still work with Cache Components, and how does the migration guide map its options?"
+  back: "Yes. The migration guide maps `revalidate` to `cacheLife` and `tags` to `cacheTag`."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-combine
+  front: "When do you use each of the three caches together?"
+  back: "`use cache` for what can be reused across users, React's `cache` for per-request dedup of uncached or request-specific reads, `unstable_cache` only when data must outlive a deploy."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-observed-counters
+  front: "In the 16.4.5 test, how did the counters for react, uc and usecache move across a second request, a restart and a rebuild?"
+  back: "Second request: `react=2,2 uc=1,1 usecache=1,1`. After restart: `react=3,3 uc=1,1 usecache=2,2`. After a fresh `next build`: `react=4,4 uc=1,1 usecache=3,3`. Only `uc` outlived the rebuild."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache-twice
+  front: "How often did Next.js 16.4.5 run a React `cache` function body per request?"
+  back: "Twice on most requests (apparently a second render pass with its own `cache` scope), though the one `fetch` inside was made once."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-isolated-scope
+  front: "Can a parent share data into a `use cache` function through React's `cache`?"
+  back: "No. The scope is isolated: a store set by the parent read `null` inside the cached component."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-dedup-builtin
+  front: "Does `use cache` need React's `cache` for dedup within a render?"
+  back: "No. The Next.js docs say `use cache` already deduplicates calls with the same arguments within a render and across requests."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-legacy-flags
+  front: "What was the Cache Components option called in Next.js 15?"
+  back: "Experimental: `experimental.dynamicIO`, later `experimental.cacheComponents`. 16.0 made `cacheComponents` a top-level option."
+  question: nextjs/cache-components/use-cache-vs-other-caches
