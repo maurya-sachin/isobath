@@ -11,6 +11,8 @@ const key = import.meta.env.VITE_POSTHOG_KEY
 export const analyticsEnabled = Boolean(key)
 
 let instance: PostHog | null = null
+/** Events are queued only while a load is under way, never after a failed or skipped one. */
+let loading = false
 /** Events recorded before PostHog finished loading; sent once it has. */
 const pending: AnalyticsEvent[] = []
 const readyListeners = new Set<() => void>()
@@ -37,12 +39,12 @@ export function registerDisplaySettings(): void {
 export function track(event: AnalyticsEvent | null): void {
   if (!event || !analyticsEnabled || deviceOptedOut()) return
   if (instance) instance.capture(event.name, event.properties)
-  else pending.push(event)
+  else if (loading) pending.push(event)
 }
 
 /** Safari has no `requestIdleCallback`. */
 function whenIdle(callback: () => void): void {
-  if ('requestIdleCallback' in window) window.requestIdleCallback(callback)
+  if ('requestIdleCallback' in window) window.requestIdleCallback(callback, { timeout: 2000 })
   else setTimeout(callback, 1)
 }
 
@@ -52,7 +54,7 @@ async function start(projectKey: string): Promise<void> {
     posthog.init(projectKey, {
       api_host: POSTHOG_PROXY_PATH,
       ui_host: POSTHOG_UI_HOST,
-      // Stops sending at once when the switch is turned on mid-visit.
+      // Stops new events when the switch is turned on mid-visit; a batch already queued still goes out.
       before_send: (event) => (deviceOptedOut() ? null : event),
       cookieless_mode: 'on_reject',
       // Counts the visit cookieless while the choice is pending; without it nothing is captured until the visitor chooses.
@@ -71,6 +73,8 @@ async function start(projectKey: string): Promise<void> {
     for (const event of pending.splice(0)) track(event)
     for (const listener of readyListeners) listener()
   } catch (error) {
+    loading = false
+    pending.length = 0
     console.error('Analytics failed to load', error)
   }
 }
@@ -83,5 +87,6 @@ async function start(projectKey: string): Promise<void> {
  */
 export function loadAnalytics(): void {
   if (!key || deviceOptedOut()) return
+  loading = true
   whenIdle(() => void start(key))
 }

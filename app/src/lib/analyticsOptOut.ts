@@ -1,5 +1,5 @@
 // Browser store for "Don't count my visits on this device". Kept apart from analytics.ts so that module can read it
-// without a cycle. While it is on, PostHog is never loaded on this device (and events already queued are dropped).
+// without a cycle. While it is on, PostHog is never loaded on this device; turning it off takes effect on the next page load.
 
 import { useSyncExternalStore } from 'react'
 

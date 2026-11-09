@@ -2,7 +2,7 @@
 // when the prompt is open. Browser-only: it reads the analytics client, so Node tests never load it.
 
 import { useSyncExternalStore } from 'react'
-import { getAnalytics, onAnalyticsReady, track } from './analytics.ts'
+import { getAnalytics, onAnalyticsReady, registerDisplaySettings, track } from './analytics.ts'
 import { consentDecline } from './analyticsEvents.ts'
 import { deviceOptedOut, subscribeDeviceOptOut } from './analyticsOptOut.ts'
 
@@ -52,13 +52,12 @@ export function useConsentPromptOpen(): boolean {
 export function chooseConsent(granted: boolean): void {
   const analytics = getAnalytics()
   if (!analytics) return
-  if (granted) {
-    analytics.opt_in_capturing()
-  } else {
-    // Sent before opting out: PostHog's own `$opt_in` marks Accept, so Decline gets an event of ours.
-    track(consentDecline())
-    analytics.opt_out_capturing()
-  }
+  if (granted) analytics.opt_in_capturing()
+  else analytics.opt_out_capturing()
+  // Switching consent resets PostHog's stored properties, which drops the display settings registered at load.
+  registerDisplaySettings()
+  // After opting out, so a visitor withdrawing an earlier Accept is not recorded under their cookie id.
+  if (!granted) track(consentDecline())
   setReopened(false)
 }
 
