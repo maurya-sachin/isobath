@@ -114,7 +114,7 @@
     --reading-font: var(--font-serif);
     --prose-leading: 1.7;
     --prose-gap: 1rem;
-    /* Height of the sticky header; src/lib/useHeaderHeight.ts keeps it exact. */
+    /* Height of the sticky header; src/hooks/useHeaderHeight.ts keeps it exact. */
     --header-height: 3.6rem;
   }
   html {

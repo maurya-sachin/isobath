@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
-import { analyticsEnabled } from '@/lib/analytics'
-import { chooseConsent, reopenConsent, useConsentPromptOpen } from '@/lib/consentStore'
-import { useHydrated } from '@/lib/useHydrated'
+import { analyticsEnabled } from '@/analytics/analytics'
+import { useDeviceOptOut } from '@/analytics/analyticsOptOut'
+import { chooseConsent, reopenConsent, useConsentPromptOpen } from '@/analytics/consentStore'
+import { useHydrated } from '@/hooks/useHydrated'
 
 const COOKIE_SETTINGS_ID = 'cookie-settings'
 const TITLE_ID = 'consent-title'
@@ -71,10 +72,14 @@ export function ConsentBanner() {
   )
 }
 
-/** The footer entry that reopens the prompt. Absent without analytics, and before hydration, when it could do nothing. */
+/**
+ * The footer entry that reopens the prompt. Absent without analytics, before hydration (when it could do nothing)
+ * and while this device is opted out.
+ */
 export function CookieSettingsButton() {
   const hydrated = useHydrated()
-  if (!analyticsEnabled || !hydrated) return null
+  const optedOut = useDeviceOptOut()
+  if (!analyticsEnabled || !hydrated || optedOut) return null
   return (
     <button
       type="button"

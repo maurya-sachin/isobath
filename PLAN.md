@@ -3,11 +3,11 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`, ahead of `main` (released 2026-11-09, with analytics) by the table focus fix and Next.js chapters 08-10 with cards (release needs the maintainer's OK); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
-- Done, all `draft`: Next.js 50 q / 731 cards (10 chapters), JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
-- Doing: nothing open. Phase 7 `nextjs` is drafted end to end (spec `docs/superpowers/specs/2026-11-08-nextjs-topic-design.md`, targets Next.js 16.4.5); next are the maintainer's chapter passes and a release.
-- Open: question 03/040 states `connection()` in `use cache: private` flatly; it builds but fails at request time (add that). `previous-caching/default-cache-locations` says prerendered pages are served from `.next/server/app`; since 16.4 the first request copies them to `.next/server/route-cache/` (see 09/030; fix that question). Phase 6 is parked until more topics exist. Analytics (PostHog, EU) is live: see memory `posthog-analytics`.
-- Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
+- Branch `dev`, ahead of `main` by the Next.js chapters 08-10, the table focus fix, and the analytics accuracy work (spec `docs/superpowers/specs/2026-11-09-analytics-accuracy-design.md`: lazy PostHog, `/soundings` proxy, six events, device opt-out) plus the `src/` regrouping. Pushed as `preview/analytics-proxy`; release needs the maintainer's OK.
+- Preview checked in Chrome with a blocker: events pass, `$autocapture`/`$pageleave`/`$web_vitals` arrive, country reaches PostHog. Open: `dead-clicks-autocapture.js` is still blocked by filename; `/soundings/i/v0/e/` with a trailing slash answers a 308; event properties and Firefox, 375-1440 px unchecked.
+- Next: release; then after ~3 days of data the dashboard (spec T6) and memory `posthog-analytics`. Optional: remove `VITE_POSTHOG_KEY` from Vercel Preview.
+- Done, all `draft`: Next.js 50 q, JS 183, TS 63, HTML and CSS 61, browser 51, React 54. Open content fixes: 03/040 `connection()` in `use cache: private`; `previous-caching/default-cache-locations` route-cache path (see 09/030).
+- Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5; wordmark redraw.
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
@@ -25,7 +25,7 @@ Non-goals: backend service, accounts, paid AI.
 - R9 npm; scripts run on Node 24 native TypeScript.
 - R11 Coverage lives in READMEs: each chapter sub-topic points to its questions or ends `→ —` (gap); topic READMEs list areas with no chapter under **Not yet mapped**. New content goes through `templates/README.md` → Adding content.
 - R12 One topic per subject, grouped into tracks; each topic README has a `> **Track:**` line directly above its status line. A topic with no chapters keeps its planned structure in **Not yet mapped**. Track membership: `templates/README.md` → README status lines.
-- R13 Brand: **isobath, by Sachin Maurya**, "engineering interviews, in depth". Wordmark = "isobath" with a contour ring as its "o"; the favicon is that ring; topic covers are generated from slug + data (`app/src/lib/contours.ts`); depth scale = `--depth-1..4`. Type: Geist, Geist Mono, Newsreader (SIL OFL); accent #2F4FD8 / #9DAEF7; prose column 720px. Originals only.
+- R13 Brand: **isobath, by Sachin Maurya**, "engineering interviews, in depth". Wordmark = "isobath" with a contour ring as its "o"; the favicon is that ring; topic covers are generated from slug + data (`app/src/geometry/contours.ts`); depth scale = `--depth-1..4`. Type: Geist, Geist Mono, Newsreader (SIL OFL); accent #2F4FD8 / #9DAEF7; prose column 720px. Originals only.
 - R14 Hosting: Vercel, host `learn.sachinmaurya.com`, production from `main`. Project root = repo root (Vercel's Root Directory can't reach `../content`); `vercel.json` builds `app/`, sets `cleanUrls`, rewrites unknown paths to `/app-shell` (with `cleanUrls`, the `.html` destination is 308-redirected and 404s) and redirects `/portfolio`. The old GitHub Pages site is retired.
 - R15 Data: `manifest.json` + `topics/<slug>/{index,search,flashcards}.json`; a topic's shard loads on demand, never one big file.
 - R16 Licence: code MIT (`LICENSE`); questions and flashcards in `content/` CC BY-NC-SA 4.0 (`content/LICENSE`).

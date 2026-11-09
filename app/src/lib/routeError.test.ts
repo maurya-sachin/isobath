@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { describeRouteError } from '../../src/lib/routeError.ts'
+import { describeRouteError } from './routeError.ts'
 
 test('a failed fetch or an offline browser reads as offline', () => {
   assert.equal(describeRouteError(new TypeError('Failed to fetch'), true).kind, 'offline')

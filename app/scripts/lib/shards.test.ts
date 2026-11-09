@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { TopicSummary } from '../../src/content/types.ts'
+import type { TopicSummary } from '../../src/questions/types.ts'
 import { toOverview } from './shards.ts'
 
 const topic: TopicSummary = {

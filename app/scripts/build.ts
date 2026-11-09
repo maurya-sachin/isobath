@@ -4,7 +4,7 @@
 
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { isStale } from '../src/content/freshness.ts'
+import { isStale } from '../src/questions/freshness.ts'
 import type {
   CheatsheetEntry,
   ContentManifest,
@@ -17,7 +17,7 @@ import type {
   SearchDoc,
   StartQuestion,
   TopicSummary,
-} from '../src/content/types.ts'
+} from '../src/questions/types.ts'
 import { ankiDeck } from './lib/anki.ts'
 import { readChangelog, type ChangelogQuestion } from './lib/changelog.ts'
 import { collectProblems, printProblems } from './lib/check.ts'

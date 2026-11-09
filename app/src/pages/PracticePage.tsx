@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/Kbd'
 import { SegmentBar, SessionCard, SessionHeader } from '@/components/SessionLayout'
 import { SessionProgress } from '@/components/SessionProgress'
+import { track } from '@/analytics/analytics'
+import { practiceAnswer, practiceSessionFinish } from '@/analytics/analyticsEvents'
 import { SITE_NAME } from '@/lib/site'
-import { useSessionFocus } from '@/lib/useSessionFocus'
-import { useShortcuts } from '@/lib/useShortcuts'
-import { findChapter, type loadPractice } from '@/content/index-data'
-import type { QuestionPage as QuestionData } from '@/content/types'
+import { useSessionFocus } from '@/hooks/useSessionFocus'
+import { useShortcuts } from '@/hooks/useShortcuts'
+import { findChapter, type loadPractice } from '@/questions/index-data'
+import type { QuestionPage as QuestionData } from '@/questions/types'
 
 const CODE_STYLE = '[&_code]:font-mono [&_code]:text-[0.9em]'
 
@@ -76,7 +78,7 @@ function Summary({
   )
 }
 
-function Session({ questions, next }: SessionProps) {
+function Session({ topic, chapter, questions, next }: SessionProps & { topic: string; chapter: string }) {
   const [position, setPosition] = useState(0)
   const [revealed, setRevealed] = useState(false)
   const [missed, setMissed] = useState<QuestionData[]>([])
@@ -88,6 +90,11 @@ function Session({ questions, next }: SessionProps) {
   }
 
   function record(gotIt: boolean) {
+    track(practiceAnswer(questions[position].id, gotIt))
+    const missedCount = missed.length + (gotIt ? 0 : 1)
+    if (position + 1 === questions.length) {
+      track(practiceSessionFinish(topic, chapter, questions.length - missedCount, missedCount))
+    }
     if (!gotIt) setMissed((previous) => [...previous, questions[position]])
     setPosition(position + 1)
     setRevealed(false)
@@ -187,6 +194,8 @@ export function PracticePage() {
         <div className="mx-auto max-w-2xl">
           <Session
             key={chapter.slug}
+            topic={topic.slug}
+            chapter={chapter.slug}
             questions={questions}
             next={nextChapter && { title: nextChapter.title, to: `/practice/${topic.slug}/${nextChapter.slug}` }}
           />

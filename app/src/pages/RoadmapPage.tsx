@@ -2,7 +2,7 @@ import { useLoaderData } from 'react-router'
 import { PageShell } from '@/components/PageShell'
 import { Roadmap, RoadmapSummary } from '@/components/Roadmap'
 import { DiagramLegend } from '@/components/RouteDiagram'
-import type { ContentManifest } from '@/content/types'
+import type { ContentManifest } from '@/questions/types'
 import { SITE_NAME } from '@/lib/site'
 
 export function RoadmapPage() {

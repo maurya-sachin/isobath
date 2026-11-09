@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { fontFacesCss } from '../../src/theme/fonts.ts'
+import { fontFacesCss } from './fonts.ts'
 
 test('defines a size-adjusted fallback face for each web font, under the names index.css uses', () => {
   const css = fontFacesCss()

@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import type { Exercise } from '@/content/types'
+import { track } from '@/analytics/analytics'
+import { exerciseReveal } from '@/analytics/analyticsEvents'
+import type { Exercise } from '@/questions/types'
 import { Html } from './Html'
 
-function ExerciseCard({ exercise }: { exercise: Exercise }) {
+function ExerciseCard({ questionId, exercise }: { questionId: string; exercise: Exercise }) {
   const [revealed, setRevealed] = useState(false)
+  function reveal() {
+    track(exerciseReveal(questionId, exercise.title))
+    setRevealed(true)
+  }
   return (
     <div className="overflow-hidden rounded-xl border">
       <h3 className="border-b px-5 py-3.5 font-semibold">{exercise.title}</h3>
@@ -20,7 +26,7 @@ function ExerciseCard({ exercise }: { exercise: Exercise }) {
             </Button>
           </>
         ) : (
-          <Button variant="outline" onClick={() => setRevealed(true)}>
+          <Button variant="outline" onClick={reveal}>
             Reveal answer
           </Button>
         )}
@@ -29,11 +35,11 @@ function ExerciseCard({ exercise }: { exercise: Exercise }) {
   )
 }
 
-export function Exercises({ exercises }: { exercises: Exercise[] }) {
+export function Exercises({ questionId, exercises }: { questionId: string; exercises: Exercise[] }) {
   return (
     <div className="flex flex-col gap-4">
       {exercises.map((exercise) => (
-        <ExerciseCard key={exercise.title} exercise={exercise} />
+        <ExerciseCard key={exercise.title} questionId={questionId} exercise={exercise} />
       ))}
     </div>
   )

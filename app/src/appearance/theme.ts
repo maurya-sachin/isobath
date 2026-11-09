@@ -2,6 +2,7 @@
 // inline script in index.html before first paint; this module keeps it in sync afterwards.
 
 import { useSyncExternalStore } from 'react'
+import { registerDisplaySettings } from '../analytics/analytics.ts'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -31,6 +32,11 @@ function snapshot(): Theme {
   return current
 }
 
+/** The stored preference, read straight from storage on first use. */
+export function getTheme(): Theme {
+  return snapshot()
+}
+
 function applyTheme(): void {
   const theme = snapshot()
   document.documentElement.classList.toggle('dark', theme === 'dark' || (theme === 'system' && systemDark().matches))
@@ -45,6 +51,7 @@ export function setTheme(theme: Theme): void {
     // The choice still applies for this visit.
   }
   applyTheme()
+  registerDisplaySettings()
   listeners.forEach((listener) => listener())
 }
 

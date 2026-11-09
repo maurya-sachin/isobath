@@ -1,5 +1,5 @@
-import { coverRings, ringPath } from '@/lib/contours'
-import { depthStrokeClass } from '@/lib/depth'
+import { coverRings, ringPath } from '@/geometry/contours'
+import { depthStrokeClass } from '@/geometry/depth'
 import { cn } from '@/lib/utils'
 
 interface TopicCoverProps {

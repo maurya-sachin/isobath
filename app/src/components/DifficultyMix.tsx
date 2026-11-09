@@ -1,4 +1,4 @@
-import type { Difficulty } from '@/content/types'
+import type { Difficulty } from '@/questions/types'
 import { cn } from '@/lib/utils'
 
 const SEGMENT_STYLE: Record<Difficulty, string> = {

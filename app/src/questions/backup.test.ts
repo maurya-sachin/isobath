@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { Reviews } from '../../src/content/review.ts'
+import type { Reviews } from './review.ts'
 import { fsrs, Rating } from 'ts-fsrs'
-import { createBackup, mergeBackup, parseBackup } from '../../src/lib/backup.ts'
-import type { Progress } from '../../src/lib/progressTypes.ts'
+import { createBackup, mergeBackup, parseBackup } from '../learning/backup.ts'
+import type { Progress } from '../learning/progressTypes.ts'
 
 const now = new Date('2026-10-14T12:00:00Z')
 const card = (due: string, lastReview: string | null) =>

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { orderTrack, topicState } from '../../src/content/roadmap.ts'
-import type { PathStep, RolePath, TopicOverview } from '../../src/content/types.ts'
+import { orderTrack, topicState } from './roadmap.ts'
+import type { PathStep, RolePath, TopicOverview } from './types.ts'
 
 function topic(
   slug: string,

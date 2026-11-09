@@ -1,6 +1,6 @@
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { setTheme, useTheme, type Theme } from '@/lib/theme'
+import { setTheme, useTheme, type Theme } from '@/appearance/theme'
 
 const NEXT: Record<Theme, Theme> = { light: 'dark', dark: 'system', system: 'light' }
 const ICON = { light: Sun, dark: Moon, system: Monitor }
