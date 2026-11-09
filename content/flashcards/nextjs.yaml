@@ -1010,3 +1010,236 @@
   front: "What was the Cache Components option called in Next.js 15?"
   back: "Experimental: `experimental.dynamicIO`, later `experimental.cacheComponents`. 16.0 made `cacheComponents` a top-level option."
   question: nextjs/cache-components/use-cache-vs-other-caches
+# 04 Previous caching
+- id: dcl-four-layers
+  front: "With `cacheComponents` off (the 16.4.5 default), which four cache layers did the Next.js 14 docs name?"
+  back: "Request memoization, the data cache, the full route cache and the router cache. The 16.4.5 docs mostly drop the names, but the layers are still there."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-memoization-scope
+  front: "How long does request memoization last, and where does it live?"
+  back: "One server render, in memory. Identical `GET` `fetch` calls during that render share one response, and the entry is gone when the render ends."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-data-cache-contents
+  front: "What does the data cache store, and where is it under `next start`?"
+  back: "`fetch` responses that opt in with `cache: 'force-cache'` or `next.revalidate`, plus `unstable_cache` results. One JSON file per entry in `.next/cache/fetch-cache`, holding its `revalidate` and `tags`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-full-route-cache-files
+  front: "What does the full route cache store, and where?"
+  back: "A route prerendered at build time, as `.html`, `.rsc` and `.meta` files under `.next/server/app`. It is served without rendering. A static GET route handler is stored as `.body` and `.meta`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-full-route-cache-headers
+  front: "Which response headers showed a full route cache hit in the 16.4.5 observations?"
+  back: "`x-nextjs-cache: HIT` and `Cache-Control: s-maxage=…`. For the option-less static page, `s-maxage` was `31536000` with no `revalidate`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-router-cache-rules
+  front: "What does the router cache hold, and what are its 15+ reuse rules?"
+  back: "RSC payloads of visited and prefetched routes, in browser memory. Dynamic pages are refetched on every `<Link>` navigation (`staleTimes.dynamic` is 0); static pages are reused for 5 minutes; back/forward always restores."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-layers-independent
+  front: "Can a dynamic route still read from the data cache?"
+  back: "Yes. The layers are independent. A dynamic route has no full route cache, but a `force-cache` fetch in it is still served from the data cache. In the example the page re-rendered per request while the fetch stayed at `1`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-optionless-fetch-since-15
+  front: "Since Next.js 15, when does a `fetch` with no `cache` option run?"
+  back: "Once at build if the route is static, and on every request if the route is dynamic. In the 16.4.5 example it hit the API on every request, even when placed before `cookies()`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-legacy-14-defaults
+  front: "What were the Next.js 14 defaults for `fetch`, GET handlers and dynamic pages in the router cache?"
+  back: "`fetch` defaulted to `force-cache`, GET handlers were static by default, and dynamic pages stayed in the router cache for 30 seconds."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-static-keeps-build-data
+  front: "How does a static route with no `revalidate` pick up new data?"
+  back: "It doesn't on its own. It keeps what its build-time fetches returned until revalidated. In the 16.4.5 example `/default` served its build-time value with `s-maxage=31536000`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-revalidate-tag-effect
+  front: "What did `revalidateTag(tag, 'max')` do to a cached page in the 16.4.5 observations?"
+  back: "It marked data and route entries stale: the next request was served stale and triggered a refetch, and the one after showed new data. Per the docs, not run here, they also clear the router cache."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-restart-and-multi-instance
+  front: "Do the data and full route caches survive `next start` restarts?"
+  back: "Yes, they are files under `.next`. On several instances each has its own copy unless a shared `cacheHandler` is configured (per the docs, not run here)."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-draft-mode
+  front: "Does Draft Mode read the data cache?"
+  back: "No. The `fetch` docs say Draft Mode bypasses it entirely, neither reading nor writing (per the docs, not run here)."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-stale-status
+  front: "What does `x-nextjs-cache: STALE` mean without Cache Components?"
+  back: "The server sent the old page and regenerated it in the background. This is how ISR works without Cache Components. The route's lifetime is the lowest `revalidate` in it."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-build-time-fetch-cache
+  front: "What did an option-less fetch reached during `next build` write to `fetch-cache` in 16.4.5?"
+  back: "An entry with `revalidate: 31536000`, even on a route that later turned dynamic. The source calls it an implicit build-time cache shared between build workers. At request time the same fetch hit the API every time."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-dev-vs-start
+  front: "Why test caching with `next build && next start` rather than `next dev`?"
+  back: "`next dev` renders pages on every request, and its HMR cache can reuse even `no-store` fetches between edits (per the docs, not run here)."
+  question: nextjs/previous-caching/default-cache-locations
+- id: cd-direction
+  front: "In which direction did Next.js caching defaults move from 14 to 15?"
+  back: "From \"cached unless you opt out\" to \"uncached unless you opt in\". 15 made `fetch`, GET route handlers and the router cache's dynamic pages uncached by default."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-14-fetch
+  front: "In Next.js 14, what did a `fetch` with no `cache` option do?"
+  back: "It used `force-cache` unless the route used a dynamic function or config, so data could stay in the data cache indefinitely."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-14-handlers-router
+  front: "In Next.js 14, how were GET route handlers and the client router cache treated?"
+  back: "GET handlers were prerendered at build unless they read the request. The router cache kept dynamic pages for 30 seconds and static ones for 5 minutes."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-15-fetch-label
+  front: "What do the 16.4.5 docs call the 15 default for an option-less `fetch`?"
+  back: "`auto no cache`: run once at build if the route is static, on every request if it is dynamic. It behaves `no-store`-like."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-15-stale-times
+  front: "What happened to `staleTimes.dynamic` in 15, and what still reused the cache?"
+  back: "It went from 30 to 0, so `<Link>` refetches dynamic pages. Shared layouts, `loading.js` and back/forward still reuse the cache."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-15-reason
+  front: "What reason did the Next.js 15 release post give for flipping the defaults?"
+  back: "Feedback on the opinionated defaults, and how they would interact with Partial Prerendering and third-party libraries using `fetch`. A library's internal `fetch` could be cached without its author or user knowing."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-16-no-flip
+  front: "Did Next.js 16 flip any caching defaults back? What does 16.4.5 do with Cache Components off?"
+  back: "No. It added opt-in `cacheComponents`, where nothing is cached unless marked `use cache`. With Cache Components off, 16.4.5 behaves like 15."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-16-revalidate-tag
+  front: "What changed about `revalidateTag` in Next.js 16, per the upgrade guide?"
+  back: "It takes a `cacheLife` profile as its second argument, and `updateTag` handles immediate expiry from Server Actions. The one-argument form is deprecated and a TypeScript error (per the upgrade guide, not run here)."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-opt-back-in
+  front: "Which per-layer options restore caching in 15/16 without Cache Components?"
+  back: "`cache: 'force-cache'` or `next.revalidate` on a fetch, `fetchCache = 'default-cache'` on a segment, `dynamic = 'force-static'` on a handler, and `experimental.staleTimes` for the router cache."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-root-layout-fetchcache
+  front: "What did a root-layout `fetchCache = 'default-cache'` do in 16.4.5 in Chrome 156 and Firefox 159?"
+  back: "Full page loads used it, but each client-side navigation to a dynamic page fetched again (`n=2`, then `n=3`). The same export on the page itself worked."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-stale-times-config
+  front: "What did `experimental.staleTimes: { dynamic: 30 }` do on 16.4.5 within one tab?"
+  back: "The second `<Link>` click to the dynamic page reused the payload with no request."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-still-static
+  front: "Did anything stay cached by default in Next.js 15?"
+  back: "Yes. Routes with no request-time reads are still prerendered, and their option-less fetches run once at build. Per the release post, metadata files like `sitemap.ts` stay static unless they read the request (not run here)."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-route-table-symbols
+  front: "How does the 16.4.5 `next build` route table show which model a route used?"
+  back: "○ and ● for prerendered, ƒ for per request without Cache Components. ◐ appears only with Cache Components."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-force-static-handler
+  front: "What did `dynamic = 'force-static'` on a GET handler give in 16.4.5?"
+  back: "`next build` listed it as `○ /api/plain`, and two `curl` calls returned the same `t`."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: sc-where-and-when
+  front: "Where are `dynamic`, `revalidate` and `fetchCache` exported, and in which model do they exist?"
+  back: "From `page.js`, `layout.js` or `route.js`, read at build time. They exist only in the default model, with `cacheComponents` off."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-dynamic-values
+  front: "What do the four `dynamic` values `'auto'`, `'force-static'`, `'force-dynamic'` and `'error'` do?"
+  back: "`'auto'` (default) decides by what the render reads. `'force-static'` prerenders anyway. `'force-dynamic'` renders every request. `'error'` prerenders and fails the build if anything reads the request."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-force-static-empty
+  front: "What do `cookies()` and `headers()` do under `dynamic = 'force-static'`?"
+  back: "They silently return empty values rather than throwing. In 16.4.5 a request sending a cookie got `cookie=none ua=none` every time. The docs add `useSearchParams()` (not run here). Use `'error'` to fail the build."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-force-dynamic-fetches
+  front: "Under `dynamic = 'force-dynamic'`, how are fetches without their own `cache` option treated?"
+  back: "They aren't cached. In 16.4.5 an option-less fetch went `1` to `5` over five requests."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-values
+  front: "What do `revalidate = false`, a number and `0` mean?"
+  back: "`false` (default) keeps a static route until redeploy or on-demand revalidation. A number makes it ISR with that many seconds. `0` makes the route dynamic."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-fetch-inherit
+  front: "How do fetches relate to a segment's `revalidate`, per the docs?"
+  back: "Fetches without options inherit it. A fetch's own lower `next.revalidate` lowers the whole route's interval (per the docs, not run here)."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-literal
+  front: "Can `revalidate` be written as `60 * 10`?"
+  back: "No. The docs say the value must be statically analyzable, a literal such as `600` (not run here)."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-observed
+  front: "How did a `revalidate = 10` page behave on 16.4.5 under `next start`?"
+  back: "It built as `○ 10s 1y`. After 10 seconds one request got the old page and the next showed the new value (`rv=2`)."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-fetchcache-values
+  front: "What do `fetchCache` values `'default-cache'` and `'default-no-store'` do?"
+  back: "They set the default `cache` option for the segment's fetches. `'default-cache'` caches option-less fetches even after a request-time read; `'default-no-store'` stops caching them even before one."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-fetchcache-only
+  front: "What do `fetchCache = 'only-cache'` and `'only-no-store'` do?"
+  back: "They fail the build on the opposite choice. In 16.4.5 a `no-store` fetch under `only-cache` stopped the build with `cache: 'no-store' used on fetch for … with 'export const fetchCache = 'only-cache'`."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-explicit-force-cache-wins
+  front: "In 16.4.5, does `force-dynamic` or `fetchCache = 'force-no-store'` bypass a fetch with explicit `cache: 'force-cache'`?"
+  back: "No, the fetch stayed cached (`fd=1` over five requests), though the docs say the segment value overrides. The source sets `revalidate: false` for `force-cache` before it checks the segment's opt-out."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-dynamic-error-message
+  front: "What does `dynamic = 'error'` print in 16.4.5 when the route reads `cookies()`?"
+  back: "``Route /dynerr with `dynamic = \"error\"` couldn't be rendered statically because it used `cookies()`.`` The build stops."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-zero-force-cache
+  front: "Does `revalidate = 0` stop a `force-cache` fetch from being cached in 16.4.5?"
+  back: "No. The route became ƒ and option-less fetches ran per request, but the `force-cache` fetch stayed at `1`, as the docs describe."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-cache-components-rejects
+  front: "What happens to these segment configs with `cacheComponents: true` in 16.4.5?"
+  back: "The build rejects them: `Route segment config \"revalidate\" is not compatible with nextConfig.cacheComponents. Please remove it.` The same printed for `dynamic`, `fetchCache`, `dynamicParams` and `runtime`; `maxDuration` built."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-replacements
+  front: "What replaces `dynamic`, `revalidate` and `fetchCache` with Cache Components on?"
+  back: "`use cache`, `cacheLife` and `instant`."
+  question: nextjs/previous-caching/segment-config-options
+- id: fd-scope
+  front: "What is the scope of Next.js `fetch` memoization?"
+  back: "One React render on the server. It dedupes calls across Server Components, layouts, pages and `generateMetadata`, so data can be fetched where it's used instead of passed down. Nothing is stored between requests."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-render-surfaces
+  front: "Besides components and layouts, which functions share the memoized fetch in a request, per the docs?"
+  back: "`generateMetadata`, and per the docs `generateStaticParams` and `generateViewport` (the latter two not run here). In 16.4.5 a `generateMetadata` call and a page call of the same URL made one request."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-method
+  front: "Which HTTP methods are deduplicated, and is `POST` with identical bodies?"
+  back: "`GET` (the source also allows `HEAD`, not run here). `POST` is not deduplicated, even with identical bodies: two `POST` calls made two requests."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-signal
+  front: "How does passing a `signal` affect `fetch` dedup?"
+  back: "It opts out. An `AbortController` signal is the documented opt-out; two calls with signals made two requests. Per the source, `keepalive` also opts out (not run here)."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-key-fields
+  front: "Which fields make up the dedup key in the 16.4.5 source?"
+  back: "URL and headers, plus `mode`, `redirect`, `credentials`, `referrer`, `referrerPolicy` and `integrity` (per the source, not run here). A differing header value is a separate key: `x-v: 1` and `x-v: 2` made two requests."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-clone
+  front: "How can two callers both read the body of a deduplicated response?"
+  back: "Per the source (not run here), the second caller gets a clone of the first response, so each can read the body."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-route-handler
+  front: "Are repeated `fetch` calls deduplicated in a route handler?"
+  back: "No. A route handler isn't part of the component tree. A GET handler fetching the same URL twice made two requests on every call."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-cache-option-ignored
+  front: "Does the dedup key include the `cache` option in 16.4.5?"
+  back: "No. A plain fetch and a `cache: 'no-store'` fetch of the same URL made one request, and the source says whichever ran first decides the caching. The docs' wording, \"the same URL and options\", suggests otherwise."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-not-cache
+  front: "How does `fetch` memoization differ from the data cache?"
+  back: "It dedupes even uncached fetches and stores nothing between requests. Every new request fetched again."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-react-cache
+  front: "How do you dedupe a database or SDK call within a request?"
+  back: "Wrap the function in React's `cache`. The Next.js guide recommends it for ORMs and database clients; it memoizes by argument identity for one request, like `fetch` memoization."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-trace-headers
+  front: "Which headers are ignored by the dedup key, per the 16.4.5 source?"
+  back: "Only `traceparent` and `tracestate` (not run here). Any other per-call header that varies, such as a trace or auth header, makes each value a separate key."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-request-object
+  front: "Does `fetch(url)` dedupe with `fetch(new Request(url))` for the same URL?"
+  back: "Yes, in 16.4.5 they made one request. The key comes from the normalised `Request`."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-static-builds
+  front: "Does fetch dedup need the route to be dynamic?"
+  back: "No. The docs scope it to any server render pass, so build-time prerendering too (not run here). The example used `connection()` only so counts could be compared per request."
+  question: nextjs/previous-caching/fetch-request-deduplication
