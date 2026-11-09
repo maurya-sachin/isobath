@@ -228,10 +228,12 @@
   .content pre .line.output span {
     color: var(--foreground) !important;
   }
+  /* Wide tables scroll inside this wrapper (see wrapTables in scripts/lib/markdown.ts). */
+  .content .table-scroll {
+    overflow-x: auto;
+  }
   .content table {
     font-family: var(--font-sans);
-    display: block;
-    overflow-x: auto;
     border-collapse: collapse;
     font-size: 0.95rem;
   }

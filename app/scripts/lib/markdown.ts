@@ -2,7 +2,7 @@
 // so contributed content can't inject markup into the app.
 
 import rehypeShiki from '@shikijs/rehype'
-import type { Root as HastRoot } from 'hast'
+import type { Element as HastElement, Root as HastRoot } from 'hast'
 import type { Root as MdastRoot } from 'mdast'
 import { toHtml } from 'hast-util-to-html'
 import { toString } from 'mdast-util-to-string'
@@ -28,10 +28,31 @@ const markOutputLines: ShikiTransformer = {
   },
 }
 
+/**
+ * A wide table scrolls sideways inside its wrapper. The wrapper takes focus so keyboard users can scroll it (WCAG 2.1.1),
+ * and a label so screen readers name what they landed on. The table itself stays a plain `<table>`.
+ */
+function wrapTables(node: HastRoot | HastElement): void {
+  node.children = node.children.map((child) => {
+    if (child.type !== 'element') return child
+    if (child.tagName !== 'table') {
+      wrapTables(child)
+      return child
+    }
+    return {
+      type: 'element',
+      tagName: 'div',
+      properties: { className: ['table-scroll'], role: 'region', ariaLabel: 'Scrollable table', tabIndex: 0 },
+      children: [child],
+    }
+  })
+}
+
 const blockProcessor = unified()
   .use(remarkParse)
   .use(remarkGfm)
   .use(remarkRehype)
+  .use(() => wrapTables)
   .use(rehypeShiki, { theme: createCssVariablesTheme({ name: 'isobath' }), transformers: [markOutputLines] })
   .use(rehypeStringify)
 

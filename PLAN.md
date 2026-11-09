@@ -3,10 +3,10 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`, equal to `main` (released 2026-11-08); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
-- Done, all `draft`: JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
-- Doing: Phase 7 `nextjs` (spec `docs/superpowers/specs/2026-11-08-nextjs-topic-design.md`). Chapters 01-07 drafted; cards done for 01-06 (457), 07 needs cards. Chapter 08 paused: 010 committed (80f9ee2), 020 is an uncommitted draft (re-verify before committing), 030-050 still planned. Then 09 deployment, 10 Pages Router, cards for 07-10. One Opus writer per chapter; targets Next.js 16.4.5.
-- Open: question 03/040 states `connection()` in `use cache: private` flatly; it builds but fails at request time (add that). Phase 6 is parked until more topics exist.
+- Branch `dev`, ahead of `main` (released 2026-11-09, with analytics) by the table focus fix and Next.js chapters 08-10 with cards (release needs the maintainer's OK); tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
+- Done, all `draft`: Next.js 50 q / 731 cards (10 chapters), JS 183 q / 1088 cards, TS 63 / 762, HTML and CSS 61 / 1083, browser 51 / 851, React 54 / 1117. Each question's text names the browsers, versions and Node it was run on.
+- Doing: nothing open. Phase 7 `nextjs` is drafted end to end (spec `docs/superpowers/specs/2026-11-08-nextjs-topic-design.md`, targets Next.js 16.4.5); next are the maintainer's chapter passes and a release.
+- Open: question 03/040 states `connection()` in `use cache: private` flatly; it builds but fails at request time (add that). `previous-caching/default-cache-locations` says prerendered pages are served from `.next/server/app`; since 16.4 the first request copies them to `.next/server/route-cache/` (see 09/030; fix that question). Phase 6 is parked until more topics exist. Analytics (PostHog, EU) is live: see memory `posthog-analytics`.
 - Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5 (screen reader, Windows forced colours); wordmark redraw.
 
 ## Goal
