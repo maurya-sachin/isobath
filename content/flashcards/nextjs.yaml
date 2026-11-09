@@ -1837,3 +1837,272 @@
   front: "Why 307 and not 302 for a redirect?"
   back: "A 307 keeps the request method, so a redirected `POST` stays a `POST`; a 302 lets browsers switch to `GET`. Form actions use `303` precisely to force the `GET`."
   question: nextjs/navigation/redirect-and-notfound-control-flow
+# 07 Route handlers and Proxy
+- id: rh-action-is-post-to-page
+  front: "What is a Server Action on the wire?"
+  back: "A `POST` to the current page's URL with a build-generated `Next-Action` id and a body encoded by React. The response is an RSC stream that can carry the re-rendered page plus the return value."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-handler-shape
+  front: "What does a route handler (`app/**/route.js`) export, receive and return?"
+  back: "It exports verb functions (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`), receives a Web `Request` (a `NextRequest`) and returns any `Response`: JSON, XML, a file, a stream or a redirect."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-when-handler-over-action
+  front: "When do you pick a route handler over a Server Action?"
+  back: "When someone else calls it (webhook, mobile app, CLI, partner), when you need HTTP itself (other verbs, status codes, `Content-Type`, CORS, the raw body), when you serve a cacheable read, or when you stream a long response."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-webhook-cant-be-action
+  front: "Why can't a Server Action serve a payment provider's webhook?"
+  back: "The provider can't send a `Next-Action` id or React's body encoding, and a new build can change the id. A webhook needs a stable URL and a documented body, which a route handler gives."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-actions-one-at-a-time
+  front: "Why are Server Actions a poor way to fetch data?"
+  back: "They are `POST`s and, per the docs, the client runs them one at a time, so they queue behind each other. Use a Server Component or a `GET` handler."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-get-uncached-since-15
+  front: "Is a `GET` route handler cached by default?"
+  back: "No, not since Next.js 15.0. On 16.4.5 (Cache Components off) two `curl` calls returned different timestamps. Opt in with `dynamic = 'force-static'` (shown as `○` in the build table) or `revalidate`."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-dynamic-export-vs-cache-components
+  front: "What happens to `export const dynamic` in a route handler once `cacheComponents` is on (16.4.5)?"
+  back: "The build fails: \"Route segment config \"dynamic\" is not compatible with `nextConfig.cacheComponents`. Please remove it.\""
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-get-handler-cache-components
+  front: "How does a `GET` handler behave under Cache Components (16.4.5)?"
+  back: "One that returns a constant is prerendered (`○`) and served from the build. One reading `Date.now()`, `Math.random()` or the `request` is `ƒ`, dynamic per request."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-dont-call-own-handler
+  front: "Why not call your own route handler from a Server Component?"
+  back: "Per the docs it is an extra HTTP hop, and it fails at build for a prerendered page (not run here). Call the data function directly."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-webhook-read-text-first
+  front: "Why read `request.text()` before parsing in a signed-webhook handler?"
+  back: "The signature covers the exact bytes, which `request.json()` would discard. Compute the HMAC over the text, compare with `timingSafeEqual`, then `JSON.parse` the same text."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-unexported-verbs
+  front: "How does a handler exporting only `GET` and `POST` answer other verbs (16.4.5)?"
+  back: "`PUT` and `DELETE` get `405`, `HEAD` gets `200`, and `OPTIONS` gets `204` with `allow: GET, HEAD, OPTIONS, POST`, generated without an `OPTIONS` export."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-use-cache-in-handler
+  front: "How do you cache part of a route handler with Cache Components on?"
+  back: "Move the work into a `'use cache'` helper; the directive can't sit in the handler body. A handler reading `request.nextUrl` stayed `ƒ`, but its cached helper returned the same timestamp across requests and query strings."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-handler-streams
+  front: "Does a streamed route handler response really stream?"
+  back: "Yes. A `ReadableStream` enqueuing a chunk every 500 ms reached `curl` with a 3 ms time to first byte and a 1.5 s total, each chunk printing as it arrived."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-route-and-page-conflict
+  front: "Can `route.js` and `page.js` share a segment?"
+  back: "No. Per the docs they conflict, because each takes over every verb for that URL."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: px-what-it-can-do
+  front: "What can a `proxy.js` function do with a matched request?"
+  back: "`NextResponse.redirect()` or `rewrite()`, pass request headers on with `NextResponse.next({ request: { headers } })`, set response headers and cookies, or return its own `Response`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-execution-order
+  front: "Where does Proxy run relative to `next.config` rules (16.4.5, `next start`)?"
+  back: "After config `headers` and `redirects`, before every rewrite and the filesystem. A config redirect for `/old` answered `307` without Proxy running; for a `beforeFiles` rewrite of `/bf` to `/dash`, Proxy saw `/bf`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-what-belongs
+  front: "What belongs in Proxy, and what doesn't?"
+  back: "Decisions from the request alone: A/B or locale rewrites, cookie or header redirects, adding headers, the optimistic no-session-cookie check. Not database calls (it runs on every matched request, prefetches included) and not static redirects, which belong in `next.config`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-no-cache-no-shared-state
+  front: "What can't Proxy do regarding caching and module state?"
+  back: "Per the docs (not run here), `use cache` and `fetch` caching options have no effect there. It also shares no module state with routes: a counter imported by both was incremented in Proxy and read `0` in a route handler."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-why-renamed
+  front: "Why did Next.js 16.0 rename `middleware` to `proxy`?"
+  back: "Per the docs, \"middleware\" was confused with Express middleware, inviting app logic into a feature meant as a last resort. \"Proxy\" names a network boundary in front of the app that may be deployed apart from it."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-middleware-still-builds
+  front: "What does a leftover `middleware.js` do on 16.4.5?"
+  back: "It still builds, with a deprecation warning, and runs on the Edge runtime (`NEXT_RUNTIME=edge`). The codemod is `npx @next/codemod@canary middleware-to-proxy .`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-node-only
+  front: "Which runtime does Proxy get in Next.js 16?"
+  back: "Node.js only. On 16.4.5 `process.env.NEXT_RUNTIME` was `nodejs`, `process.version` was `v24.19.0`, and `require` and `Buffer` existed."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-runtime-export-fails
+  front: "What happens if `proxy.js` keeps `export const runtime = 'edge'`?"
+  back: "The build fails: \"Route segment config is not allowed in Proxy file at \"./proxy.js\". Proxy always runs on Node.js runtime.\""
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-both-files-fail
+  front: "What happens if both `middleware.js` and `proxy.js` exist?"
+  back: "The build fails: \"Both middleware file \"./middleware.js\" and proxy file \"./proxy.js\" are detected.\""
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-no-matcher
+  front: "What happens when Proxy ships without a `matcher`?"
+  back: "It runs for every JavaScript chunk, `public/` file and `/_next/image` request. On 16.4.5 one page load logged seven chunk requests."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-next-headers-mistake
+  front: "Why is `NextResponse.next({ headers })` not the same as `{ request: { headers } }`?"
+  back: "The first sets response headers; the second forwards request headers to the route. Passing a copy of the request headers in the first form made the response echo the client's `Cookie` and `Authorization` back to it."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-prefetch-and-actions
+  front: "Does Proxy run for prefetches and Server Action calls (Chrome 156, 16.4.5)?"
+  back: "Yes, both went through it. The `rsc` and `next-router-prefetch` headers and the `_rsc` query were hidden from `request`, so a prefetch can't be treated differently by mistake; `next-action` was visible."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-config-vs-proxy
+  front: "Why use Proxy rather than `next.config` for headers, redirects and rewrites?"
+  back: "Config rules are static: a path pattern plus, per the docs (not run here), `has`/`missing` conditions on headers, cookies or query. Proxy is code: it can compute a bucket, read a signed cookie or call a fast service."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: pa-matcher-coverage
+  front: "Why can a Server Action run with no auth even when Proxy matches `/dashboard/:path*` (16.4.5)?"
+  back: "An action is a `POST` to whichever page renders it. One also imported by the public home page ran with no cookie when posted to `/`, while the same call to `/dashboard` got a `307` to `/login`."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-api-excluded
+  front: "Why does copying the docs' auth matcher leave route handlers uncovered?"
+  back: "The docs' matcher excludes `/api` by design, so every route handler is uncovered unless it checks for itself. On 16.4.5 `GET /api/projects`, outside the matcher, returned data."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-silent-coverage-loss
+  front: "What do the Proxy docs warn about moving an action or editing the matcher?"
+  back: "That it \"can silently remove Proxy coverage\"."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-request-not-resource
+  front: "Why can't Proxy decide whether user 7 may delete project 42?"
+  back: "It sees the request, not the resource: it can tell a session cookie exists and is validly signed, but ownership needs the record. A database lookup there would run on every matched request, including each `<Link>` prefetch."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-cve-2025-29927
+  front: "What was CVE-2025-29927 and which versions fixed it?"
+  back: "A request carrying the internal `x-middleware-subrequest` header skipped middleware entirely. Per the advisory it was fixed in 15.2.3, 14.2.25, 13.5.9 and 12.3.5; the workaround was dropping the header at the edge."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-cve-on-16
+  front: "Did `x-middleware-subrequest: proxy:proxy:proxy:proxy:proxy` bypass Proxy on 16.4.5?"
+  back: "No. The request was still redirected by Proxy."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-2026-advisories
+  front: "What did the 2026 Proxy and middleware bypass advisories cover?"
+  back: "Prefetch-segment `.rsc` URLs, injected route params and a Turbopack i18n case, each reaching protected content without the check. Five advisories were published between May and July 2026, so upgrading hasn't closed the class of bug."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-dal-pattern
+  front: "Where should the real authorization check live if not in Proxy?"
+  back: "In a data access layer: every Server Action, route handler and data function verifies the session and authorizes the specific resource. Then a matcher mistake or routing bug costs a redirect, not data."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-why-keep-proxy-auth
+  front: "Why still have Proxy auth at all?"
+  back: "UX and static pages. A signed-out user is redirected before any rendering, and a prerendered page shared by all users has no per-request code where a data-layer check could run."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-x-user-header
+  front: "Why is trusting a header Proxy sets, such as `x-user`, unsafe?"
+  back: "A route outside the matcher read `admin` from a client-sent `x-user: admin`; Next.js didn't strip it."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-cookie-is-not-authz
+  front: "Why is \"has a valid session cookie\" not authorization?"
+  back: "It says who, not what they may touch, and a revoked session stays valid until the cookie expires unless something checks the store."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-arbitrary-action-id
+  front: "Could an attacker post any action id to any public page (16.4.5)?"
+  back: "Not while only `/dashboard` used the action: a form-encoded `POST /` got `409 Server Action unavailable`, and one with a `Next-Action` header was forwarded internally to `/dashboard`, re-entering Proxy. Once `/` imported the action, it ran."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: af-what-it-is
+  front: "What does `after` from `next/server` do and what is it for?"
+  back: "It takes a callback and runs it once the response (or prerender) is done. It is for side effects the user shouldn't wait for: an audit log, analytics, a webhook to another system, warming a cache."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-timing-measured
+  front: "When did an `after` callback run relative to the response (16.4.5, `next start`, a 1 s sleep)?"
+  back: "After it. A route handler's `curl` finished in 7 ms and the callback ended at +1002 ms; the action's response took 45 ms and its callback ended at +1007 ms; the page responded in 9 ms and its callback finished at +1005 ms."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-streamed
+  front: "For a streamed response, when does `after` run?"
+  back: "After the last byte. A handler streaming three chunks 500 ms apart closed its stream at +1504 ms and `after` ran at +1505 ms."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-where-callable
+  front: "Where can `after` be used, and does it run after errors?"
+  back: "In route handlers, Server Actions, Server Components and Proxy (16.4.5). It also ran when the handler threw (`500`) and when a page called `redirect()` (`307`)."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-not-dynamic
+  front: "Does calling `after` make a route dynamic, and what happens when a route is prerendered?"
+  back: "It isn't a request-time API, so it doesn't make a route dynamic. With Cache Components on, a `GET` handler that only returned a constant was prerendered and its `after` callback ran during `next build`."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-request-apis
+  front: "Can you read `headers()` and `cookies()` inside an `after` callback?"
+  back: "In route handlers and actions, yes (it read `curl/8.7.1`). In Server Components they throw there; read them during render and close over the values."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-cookies-in-page-error
+  front: "What error does `cookies()` inside `after` in a page throw (16.4.5)?"
+  back: "\"Route /after-page used `cookies()` inside `after()` while rendering. This is not supported.\""
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-host-lifetime
+  front: "Who keeps an `after` callback alive, and for how long?"
+  back: "The host. `next start` keeps running and on `SIGTERM` waited for a pending callback. Serverless hosts need a `waitUntil`, which Next.js looks up via `globalThis[Symbol.for('@next/request-context')]`; per the docs the callback is bounded by `maxDuration` (not run here)."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-errors-logged
+  front: "What happens when an `after` callback throws (16.4.5)?"
+  back: "The response was still `200` and the server only logged \"An error occurred in a function passed to `after()`\". It doesn't fail the request or reach `onRequestError`."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-prerender-throw
+  front: "What happens to a throwing `after` in a prerendered route with Cache Components on?"
+  back: "It ran at build and `next build` exited with \"Error occurred prerendering page \"/api/after-err\"\"."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-not-durable
+  front: "Is `after` safe for work that must happen?"
+  back: "No. `kill -9` during a pending callback lost it, and a crash would too. Durable jobs belong in a queue."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-vs-floating-promise
+  front: "How is `after` different from a floating promise?"
+  back: "A floating promise isn't tied to the request. Per the docs, serverless hosts keep an invocation alive only for promises given to `waitUntil`, as `after`'s are (not run here). Under `next start`, a pending `after` was drained on `SIGTERM`."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-timer-and-register
+  front: "Can `after` be called from a timer or from `register()` (16.4.5)?"
+  back: "A call inside a `setTimeout` started by the handler still worked, since the request context followed the timer. Called from `register()` in `instrumentation.js`, it threw: \"`after` was called outside a request scope.\""
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-proxy-waituntil
+  front: "What does Proxy offer besides `after` for post-response work?"
+  back: "`event.waitUntil(promise)` on its second argument, a `NextFetchEvent`. Per the docs it keeps the invocation alive until the promise settles (not run here)."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: io-file-location
+  front: "Where does `instrumentation.js` live and what does it export?"
+  back: "At the project root or in `src/`, not inside `app/`. It has two optional exports, `register()` and `onRequestError(error, request, context)`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-register-timing
+  front: "When does `register()` run (16.4.5, `next start`)?"
+  back: "Once per server start, before requests are handled (per the docs). It logged at boot with no request made and again after each restart; `next build` never called it."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-register-per-runtime
+  front: "Does `register()` run once per server or once per runtime?"
+  back: "Per runtime. With an Edge `middleware.js` present, a second `register` logged `edge` on the first request that middleware handled."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-node-only-imports
+  front: "How do you keep Node-only imports out of the Edge bundle of `instrumentation.js`?"
+  back: "The file is bundled for both runtimes, so put them behind `process.env.NEXT_RUNTIME === 'nodejs'` and a dynamic `import()`. Top-level Node imports made the build warn \"A Node.js API is used (process.pid …) which is not supported in the Edge Runtime\"."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-onrequesterror-args
+  front: "What are the arguments of `onRequestError` (since 15.0)?"
+  back: "`error` (the thrown value; render and action errors carry a `digest`), `request` (`{ path, method, headers }`, with `path` including the query string) and `context`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-context-fields
+  front: "What fields does the `onRequestError` `context` have?"
+  back: "`routerKind`, `routePath` (the route file's path), `routeType` (`render`, `route`, `action` or `proxy`), `revalidateReason`, and for renders `renderSource`. The docs also list `renderType`; none of the observed errors carried it (16.4.5)."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-reporting-only
+  front: "Can `onRequestError` change the response or see browser errors?"
+  back: "No to both. It is a reporting hook only and runs on the server, so Client Component errors in the browser need a client-side reporter."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-not-reported
+  front: "Which errors never reach `onRequestError`?"
+  back: "`notFound()` and `redirect()` (they answered `404` and `307`; control flow, not errors), a throwing `after()` callback, and on 16.4.5 errors thrown in a Node.js `proxy.js`; the last two were only printed to the server log."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-proxy-gap
+  front: "What happened with a throwing Node.js `proxy.js` versus an Edge `middleware.js` (16.4.5)?"
+  back: "The Node `proxy.js` returned `500` with no hook call (issue #85261 reports the same on 16.0). An Edge `middleware.js` error did reach it, as `routeType: \"proxy\"`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-route-type-rename
+  front: "What did PR #85006 change about the Edge middleware error context?"
+  back: "It renamed `routeType` from `middleware` to `proxy` for 16.0. The observed context was `{\"routerKind\":\"Pages Router\",\"routePath\":\"/proxy\",\"routeType\":\"proxy\"}` in an App Router project."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-observed-contexts
+  front: "How did `renderSource` differ across error kinds (16.4.5)?"
+  back: "A page error had `routeType: \"render\"` and `renderSource: \"react-server-components\"`; an SSR error from a Client Component had `\"server-rendering\"`; an action had `routeType: \"action\"`, `method: \"POST\"` and `\"react-server-components-payload\"`. A route handler error had no `digest`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-digest-matching
+  front: "How do you match a user's error report to the server log?"
+  back: "By `digest`. The action's error reached the client as `1:E{\"digest\":\"4140478798\"}`, and `onRequestError` received the same digest with the real message, which the client never sees."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-await-reporter
+  front: "What do the docs say about async work in `onRequestError`?"
+  back: "Await it. Per the docs; not run here."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-db-pool
+  front: "Is `register` a good place for a database pool?"
+  back: "It can create one, since it runs once per server and runtime, but every server instance gets its own: each `next start` ran `register` again. Size pools per instance."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
