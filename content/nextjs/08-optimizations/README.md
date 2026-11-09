@@ -29,7 +29,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [What does `next/image` do to an image, and what must you still supply?](010-next-image-responsibilities.md) | medium | 🔴 planned |
+| 010 | [What does `next/image` do to an image, and what must you still supply?](010-next-image-responsibilities.md) | medium | 🟡 draft |
 | 020 | [How does `next/font` avoid layout shift and third-party font requests?](020-next-font-layout-shift.md) | medium | 🔴 planned |
 | 030 | [How does `generateMetadata` interact with streaming and request dedup?](030-generate-metadata-streaming-dedup.md) | hard | 🔴 planned |
 | 040 | [What do the `next/script` strategies change about load order?](040-next-script-strategies.md) | medium | 🔴 planned |
