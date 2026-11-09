@@ -2676,3 +2676,264 @@
   front: "Is a `NEXT_PUBLIC_` value a secret?"
   back: "Never. It is a plain string in every client chunk that references it; anyone can read it."
   question: nextjs/deployment/next-public-env-inlining
+# 10 Pages Router
+- id: df-no-one-to-one-mapping
+  front: "Do `getStaticProps`, `getServerSideProps` and `getStaticPaths` map one to one onto App Router code?"
+  back: "No. Data moves into async Server Components, and the route's rendering mode follows what they read. Props go away: each component fetches its own data."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-gsp-becomes-server-fetch
+  front: "What does `getStaticProps` become in `app/`, and is the page still prerendered?"
+  back: "Data access in a Server Component. On Next.js 16.4.5 (Cache Components off) the page was still prerendered at build."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-revalidate-equivalents
+  front: "What does `revalidate: 60` from `getStaticProps` become in `app/`?"
+  back: "`export const revalidate = 60` or `fetch(url, { next: { revalidate: 60 } })`. On 16.4.5 both versions sent `s-maxage=60, stale-while-revalidate=31535940`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-gssp-becomes-request-read
+  front: "What replaces `getServerSideProps` in `app/`, and what makes the route `ƒ`?"
+  back: "A component that reads the request: `await headers()`, `cookies()` or `searchParams` instead of `req`. That read makes the route `ƒ`, not the fetch."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-plain-fetch-built-static
+  front: "On 16.4.5 (Cache Components off), what happened to a route using `fetch` with no options?"
+  back: "The `fetch` wasn't stored in the Data Cache, yet the route built as `○` with the value frozen at build. It turns dynamic only on a request read or `cache: 'no-store'`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-migration-guide-fetch-disagrees
+  front: "What does the migration guide say about the `fetch` default, and what did 16.4.5 show?"
+  back: "The guide's own comments disagree: one says `force-cache`, one says uncached. The 16.4.5 build is the tiebreaker (measured): uncached data in a prerendered route."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-gsp-paths-becomes-generate-static-params
+  front: "What does `getStaticPaths` become, and what does it return instead of `{ paths, fallback }`?"
+  back: "`generateStaticParams`, returning an array like `[{ id: '1' }]`. `dynamicParams` replaces `fallback`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-dynamic-params-false
+  front: "Which `fallback` value does `dynamicParams = false` match, and what did an unlisted id return on 16.4.5?"
+  back: "`fallback: false`. An unlisted id returned 404 (about 2 ms) both ways."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-dynamic-params-true-is-blocking
+  front: "Which `fallback` value does the default `dynamicParams = true` behave like?"
+  back: "`fallback: 'blocking'`: the first request renders the whole page, then it is cached. Measured on 16.4.5: 200 after about 310-330 ms with full HTML, then a `HIT`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-fallback-true-no-equivalent
+  front: "Is there a direct App Router equivalent of `fallback: true`?"
+  back: "No. Pages serves a skeleton at once (`router.isFallback`), then fetches the props as JSON. Without Cache Components nothing replaces that instant skeleton; with Cache Components on, the App Shell fills the role."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-loading-js-not-shown-measured
+  front: "Did `loading.js` show on the first document request for an unlisted id with `dynamicParams` true? (measured on 16.4.5, not what the docs imply)"
+  back: "No. The response arrived after about 330-362 ms with the finished page and no loading UI (Chrome 156)."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-fallback-true-first-response
+  front: "What did the first document request for an unlisted id return with `fallback: true` on 16.4.5?"
+  back: "A 200 after about 8 ms with the loading fallback, then a `/_next/data/<buildId>/…json` request. Chrome 156 and Firefox 159 both showed the fallback and then the item."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-fallback-true-hides-404
+  front: "With `fallback: true`, what happened for an id whose `getStaticProps` returned `notFound`?"
+  back: "The document was a 200 fallback; the JSON request got 404 and the 404 page rendered client-side."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-notfound-redirect-calls
+  front: "What replace `{ notFound: true }` and `{ redirect }` from the data functions, and what did they return?"
+  back: "The `notFound()` and `redirect()` calls, which throw rather than return. Both gave 404 and 307 as before."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-notfound-caching-differs
+  front: "How did a 404 from `notFound()` in a static page differ from `{ notFound: true }` in `getServerSideProps`? (16.4.5)"
+  back: "The static page's 404 was prerendered and sent with `s-maxage=31536000`. The `getServerSideProps` one rendered per request with `no-store`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-next-data-json-vs-rsc
+  front: "What replaces the `/_next/data/<buildId>/…json` requests in `app/`?"
+  back: "The RSC payload: a `<Link>` to an App route fetched `/a/gsp-loading/13?_rsc=…`. Per the docs, `getStaticProps` writes that JSON at build alongside the HTML."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-link-nav-skips-fallback
+  front: "Does a client-side navigation show the `fallback: true` skeleton?"
+  back: "No. The docs say a `next/link` navigation behaves as `'blocking'`. Measured, the page went straight from the old content to the item after the JSON arrived."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-googlebot-gets-blocking
+  front: "What does a crawler such as Googlebot get for a `fallback: true` page?"
+  back: "The docs say crawlers are served `'blocking'`. Measured with `User-Agent: Googlebot/2.1`: the first request waited 317 ms and returned the full page (`MISS`)."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: mp-pages-are-client-components
+  front: "What does the migration guide say about pages in `pages/` and client JavaScript?"
+  back: "Pages in `pages/` are Client Components. Every module a page imports ships to the browser and runs again during hydration, even one that only formats markup."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-server-component-stays-on-server
+  front: "In `app/`, what reaches the browser from a Server Component, and what ships and hydrates?"
+  back: "Its code stays on the server; the browser gets its rendered output in the RSC payload. Only `'use client'` modules ship and hydrate."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-bundle-measured
+  front: "How did the same product page with a 117 KB lookup table compare in `pages/` and `app/`? (16.4.5, Turbopack)"
+  back: "`pages/`: 8 scripts, 154,824 bytes gzipped, 41,136 of them the table chunk. `app/`: 7 scripts, 138,639 bytes, no table."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-app-runtime-bigger
+  front: "Without the table chunk, which version would have been smaller, and why? (16.4.5, Turbopack)"
+  back: "The Pages version. The App Router runtime costs more than the Pages runtime; the saving comes from what you keep on the server."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-html-grows-with-rsc
+  front: "How much did the product page's HTML grow in `app/`, and why? (16.4.5)"
+  back: "From 718 to 1,970 bytes gzipped, because it carries the RSC payload. The list appears as markup and again as payload, so React can hydrate Client Components without re-running server code."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-no-route-size-column
+  front: "Does `next build` on 16.4.5 print per-route JS size, and how do you measure instead?"
+  back: "No per-route size column was printed. Measure the HTML's script tags."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-use-client-page-ships-more
+  front: "What did wrapping the old page in `'use client'` (the guide's first step) do to its bundle? (16.4.5)"
+  back: "It kept the page's behaviour and its bundle: `/a/product-client` shipped 179,626 bytes gzipped with a 40,987-byte table chunk, more than the Pages page's 154,824."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-browsers-same-totals
+  front: "Did Chrome 156 and Firefox 159 differ in transferred totals for `/p/product` and `/a/product`?"
+  back: "No. Both browsers transferred identical totals for the two pages."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-app-layout-keeps-state
+  front: "Which Pages Router wrapper keeps state across client navigations, and which does not? Measured result?"
+  back: "`_app` keeps it; a layout component rendered inside each page remounts. A nested `layout.js` stays mounted for every route under it: a counter at 2 stayed at 2 in `app/a/layout.js` and dropped to 0 in a per-page layout."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-per-page-layout-remounts
+  front: "Does a per-page layout keep state across `<Link>` navigations? (measured, 16.4.5)"
+  back: "No. Rendered inside each page component, it remounted on every `<Link>` navigation even though the document never reloaded."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-next-router-hooks
+  front: "Which hooks replace `next/router`'s `useRouter` in `app/`?"
+  back: "`next/navigation` has `useRouter`, `usePathname`, `useSearchParams` and `useParams`. `next/router` doesn't work in `app/`."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-next-router-not-mounted
+  front: "What happened importing `useRouter` from `next/router` in a Client Component under `app/`? (16.4.5)"
+  back: "The build failed while prerendering it: `Error: NextRouter was not mounted.`"
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-compat-router
+  front: "How can one component serve both routers during the migration?"
+  back: "Per the docs, `next/compat/router` gives the Pages `useRouter` without the \"not mounted\" error, until `pages/` is gone."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-next-head-silent
+  front: "What happened using `next/head` in `app/`? (16.4.5)"
+  back: "A `<Head><title>` in a page built without a warning and rendered no `<title>`. `next/head` is replaced by the Metadata API."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-app-has-no-underscore-app
+  front: "Does `_app` apply to `app/` routes, and where does its job move?"
+  back: "No. `_app` doesn't apply there; its job moves to the root layout."
+  question: nextjs/pages-router/moving-page-to-app
+- id: co-two-apps-one-server
+  front: "Can `pages/` and `app/` coexist, and how did one build look on 16.4.5?"
+  back: "Yes, page by page, as two apps behind one server. One `next build` produced two tables, `Route (app)` and `Route (pages)`, served by one `next start`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-shared-things
+  front: "What is shared between `pages/` and `app/` routes? (measured on 16.4.5)"
+  back: "`public/` files, `.env` values (both rendered `NEXT_PUBLIC_GREETING`), `next.config` `redirects` and `headers`, and Proxy on routes its `matcher` listed."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-shell-not-shared
+  front: "Which shell wraps `pages/` and which wraps `app/`?"
+  back: "`_app` and `_document` wrap only `pages/`; the root layout wraps only `app/`. Styles in `app/layout` don't reach `pages/`. The guide says keep `_app`/`_document` until the last page moves."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-cross-router-hard-nav
+  front: "What does a `<Link>` between `pages/` and `app/` do? (Chrome 156, Firefox 159)"
+  back: "A full document load: a `window` marker was lost and `performance.getEntriesByType('navigation')` named the new URL. A `<Link>` within `pages/` kept the marker."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-hard-nav-faster-not-soft
+  front: "Can the cross-router hard navigation be avoided?"
+  back: "It can be made faster, not soft: the guide links a Vercel guide on optimizing hard navigations. Migrating tightly linked routes together removes the crossing."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-i18n-pages-only
+  front: "Does `i18n` routing work for `app/` routes? (16.4.5)"
+  back: "No, it is a Pages Router option. With `locales: ['en', 'fr']`, `/fr/p` rendered and `/fr/a` returned 404. `next start` warned: `i18n configuration in next.config.mjs is unsupported in App Router.`"
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-app-locales-segment
+  front: "How does the App Router do locales instead of `i18n`?"
+  back: "With an `app/[lang]` segment. Localized routes migrate together once it exists."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-default-locale-works
+  front: "Did `/en/a` work with `defaultLocale: 'en'`? (16.4.5)"
+  back: "Yes, 200 with the App page. Only the non-default locale broke."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-routing-hooks-split
+  front: "Which routing hooks work in which router?"
+  back: "`next/router` works only in `pages/`, `next/navigation` only in `app/`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-duplicate-route-turbopack
+  front: "What happened with `pages/dup.js` and `app/dup/page.js` on the Turbopack build? (16.4.5)"
+  back: "The build failed: `App Router and Pages Router both match path: /dup`. A URL must belong to one router."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-duplicate-route-webpack
+  front: "How did `next build --webpack` report the same duplicate route? (16.4.5)"
+  back: "`Conflicting app and page file was found, please remove the conflicting files to continue`, naming `pages/dup.js` and `app/dup/page.js`. The text differs from Turbopack's."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-unmatched-url-app-404
+  front: "Which router's 404 page did an unmatched URL get? (16.4.5)"
+  back: "The App Router's."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-api-routes-unchanged
+  front: "Are API routes affected by coexistence?"
+  back: "The guide says `pages/api` keeps working unchanged. The same rule applies: `pages/api/x.js` plus `app/api/x/route.js` failed with `App Router and Pages Router both match path: /api/x`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-prefetch-across-routers
+  front: "Did prefetch warm the cache across routers? (measured, Chrome 156; the docs imply otherwise)"
+  back: "No. It still requested `/_next/data/<buildId>/a.json` from the Pages page and `/p?_rsc=…` from the App page. Both came back as `text/html`: wasted bytes, no warm cache."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-providers-need-root-layout
+  front: "What must be duplicated in the root layout for new `app/` routes during the migration?"
+  back: "Context providers, global CSS and analytics that `_app` supplies to `pages/`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: ad-app-role
+  front: "What did `pages/_app.js` do on 16.4.5?"
+  back: "It rendered each page (`<Component {...pageProps} />`): global CSS, context providers and a shared layout whose state survives client navigations. It ran on the server per document and in the browser on hydration and every `<Link>` navigation."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-app-on-gssp-nav
+  front: "On a navigation to a `getServerSideProps` page, what ran where? (16.4.5)"
+  back: "Only that function ran on the server; `_app` re-rendered in the browser."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-document-role
+  front: "What does `pages/_document.js` render, and where?"
+  back: "The HTML shell: `<Html>`, `<Head>`, `<Main>` and `<NextScript>`, all four required. Per the docs it renders only on the server, so no event handlers or data fetching."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-document-outside-main
+  front: "What do the docs say about components outside `<Main>` in `_document`, and about its `<Head>`?"
+  back: "They are never initialized in the browser. Its `<Head>` is for tags common to every page, not `next/head`."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-root-layout-replaces-both
+  front: "What replaces `_app` and `_document` in the App Router?"
+  back: "One root `app/layout.js`, a Server Component that must render `<html>` and `<body>` itself. Global CSS is imported there and `<head>` content comes from the Metadata API."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-providers-client-component
+  front: "Where do providers needing state or context go with a root layout?"
+  back: "Into a `'use client'` component that the layout renders. Don't make the root layout itself `'use client'`; wrap only the provider."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-layout-server-only
+  front: "Did the root layout run again on a navigation to a dynamic page? (16.4.5)"
+  back: "No. The layout ran only on the server; that page re-rendered on the server and the root layout didn't run again."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-report-web-vitals
+  front: "What replaces `export function reportWebVitals` in `_app`?"
+  back: "`useReportWebVitals` from `next/web-vitals`, called in a Client Component."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-vitals-metrics-differ
+  front: "Which metrics did the `_app` callback and the hook receive? (16.4.5)"
+  back: "The `_app` callback got Next.js's own metrics (`Next.js-hydration`, `Next.js-render`, `Next.js-route-change-to-render`); the hook got web vitals such as `FCP` and `TTFB`."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-vitals-inline-callback
+  front: "What happens passing an inline callback to `useReportWebVitals`?"
+  back: "The docs say each new function receives the metrics so far. With an inline arrow, Chrome 156 reported `FCP` again after each navigation."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-app-get-initial-props
+  front: "What did `App.getInitialProps` do to static optimization, and what replaces `_app` data loading?"
+  back: "It ran for every page and switched off static optimization (`○` became `ƒ`). The build warned `You have opted-out of Automatic Static Optimization`. In `app/`, each layout fetches its own data."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-missing-html-dev-only
+  front: "Does the build catch a root layout missing `<html>` and `<body>`? (16.4.5, not what the docs imply)"
+  back: "No. A layout returning `<main>{children}</main>` built cleanly and `next start` sent a document with no `<html>` or `<body>`. Only `next dev` showed `Missing <html> and <body> tags in the root layout.`"
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-keep-until-last-page
+  front: "When can `_app` and `_document` be deleted during a migration?"
+  back: "Per the guide, only when every page has left `pages/`, because the root layout doesn't apply there."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-get-layout-nested
+  front: "Where does a per-page layout (`getLayout`) go in the App Router?"
+  back: "Into nested `layout.js` files, which stay mounted for every route below them."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-error-and-404
+  front: "What do `_error.js` and `404.js` map to?"
+  back: "Per the migration guide, `error.js` files per segment and `not-found.js`."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-root-layout-request-reads
+  front: "Can the root layout read the request like `_document`'s `getInitialProps`?"
+  back: "It can call `cookies()` or `headers()`, but without Cache Components that makes every route under it dynamic. Read request data as low in the tree as possible."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-browsers-logging
+  front: "Which of `_app`, `_document` and the root layout logged in the browser? (Chrome 156, Firefox 159)"
+  back: "Only `_app`, on load and on each navigation. Neither `_document` nor the root layout ever did."
+  question: nextjs/pages-router/app-and-document-replacements
