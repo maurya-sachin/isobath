@@ -1243,3 +1243,288 @@
   front: "Does fetch dedup need the route to be dynamic?"
   back: "No. The docs scope it to any server render pass, so build-time prerendering too (not run here). The example used `connection()` only so counts could be compared per request."
   question: nextjs/previous-caching/fetch-request-deduplication
+# 05 Mutations
+- id: sa-transport
+  front: "What is Next.js's transport for a Server Action call, and which three headers matter?"
+  back: "A `POST` to the current page's URL with `Next-Action` (the action id), `Next-Router-State-Tree` (the segments the client already has) and `Accept: text/x-component`."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-rerender-triggers
+  front: "Which action behaviours make Next.js re-render the current route in the same response?"
+  back: "Calling `revalidatePath`, `updateTag` (or the deprecated one-argument `revalidateTag`), calling `refresh()`, setting or deleting a cookie, or calling `redirect()` (the destination is rendered instead)."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-one-stream
+  front: "What does one Flight stream carry when an action revalidated?"
+  back: "The action's return value and a fresh RSC payload for the route. The router commits the tree like a navigation, with no second request for the page."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-no-invalidation
+  front: "What does the response carry if the action does no invalidating call, or only `revalidateTag(tag, 'max')`?"
+  back: "Only the return value. The page stays as it was: in the 16.4.5 run the old `v` and `t` stayed on screen, with no `x-action-revalidated` header."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-revalidated-header
+  front: "What do the `x-action-revalidated` values `1` and `2` mean in 16.4.5?"
+  back: "`1` after `revalidatePath`, `updateTag`, one-argument `revalidateTag` or a cookie write. `2` after `refresh()`. Absent after `revalidateTag(tag, 'max')` or nothing."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-cache-components-same
+  front: "Did `cacheComponents` on change the action response shape in the 16.4.5 run?"
+  back: "No. The same response shape and the same rules held with it off and on."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-sequential-dispatch
+  front: "How does Next.js dispatch several Server Actions from one client, per the docs?"
+  back: "One at a time. The client queues them, so `Promise.all` gives no parallelism (per the docs, not run here). Do parallel work inside one action."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-router-cache-cleared
+  front: "What do invalidating calls do to the browser's router cache?"
+  back: "They empty it, so prefetched pages are fetched again. After `revalidatePath`, `updateTag` and a cookie write both browsers re-requested a `<Link>` prefetch; after `refresh()` they didn't."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-redirect-order
+  front: "Why call `revalidatePath` or `updateTag` before `redirect()` in an action?"
+  back: "`redirect` throws, so a later call never runs and the destination can render stale data."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-redirect-cost
+  front: "What did `updateTag('v')` then `redirect('/other')` cost in requests on 16.4.5?"
+  back: "One `POST /rt` (`x-action-revalidated: 1`). The page switched to `/other` with the new value and no `GET` for `/other` followed."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-refresh-cached-data
+  front: "Does `refresh()` in an action show new data from a tagged cached fetch?"
+  back: "No. It re-renders the route (`x-action-revalidated: 2`, a new timestamp) but a tagged cached `v` stayed old. It helps only for data that isn't cached."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-post-url-picks-route
+  front: "Which decides the action function: the POST URL or the action id?"
+  back: "The id. In the 16.4.5 test any page's URL worked for any action id. The path only decides which route is re-rendered."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-envelope
+  front: "What do rows `0` and `1` of an action's Flight response hold in 16.4.5?"
+  back: "Row 0 is the envelope: `a` points at the return value, `t` is the new tree when revalidated, and `b` matched `.next/BUILD_ID` when not. Row 1 is the return value."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-state-kept
+  front: "Does a page re-rendered by an action response keep its `useState` values?"
+  back: "Yes, per the docs: client state lives in the React tree (not run here)."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-server-checks
+  front: "What does the server do with the action id and `Origin` before running an action?"
+  back: "It looks the id up in its server reference manifest, checks `Origin` against `Host`, decodes the body and runs the function."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-tag-max-own-edit
+  front: "Why is `revalidateTag('projects', 'max')` wrong after a user's own edit?"
+  back: "It is stale-while-revalidate and adds no re-render to the response, so the user still sees the old value. `updateTag` expires the tag and includes the re-rendered page."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: rv-two-questions
+  front: "Which two questions do the revalidation APIs answer?"
+  back: "What gets invalidated, and how stale the next read may be."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-path
+  front: "What does `revalidatePath(p)` invalidate, and is the next read fresh?"
+  back: "Entries rendered by route `p`, through the `_N_T_/…` tags attached to each route and layout. The next read is fresh. Other routes using the same data stay cached. Works in Server Actions and route handlers."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-path-pattern
+  front: "How do you revalidate a dynamic pattern like `/blog/[slug]` with `revalidatePath`?"
+  back: "Pass `'layout'` or `'page'` as the second argument."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-tag-max
+  front: "How does `revalidateTag(t, 'max')` behave on the next read?"
+  back: "Stale-while-revalidate. Every entry tagged `t` is marked stale, the next read gets the old value and refreshes it in the background. Its profile caps how long stale may be served. It does not re-render the page in an action."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-tag-profile
+  front: "What can the second argument of `revalidateTag` be?"
+  back: "`'max'`, another `cacheLife` profile, or `{ expire }`."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-update-tag
+  front: "What is `updateTag` for, and where can it run?"
+  back: "Read-your-own-writes: it expires the tag so the next read waits for fresh data, and re-renders the page. Server Actions only; in a route handler it threw."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-refresh
+  front: "What does `refresh()` invalidate?"
+  back: "Nothing. It re-renders the current route so uncached state (cookies, an uncached database read) shows its new value. Cached data stays as it was. It is Server Action only."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-router-refresh
+  front: "What does the client-side `router.refresh()` do?"
+  back: "A `GET` for the current route's payload, with no server invalidation. Cached data stays as it was."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-render-throws
+  front: "What happened when the four revalidation APIs were called during render in 16.4.5?"
+  back: "All four threw. The `updateTag` error advised \"Call it from a Server Action or Route Handler instead\", but the route handler threw too."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-update-tag-handler-error
+  front: "What did `updateTag` in a route handler throw in 16.4.5?"
+  back: "\"updateTag can only be called from within a Server Action. To invalidate cache tags in Route Handlers or other contexts, use revalidateTag instead.\""
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-tag-max-observed
+  front: "How did the next `GET` behave after `revalidateTag('v', 'max')` on 16.4.5?"
+  back: "The next `GET /rt` returned the old `v` with `x-nextjs-cache: STALE` and the one after it the new `v` with `HIT`."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-legacy-one-arg
+  front: "What did one-argument `revalidateTag(tag)` do before 16.0, and what happens now?"
+  back: "It expired immediately. Now it fails type-checking (`error TS2554: Expected 2 arguments, but got 1.` under TypeScript 5.9) and logs a deprecation warning, but still behaves like `updateTag`."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-expire-zero
+  front: "A CMS webhook must remove an entry now, and `updateTag` isn't available. What then?"
+  back: "`revalidateTag(tag, { expire: 0 })` in the route handler. Per the docs, nothing stale is served and the next request blocks on a fresh render (not run here)."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-path-handler-miss
+  front: "What did the next request look like after `revalidatePath` from a route handler on an ISR page?"
+  back: "A `MISS` with fresh data, not a `STALE` response. Rendering happened on that request, not at the call."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: isr-window
+  front: "How is an ISR route with `revalidate = 10` served by `next build` and `next start` on 16.4.5?"
+  back: "Prerendered at build (`○ /isr 10s 1y`) and served from the server cache with `Cache-Control: s-maxage=10, stale-while-revalidate=31535990`. Inside the window responses are `x-nextjs-cache: HIT`."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-stale-request
+  front: "What happens to the first request after an ISR entry is older than its `revalidate` time?"
+  back: "Nothing happens until a request arrives. That request still gets the old page, marked `STALE`, and starts a background regeneration. The next request is a `HIT` with new data."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-lag
+  front: "How does ISR freshness lag, and who waits for the render?"
+  back: "Freshness lags by one request, and nobody waits for a render."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-regen-fails
+  front: "What happens if ISR regeneration throws, per the docs?"
+  back: "The last good page keeps being served and the next request retries (not run here)."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-ondemand-path
+  front: "What did the next request look like after `revalidatePath` on an ISR route on 16.4.5?"
+  back: "A `MISS` that rendered fresh data. After `revalidateTag(…, 'max')` the next requests were `STALE` until the background render finished."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-per-instance
+  front: "Does on-demand revalidation propagate across `next start` instances by default?"
+  back: "No. The cache and tag state live in each process, and a call reaches only the instance that received it. After `revalidatePath` on A, A served the new page while B and C kept serving the old one with `HIT`."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-cache-handler
+  front: "What makes revalidation global across instances?"
+  back: "A shared `cacheHandler` whose tag index lives in Redis or similar, so a call on one instance invalidates entries on all."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-shared-disk
+  front: "Do instances sharing a build folder share the ISR cache?"
+  back: "No. B, on A's folder, kept serving its in-memory copy; only after a restart did it read the page A had written. The cache is memory in front of the `.next` folder on disk."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-disk-location
+  front: "Where did a regenerated ISR page go on disk in 16.4.5?"
+  back: "`.next/server/route-cache/APP_PAGE/<hash>/$/isr.html` with `.rsc`, `.meta` and segment files. `.next/server/app/isr.html` kept the build-time value."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-load-balancer
+  front: "What goes wrong sending on-demand revalidation through a load balancer?"
+  back: "It lands on one instance. The others serve stale pages until their own `revalidate` time runs out."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-endpoint-auth
+  front: "Why check a secret in a revalidation route handler?"
+  back: "Unauthenticated, anyone could force re-renders. The secret check in the example returned `401` without it."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-cdn
+  front: "What must a CDN in front of ISR do, per the docs?"
+  back: "Cache the HTML and RSC responses together and respect `Vary`, or navigations can mix renders (not run here). `s-maxage` and `stale-while-revalidate` let a CDN serve the stale page too."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-cache-components
+  front: "What replaces ISR's timer with Cache Components on, and do on-demand calls change?"
+  back: "`use cache` with `cacheLife` sets the lifetimes. On-demand calls are the same functions with the same per-instance limit."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: aa-page-check
+  front: "Why does a page's admin-only check not protect the Server Action behind its form?"
+  back: "The page's check controls which UI appears; the action is a separate entry point. Next.js routes a `POST` by the `Next-Action` header, and any page URL will do. A `curl` `POST` with the id and no cookie ran the delete action on 16.4.5."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-no-js-field
+  front: "How is an action identified from a form posted without JavaScript?"
+  back: "By a `$ACTION_ID_…` field, instead of the `Next-Action` header."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-origin-check
+  front: "How does Next.js check the origin of a Server Action request?"
+  back: "The host in `Origin` must match `Host` or `X-Forwarded-Host`, else the request is rejected. `serverActions.allowedOrigins` lists extra hosts. A request with no `Origin` header is allowed with a warning."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-origin-scope
+  front: "What does the `Origin` check stop, and what doesn't it?"
+  back: "It stops browsers on other sites, not scripts, since a missing `Origin` is allowed with a warning."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-allowed-origins-exact
+  front: "What did `allowedOrigins: ['shop.example']` accept in the 16.4.5 test?"
+  back: "`shop.example` only. `shop.example:8443` and `app.shop.example` were rejected."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-ids
+  front: "How are Server Action ids protected, per the docs?"
+  back: "Ids are hashes, each cached for at most 14 days, and an action is reachable only if its module is compiled into the server bundle. Unused ids are stripped."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-unused-export
+  front: "Is an exported action nobody renders private?"
+  back: "No. `unusedExport` from the same `'use server'` file as rendered actions never appeared in HTML or client chunks, but a `POST` with its id ran it."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-unimported-module
+  front: "Was a `'use server'` module nobody imports reachable?"
+  back: "No. It had no entry in `server-reference-manifest.json`, so there was no id to call."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-closures-body-limit
+  front: "How are closed-over values and body size handled for Server Actions?"
+  back: "Values an inline action closes over travel to the client encrypted (per the docs, not run here); `.bind` arguments don't. The body limit is 1 MB by default (`bodySizeLimit`)."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-inside-action
+  front: "What must go inside each action, or a server-only data access layer it calls?"
+  back: "Authenticate from the session, authorize this user for this resource (re-read ownership; don't trust an id or object from the client), validate the input, and return only what the UI needs."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-resource-authz
+  front: "What goes wrong if an action checks only \"logged in\"?"
+  back: "One user can delete another's post by sending its id. Authorize the specific resource, not just the user."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-stale-id
+  front: "What does an action id from an older build return on 16.4.5?"
+  back: "`409 Conflict` with `x-nextjs-action-not-found: 1`, logged as \"Failed to find Server Action … This request might be from an older or newer deployment.\""
+  question: nextjs/mutations/server-action-authorization
+- id: aa-ids-rebuild
+  front: "Did a rebuild that kept `.next` change action ids in 16.4.5?"
+  back: "No, it produced the same ids, though the docs say a new build regenerates them. Deleting `.next` changed every id."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-cross-origin
+  front: "What did a cross-origin `Origin: https://evil.example` call get in 16.4.5?"
+  back: "A `500` and a log line that the `x-forwarded-host` header does not match the `origin` header from a forwarded Server Actions request, \"Aborting the action.\""
+  question: nextjs/mutations/server-action-authorization
+- id: aa-cve
+  front: "What was CVE-2025-66478?"
+  back: "Remote code execution through React's decoding of action payloads (December 2025), before any app code ran. The fix was upgrading Next.js."
+  question: nextjs/mutations/server-action-authorization
+- id: ae-two-kinds
+  front: "How should a Server Action report expected versus unexpected errors?"
+  back: "Expected errors (validation, \"name taken\") are return values, such as `{ error }`, rendered from `useActionState`. Unexpected errors are thrown."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-echo-values
+  front: "Why echo submitted values back from an action that returns an error?"
+  back: "React resets uncontrolled fields after the action, so `defaultValue={state.name}` keeps what the user typed."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-pending-sources
+  front: "Where does pending state come from in a form with a Server Action?"
+  back: "`isPending`, the third item of `useActionState`, or `useFormStatus()` in a component inside the form."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-usefromstatus-child
+  front: "Where must `useFormStatus` be called?"
+  back: "In a child of the `<form>`, not the component that renders it. Per React's docs it reads only a parent `<form>` (not run here)."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-form
+  front: "How does Next.js render an action form without JavaScript?"
+  back: "As a real HTML form: `method=\"POST\"`, `encType=\"multipart/form-data\"`, with hidden fields naming the action and carrying the previous state. Submitting does a full-page `POST` and returns HTML with the new state."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-pending
+  front: "What pending feedback exists without JavaScript?"
+  back: "Only the browser's own loading indicator. No script runs, so `useFormStatus` never reports `true`. Pending UI is a JavaScript enhancement."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-errors
+  front: "Did returned error messages show without JavaScript on 16.4.5?"
+  back: "Yes, with the echoed input, in Chrome 156 and Firefox 159, just as with JS."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-wire-difference
+  front: "How do the JS and no-JS submissions differ on the wire in 16.4.5?"
+  back: "With JS: one `POST` with a `Next-Action` header returning `text/x-component`. Without: one `POST` without it, returning `text/html`."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-thrown-js
+  front: "What happens to a thrown action error with JavaScript, and without?"
+  back: "With JS the nearest `error.js` renders; the message is replaced in production and `error.digest` matches the server log. Without JS the response was a bare `500 Internal Server Error` page."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-thrown-message
+  front: "Does the client see a thrown action's message in production on 16.4.5?"
+  back: "No. The response row was `1:E{\"digest\":\"…\"}` and `error.js` received \"Minified React error #441\" with that digest."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-prevstate-forged
+  front: "Why not trust `prevState` in an action?"
+  back: "Without JS it comes back from the browser. A forged `$ACTION_1:1` field of `[{\"error\":null,\"n\":41}]` produced \"Saved Eve (42)\"."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-state-survival
+  front: "How did previous state survive a full-page post without JS?"
+  back: "Hidden inputs: `$ACTION_REF_1`, `$ACTION_1:0` (the action id), `$ACTION_1:1` (the state) and `$ACTION_KEY` (the hook). The response rewrote `$ACTION_1:1` with the new state."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-url
+  front: "Where does the page go after a no-JS form submit?"
+  back: "It stays on the same URL, since the form's `action` is empty. `useActionState`'s third argument, a permalink, changes that target (per React's docs, not run here)."
+  question: nextjs/mutations/action-errors-and-pending-state
