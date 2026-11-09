@@ -172,7 +172,7 @@ function QuestionBody({ content }: { content: QuestionData }) {
           <div className="mt-14 border-t pt-2">
             <Section id="exercises" title="Exercises">
               {/* Keyed so revealed answers reset when navigating to another question. */}
-              <Exercises key={content.id} exercises={content.exercises} />
+              <Exercises key={content.id} questionId={content.id} exercises={content.exercises} />
             </Section>
           </div>
         )}
