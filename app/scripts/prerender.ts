@@ -46,6 +46,7 @@ const PATHS_DESCRIPTION = 'Ordered routes through the topics for each kind of en
 const ROADMAP_DESCRIPTION = 'Every topic on isobath, written and planned.'
 const CHANGELOG_DESCRIPTION = 'What changed in the questions, and when.'
 const PRACTICE_DESCRIPTION = 'Practise questions and review flashcards.'
+const PRIVACY_DESCRIPTION = 'What the site counts about visitors, with and without cookies, and how to change it.'
 
 const distDir = path.resolve(import.meta.dirname, '../dist')
 
@@ -98,6 +99,7 @@ function staticPages(manifest: ContentManifest): Page[] {
     { path: '/roadmap', description: ROADMAP_DESCRIPTION, type: 'website', image: site },
     { path: '/changelog', description: CHANGELOG_DESCRIPTION, type: 'website', image: site },
     { path: '/practice', description: PRACTICE_DESCRIPTION, type: 'website', image: site },
+    { path: '/privacy', description: PRIVACY_DESCRIPTION, type: 'website', image: site },
   ]
 }
 
