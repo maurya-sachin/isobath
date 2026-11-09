@@ -23,6 +23,8 @@ async function loadMatchedPages() {
 
 async function start() {
   await loadMatchedPages()
+  // Before the first render: the consent store reads PostHog's state as soon as the app renders without hydrating.
+  initAnalytics()
   const router = createBrowserRouter(routes, { basename })
   const app = (
     <StrictMode>
@@ -35,7 +37,6 @@ async function start() {
   // "not found" text depends on the URL, so it is replaced, not hydrated.
   if (root.firstElementChild && !root.hasAttribute('data-client-render')) hydrateRoot(root, app)
   else createRoot(root).render(app)
-  initAnalytics()
 }
 
 void start()
