@@ -29,7 +29,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 <!-- generated:questions:start -->
 | # | Question | Difficulty | Status |
 |---|---|---|---|
-| 010 | [When do you write a route handler instead of a Server Action?](010-route-handler-vs-server-action.md) | medium | 🔴 planned |
+| 010 | [When do you write a route handler instead of a Server Action?](010-route-handler-vs-server-action.md) | medium | 🟡 draft |
 | 020 | [What is `proxy.ts`, what should run there, and why was `middleware` renamed?](020-proxy-ts-and-middleware-rename.md) | medium | 🔴 planned |
 | 030 | [Why is Proxy not enough for authorization?](030-proxy-not-enough-for-auth.md) | hard | 🔴 planned |
 | 040 | [What does `after` run, and when does it run relative to the response?](040-after-api.md) | medium | 🔴 planned |
