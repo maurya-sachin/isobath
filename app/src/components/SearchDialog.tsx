@@ -12,6 +12,8 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import { track } from '@/lib/analytics'
+import { searchComplete } from '@/lib/analyticsEvents'
 import { loadSearchEngine, type SearchEngine } from '@/content/search'
 
 type Results = ReturnType<SearchEngine['search']>
@@ -79,20 +81,31 @@ export function SearchDialog() {
   const [engine, setEngine] = useState<SearchEngine>()
   const [failed, setFailed] = useState(false)
 
-  useToggleOnShortcut(() => setOpen((isOpen) => !isOpen))
-
   useEffect(() => {
     if (!open) return
     loadSearchEngine().then(setEngine, () => setFailed(true))
   }, [open])
 
-  function handleOpenChange(isOpen: boolean) {
-    setOpen(isOpen)
-    if (!isOpen) setQuery('')
-  }
-
   const trimmed = query.trim()
   const results = engine && trimmed ? engine.search(trimmed) : []
+
+  /** Every close goes through here, so a search is counted once whether it was picked from or dismissed. */
+  function close(selectedId: string | null = null) {
+    // Without the engine every query would look like zero results, a false content gap.
+    if (engine) {
+      const rankIndex = selectedId === null ? null : results.findIndex((doc) => doc.id === selectedId)
+      track(searchComplete({ query, results: results.length, selectedId, rankIndex }))
+    }
+    setOpen(false)
+    setQuery('')
+  }
+
+  function handleOpenChange(isOpen: boolean) {
+    if (isOpen) setOpen(true)
+    else close()
+  }
+
+  useToggleOnShortcut(() => handleOpenChange(!open))
 
   return (
     <>
@@ -124,7 +137,7 @@ export function SearchDialog() {
               ready={Boolean(engine)}
               results={results}
               onSelect={(id) => {
-                handleOpenChange(false)
+                close(id)
                 void navigate(`/${id}`)
               }}
             />
