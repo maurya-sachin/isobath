@@ -1,5 +1,5 @@
 import type { PostHog } from 'posthog-js'
-import { POSTHOG_API_HOST } from './posthogHost.ts'
+import { POSTHOG_PROXY_PATH, POSTHOG_UI_HOST } from './posthogHost.ts'
 
 const key = import.meta.env.VITE_POSTHOG_KEY
 
@@ -32,7 +32,8 @@ async function start(projectKey: string): Promise<void> {
   try {
     const { default: posthog } = await import('posthog-js')
     posthog.init(projectKey, {
-      api_host: POSTHOG_API_HOST,
+      api_host: POSTHOG_PROXY_PATH,
+      ui_host: POSTHOG_UI_HOST,
       cookieless_mode: 'on_reject',
       // Counts the visit cookieless while the choice is pending; without it nothing is captured until the visitor chooses.
       opt_out_capturing_by_default: true,
