@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { TopicOverview } from '../../src/content/types.ts'
-import { chapterReadCount, topicBranches } from '../../src/lib/diagram.ts'
+import type { TopicOverview } from './types.ts'
+import { chapterReadCount, topicBranches } from '../geometry/diagram.ts'
 
 const topic = {
   slug: 'js',

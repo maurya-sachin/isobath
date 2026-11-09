@@ -1,10 +1,10 @@
 import { RouteDiagram, type DiagramNode } from '@/components/RouteDiagram'
-import { orderTrack, topicState } from '@/content/roadmap'
-import type { RolePath, TopicOverview } from '@/content/types'
-import { topicBranches } from '@/lib/diagram'
-import { useProgress } from '@/lib/progress'
+import { orderTrack, topicState } from '@/questions/roadmap'
+import type { RolePath, TopicOverview } from '@/questions/types'
+import { topicBranches } from '@/geometry/diagram'
+import { useProgress } from '@/learning/progress'
 import { CONTRIBUTE_URL } from '@/lib/repo'
-import { groupByTrack } from '@/lib/tracks'
+import { groupByTrack } from '@/learning/tracks'
 
 function metaOf(topic: TopicOverview): string {
   const state = topicState(topic)

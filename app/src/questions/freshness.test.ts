@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { formatMonth, isStale, monthOf, oldestMonth } from '../../src/content/freshness.ts'
+import { formatMonth, isStale, monthOf, oldestMonth } from './freshness.ts'
 
 const today = new Date(Date.UTC(2026, 9, 14))
 

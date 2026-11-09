@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { giscusThemeCss } from '../../src/theme/giscus.ts'
-import { contrastRatio } from '../../src/theme/oklch.ts'
-import { hex, linearRgb, type Mode, type Token } from '../../src/theme/palette.ts'
+import { giscusThemeCss } from './giscus.ts'
+import { contrastRatio } from './oklch.ts'
+import { hex, linearRgb, type Mode, type Token } from './palette.ts'
 
 const MODES: Mode[] = ['light', 'dark']
 

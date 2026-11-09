@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { chapterStats } from '../../src/content/stats.ts'
-import type { ChapterSummary, QuestionSummary } from '../../src/content/types.ts'
+import { chapterStats } from './stats.ts'
+import type { ChapterSummary, QuestionSummary } from './types.ts'
 
 function question(overrides: Partial<QuestionSummary>): QuestionSummary {
   return {

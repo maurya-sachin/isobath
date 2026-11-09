@@ -10,7 +10,7 @@ import {
   serializeAppearance,
   type Appearance,
 } from './appearance'
-import { registerDisplaySettings } from './analytics.ts'
+import { registerDisplaySettings } from '../analytics/analytics.ts'
 
 const listeners = new Set<() => void>()
 let current: Appearance | undefined

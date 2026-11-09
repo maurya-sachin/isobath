@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { contourRings, coverRings, furthestPoint, ringAtLevel, ringPath, type Ring } from '../../src/lib/contours.ts'
+import { contourRings, coverRings, furthestPoint, ringAtLevel, ringPath, type Ring } from './contours.ts'
 
 const SEEDS = Array.from({ length: 120 }, (_, index) => `topic-${index}`)
 

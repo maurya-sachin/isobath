@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react'
-import { useHydrated } from '@/lib/useHydrated'
-import { useMediaQuery } from '@/lib/useMediaQuery'
+import { useHydrated } from '@/hooks/useHydrated'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { COMMENTS } from '@/lib/repo'
-import { useTheme } from '@/lib/theme'
+import { useTheme } from '@/appearance/theme'
 
 // Loaded only in the browser, after hydration, so prerendered pages and the main bundle don't carry it.
 const Giscus = lazy(() => import('@giscus/react'))

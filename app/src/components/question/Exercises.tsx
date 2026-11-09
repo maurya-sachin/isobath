@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { track } from '@/lib/analytics'
-import { exerciseReveal } from '@/lib/analyticsEvents'
-import type { Exercise } from '@/content/types'
+import { track } from '@/analytics/analytics'
+import { exerciseReveal } from '@/analytics/analyticsEvents'
+import type { Exercise } from '@/questions/types'
 import { Html } from './Html'
 
 function ExerciseCard({ questionId, exercise }: { questionId: string; exercise: Exercise }) {

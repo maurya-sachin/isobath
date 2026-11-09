@@ -1,16 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { readingHours } from '../../src/lib/effort.ts'
-import {
-  describePath,
-  readyQuestionCount,
-  stepKey,
-  stepLabel,
-  stepPath,
-  stepProgress,
-  stepState,
-} from '../../src/lib/paths.ts'
-import type { PathStep, RolePath } from '../../src/content/types.ts'
+import { readingHours } from './effort.ts'
+import { describePath, readyQuestionCount, stepKey, stepLabel, stepPath, stepProgress, stepState } from './paths.ts'
+import type { PathStep, RolePath } from '../questions/types.ts'
 
 function step(overrides: Partial<PathStep>): PathStep {
   return {

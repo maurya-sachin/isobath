@@ -9,7 +9,7 @@ import {
   practiceSessionFinish,
   searchComplete,
   superProperties,
-} from '../../src/lib/analyticsEvents.ts'
+} from './analyticsEvents.ts'
 
 test('search_complete trims the query and cuts it to 80 characters', () => {
   const event = searchComplete({ query: `  ${'a'.repeat(100)}  `, results: 3, selectedId: null, rankIndex: null })

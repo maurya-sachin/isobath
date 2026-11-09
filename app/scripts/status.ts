@@ -2,7 +2,7 @@
 // content:status --stale [topic] — instead, the written questions to re-check: stale, or with `perishable` notes.
 
 import { parseArgs } from 'node:util'
-import { isStale } from '../src/content/freshness.ts'
+import { isStale } from '../src/questions/freshness.ts'
 import { loadContent, type Chapter, type Question } from './lib/content.ts'
 
 const published = (questions: Question[]) => questions.filter((q) => q.meta?.status === 'published').length

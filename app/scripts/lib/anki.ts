@@ -1,7 +1,7 @@
 // A topic's flashcards as an Anki text import file. Headers: https://docs.ankiweb.net/importing/text-files.html
 
 import { SITE_NAME, SITE_URL } from '../../src/lib/site.ts'
-import type { Flashcard } from '../../src/content/types.ts'
+import type { Flashcard } from '../../src/questions/types.ts'
 
 /** Quotes a field so tabs, newlines and quotes inside it can't break the row. */
 const field = (text: string) => `"${text.replaceAll('"', '""')}"`

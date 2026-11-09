@@ -3,12 +3,12 @@ import { PageShell } from '@/components/PageShell'
 import { ProgressBackup } from '@/components/ProgressBackup'
 import { TopicCover } from '@/components/TopicCover'
 import { Button } from '@/components/ui/button'
-import { deckStatus, NEW_CARDS_PER_SESSION, nextDue, type Reviews } from '@/content/review'
-import { useReviews } from '@/content/reviewStore'
-import type { ContentManifest, TopicOverview } from '@/content/types'
+import { deckStatus, NEW_CARDS_PER_SESSION, nextDue, type Reviews } from '@/questions/review'
+import { useReviews } from '@/questions/reviewStore'
+import type { ContentManifest, TopicOverview } from '@/questions/types'
 import { SITE_NAME } from '@/lib/site'
 import { formatUntil } from '@/lib/time'
-import { useHydrated } from '@/lib/useHydrated'
+import { useHydrated } from '@/hooks/useHydrated'
 
 interface Deck {
   topic: TopicOverview

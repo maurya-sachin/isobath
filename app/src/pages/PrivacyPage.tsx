@@ -1,9 +1,9 @@
 import { PageShell } from '@/components/PageShell'
-import { analyticsEnabled } from '@/lib/analytics'
-import { setDeviceOptOut, useDeviceOptOut } from '@/lib/analyticsOptOut'
+import { analyticsEnabled } from '@/analytics/analytics'
+import { setDeviceOptOut, useDeviceOptOut } from '@/analytics/analyticsOptOut'
 import { REPO_URL } from '@/lib/repo'
 import { SITE_NAME } from '@/lib/site'
-import { useHydrated } from '@/lib/useHydrated'
+import { useHydrated } from '@/hooks/useHydrated'
 
 /** The checkbox's space is reserved before hydration, so the page does not jump when it appears. */
 function DeviceOptOut() {

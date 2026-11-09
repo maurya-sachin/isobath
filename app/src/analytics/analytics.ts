@@ -1,8 +1,8 @@
 import type { PostHog } from 'posthog-js'
 import { deviceOptedOut } from './analyticsOptOut.ts'
-import { getAppearance } from './appearanceStore.ts'
+import { getAppearance } from '../appearance/appearanceStore.ts'
 import { superProperties, type AnalyticsEvent } from './analyticsEvents.ts'
-import { getTheme } from './theme.ts'
+import { getTheme } from '../appearance/theme.ts'
 import { POSTHOG_PROXY_PATH, POSTHOG_UI_HOST } from './posthogHost.ts'
 
 const key = import.meta.env.VITE_POSTHOG_KEY

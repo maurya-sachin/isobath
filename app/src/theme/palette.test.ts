@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { contrastRatio, type Rgb } from '../../src/theme/oklch.ts'
+import { contrastRatio, type Rgb } from './oklch.ts'
 import {
   CSS_TOKENS,
   hex,
@@ -12,7 +12,7 @@ import {
   type Mode,
   type StatusName,
   type Token,
-} from '../../src/theme/palette.ts'
+} from './palette.ts'
 
 const MODES: Mode[] = ['light', 'dark']
 const HUES = Array.from({ length: 72 }, (_, index) => index * 5)

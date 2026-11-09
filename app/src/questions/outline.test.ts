@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { filterOutline } from '../../src/content/outline.ts'
-import type { ChapterSummary, QuestionSummary } from '../../src/content/types.ts'
+import { filterOutline } from './outline.ts'
+import type { ChapterSummary, QuestionSummary } from './types.ts'
 
 function question(id: string, title: string): QuestionSummary {
   return {

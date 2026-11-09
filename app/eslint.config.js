@@ -33,7 +33,7 @@ export default defineConfig([
   },
   {
     // node:test registers tests when test() is called; the returned promise needs no handling.
-    files: ['scripts/**/*.test.ts'],
+    files: ['scripts/**/*.test.ts', 'src/**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-floating-promises': 'off',
     },

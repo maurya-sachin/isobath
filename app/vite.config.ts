@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { POSTHOG_PROXY_PATH } from './src/lib/posthogHost.ts'
+import { POSTHOG_PROXY_PATH } from './src/analytics/posthogHost.ts'
 
 const stripProxyPath = (url: string) => url.slice(POSTHOG_PROXY_PATH.length)
 const proxyTo = (target: string) => ({ target, changeOrigin: true, rewrite: stripProxyPath })

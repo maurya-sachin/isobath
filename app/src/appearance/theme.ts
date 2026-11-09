@@ -2,7 +2,7 @@
 // inline script in index.html before first paint; this module keeps it in sync afterwards.
 
 import { useSyncExternalStore } from 'react'
-import { registerDisplaySettings } from './analytics.ts'
+import { registerDisplaySettings } from '../analytics/analytics.ts'
 
 export type Theme = 'light' | 'dark' | 'system'
 

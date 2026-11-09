@@ -1,8 +1,8 @@
 import { Link, useLoaderData } from 'react-router'
 import { PageShell } from '@/components/PageShell'
-import { formatMonth } from '@/content/freshness'
-import { questionPath, type loadChangelog } from '@/content/index-data'
-import type { ChangelogDay } from '@/content/types'
+import { formatMonth } from '@/questions/freshness'
+import { questionPath, type loadChangelog } from '@/questions/index-data'
+import type { ChangelogDay } from '@/questions/types'
 import { REPO_URL } from '@/lib/repo'
 import { SITE_NAME } from '@/lib/site'
 
