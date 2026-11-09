@@ -30,7 +30,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | # | Question | Difficulty | Status |
 |---|---|---|---|
 | 010 | [What does `next build` produce, and what runs where under `next start`?](010-next-build-output.md) | hard | 🟡 draft |
-| 020 | [Why is the Edge Runtime deprecated, and what did it trade away?](020-edge-runtime-deprecation.md) | medium | 🔴 planned |
+| 020 | [Why is the Edge Runtime deprecated, and what did it trade away?](020-edge-runtime-deprecation.md) | medium | 🟡 draft |
 | 030 | [What breaks when you run a Next.js app on several instances?](030-multi-instance-hosting.md) | hard | 🔴 planned |
 | 040 | [What does `output: 'export'` give up?](040-output-export-tradeoffs.md) | medium | 🔴 planned |
 | 050 | [Why does a `NEXT_PUBLIC_` variable keep its old value after the environment changes?](050-next-public-env-inlining.md) | medium | 🔴 planned |
