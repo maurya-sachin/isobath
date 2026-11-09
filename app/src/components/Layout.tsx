@@ -28,6 +28,7 @@ export function Layout() {
       >
         Skip to content
       </a>
+      <ConsentBanner />
       <header
         ref={header}
         className="sticky top-0 z-40 flex print:hidden flex-wrap items-center gap-x-4 gap-y-2 border-b bg-background/85 px-6 py-3 backdrop-blur"
@@ -87,7 +88,6 @@ export function Layout() {
         </Link>
         <CookieSettingsButton />
       </footer>
-      <ConsentBanner />
       <ScrollRestoration />
     </>
   )
