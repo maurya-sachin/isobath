@@ -63,11 +63,14 @@ export function PrivacyPage() {
 
         <h2 className="mt-4 text-xl font-semibold">Change your choice</h2>
         <p>
-          Use <strong>Cookie settings</strong> in the footer at any time. Your progress and flashcard history stay in
-          your browser; only the study actions listed above are counted, anonymously. Comments are loaded from giscus,
-          which is run by GitHub.
+          Use <strong>Cookie settings</strong> in the footer at any time (it is hidden while this device is not counted,
+          see below). Your progress and flashcard history stay in your browser; only the study actions listed above are
+          counted, anonymously. Comments are loaded from giscus, which is run by GitHub.
         </p>
         {analyticsEnabled && <DeviceOptOut />}
+        {analyticsEnabled && (
+          <p className="text-sm text-muted-foreground">Turning counting back on applies from the next page load.</p>
+        )}
 
         <h2 className="mt-4 text-xl font-semibold">The code</h2>
         <p>
