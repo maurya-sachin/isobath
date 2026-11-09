@@ -4,6 +4,7 @@
 import { useSyncExternalStore } from 'react'
 import { getAnalytics, onAnalyticsReady, track } from './analytics.ts'
 import { consentDecline } from './analyticsEvents.ts'
+import { deviceOptedOut, subscribeDeviceOptOut } from './analyticsOptOut.ts'
 
 const listeners = new Set<() => void>()
 let reopened = false
@@ -23,8 +24,10 @@ function subscribe(listener: () => void): () => void {
   if (listeners.size === 0) window.addEventListener('storage', onStorage)
   listeners.add(listener)
   const stopWaiting = onAnalyticsReady(listener)
+  const stopWatchingOptOut = subscribeDeviceOptOut(listener)
   return () => {
     stopWaiting()
+    stopWatchingOptOut()
     listeners.delete(listener)
     if (listeners.size === 0) window.removeEventListener('storage', onStorage)
   }
@@ -37,7 +40,7 @@ function setReopened(next: boolean): void {
 
 function isPromptOpen(): boolean {
   const analytics = getAnalytics()
-  if (!analytics) return false
+  if (!analytics || deviceOptedOut()) return false
   return reopened || analytics.get_explicit_consent_status() === 'pending'
 }
 
