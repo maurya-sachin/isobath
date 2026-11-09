@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 import { AppearanceMenu } from '@/components/AppearanceMenu'
+import { ConsentBanner, CookieSettingsButton } from '@/components/ConsentBanner'
 import { SearchDialog } from '@/components/SearchDialog'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { TopicSwitcher } from '@/components/TopicSwitcher'
@@ -27,6 +28,7 @@ export function Layout() {
       >
         Skip to content
       </a>
+      <ConsentBanner />
       <header
         ref={header}
         className="sticky top-0 z-40 flex print:hidden flex-wrap items-center gap-x-4 gap-y-2 border-b bg-background/85 px-6 py-3 backdrop-blur"
@@ -81,6 +83,10 @@ export function Layout() {
         <a href={REPO_URL} className="text-link hover:text-link-hover">
           GitHub
         </a>
+        <Link to="/privacy" className="text-link hover:text-link-hover">
+          Privacy
+        </Link>
+        <CookieSettingsButton />
       </footer>
       <ScrollRestoration />
     </>

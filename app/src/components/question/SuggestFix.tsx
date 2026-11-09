@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { useConsentPromptOpen } from '@/lib/consentStore'
 import { MAX_QUOTE, toQuote, type Quote } from '@/lib/quote'
 import { suggestFixUrl } from '@/lib/repo'
 
@@ -95,6 +96,8 @@ interface SuggestFixProps {
 /** Keyed by question id where it is used, so a held quote never follows the reader to another question. */
 export function SuggestFix({ questionId, title, pageUrl, children }: SuggestFixProps) {
   const [quote, clear] = useHeldQuote()
+  // The consent prompt owns the bottom edge until the visitor chooses; the panel above still offers the same link.
+  const consentPromptOpen = useConsentPromptOpen()
   const linkRef = useRef<HTMLAnchorElement>(null)
   const href = suggestFixUrl(questionId, title, pageUrl, quote ?? undefined)
   // Focus leaves the bar before it unmounts, without scrolling the reader down to the footer.
@@ -115,7 +118,9 @@ export function SuggestFix({ questionId, title, pageUrl, children }: SuggestFixP
         </a>
         {children}
       </div>
-      {quote && <QuoteBar quote={quote} href={href} onClear={clearAndReturn} onKeyDown={onKeyDown} />}
+      {quote && !consentPromptOpen && (
+        <QuoteBar quote={quote} href={href} onClear={clearAndReturn} onKeyDown={onKeyDown} />
+      )}
       <p role="status" className="sr-only">
         {quote ? `Suggest a fix: ${quote.length} characters selected in ${quote.section}.` : ''}
       </p>

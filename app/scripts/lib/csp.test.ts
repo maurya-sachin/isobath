@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { test } from 'node:test'
+import { POSTHOG_API_HOST, POSTHOG_ASSETS_HOST } from '../../src/lib/posthogHost.ts'
 import { contentSecurityPolicy, inlineScriptHashes, withContentSecurityPolicy } from './csp.ts'
 
 const hashOf = (code: string) => `'sha256-${createHash('sha256').update(code).digest('base64')}'`
@@ -38,4 +39,15 @@ test('puts the policy meta right after the charset, with the hashes of the page 
 
 test('refuses a page it has nowhere to put the policy in', () => {
   assert.throws(() => withContentSecurityPolicy('<head></head>'), /charset/)
+})
+
+test("allows PostHog's EU hosts for requests and its extension scripts, and nothing else new", () => {
+  const policy = contentSecurityPolicy([])
+  const directive = (name: string) => policy.split('; ').find((part) => part.startsWith(name))!
+  const connectSrc = directive('connect-src')
+  assert.ok(
+    connectSrc.includes("'self'") && connectSrc.includes(POSTHOG_API_HOST) && connectSrc.includes(POSTHOG_ASSETS_HOST),
+  )
+  assert.ok(directive('script-src').includes(POSTHOG_ASSETS_HOST) && !directive('script-src').includes('unsafe'))
+  assert.equal(directive('default-src'), "default-src 'self'")
 })
