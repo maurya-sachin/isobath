@@ -2391,3 +2391,288 @@
   front: "How do you add alt text to static and generated metadata images?"
   back: "For a static image, a sibling `opengraph-image.alt.txt`, per the docs. For generated images, `export const alt` became `og:image:alt` and `twitter:image:alt`."
   question: nextjs/optimizations/file-based-metadata-routes
+# 09 Deployment
+- id: nb-build-output-parts
+  front: "What are the main parts of `.next/` after `next build` on Next.js 16.4.5 (Turbopack)?"
+  back: "`static/` (hashed client chunks), `server/` (a bundle per route plus prerendered output), manifests mapping URLs to both, and `cache/` (the builder's own cache, reused by the next build)."
+  question: nextjs/deployment/next-build-output
+- id: nb-static-chunk-header
+  front: "What `Cache-Control` did `next start` send for a `.next/static` chunk on 16.4.5?"
+  back: "`public, max-age=31536000, immutable`. Chunk names carry content hashes, so a long-lived immutable cache is safe."
+  question: nextjs/deployment/next-build-output
+- id: nb-server-app-files
+  front: "Which files does `.next/server/app` hold for a prerendered path?"
+  back: "`index.html`, `index.rsc` (the RSC payload for client navigation), `index.meta` (headers and cache tags) and an `index.segments/` folder for per-segment prefetches. A static route handler becomes `.body` plus `.meta`."
+  question: nextjs/deployment/next-build-output
+- id: nb-route-table-symbols
+  front: "What do `○`, `●` and `ƒ` mean in the `next build` route table, and which have files in `server/app`?"
+  back: "`○` Static and `●` SSG (from `generateStaticParams`) have files in `server/app`. `ƒ` Dynamic has only a server bundle."
+  question: nextjs/deployment/next-build-output
+- id: nb-ppr-symbol
+  front: "What does `◐` mean in the route table, and when does it appear?"
+  back: "Partial Prerender, with `cacheComponents: true`. The static shell is prerendered (`ppr.html`, `ppr.meta`, `ppr.segments/`) and the holes render per request."
+  question: nextjs/deployment/next-build-output
+- id: nb-next-start-what-it-does
+  front: "What does `next start` do that a plain file server can't?"
+  back: "Picks HTML or RSC by request headers, regenerates ISR pages, renders unlisted dynamic params, and runs Server Actions, route handlers, Proxy and the `/_next/image` optimizer."
+  question: nextjs/deployment/next-build-output
+- id: nb-cache-headers-measured
+  front: "On 16.4.5, which `Cache-Control` came with a prerendered `/` and with an ISR page at `revalidate` 1 minute?"
+  back: "Measured: `/` got `s-maxage=31536000` (no `public`); the ISR page got `s-maxage=60, stale-while-revalidate=31535940`. Both were `x-nextjs-cache: HIT`. The self-hosting guide says fully static pages get `public`; 16.4.5 didn't send it."
+  question: nextjs/deployment/next-build-output
+- id: nb-dynamic-and-public-headers
+  front: "On 16.4.5, which `Cache-Control` did a `ƒ` route and `public/robots.txt` get?"
+  back: "Measured: the dynamic route got `private, no-cache, no-store, max-age=0, must-revalidate`. `public/robots.txt` got `public, max-age=0` (with an `ETag`)."
+  question: nextjs/deployment/next-build-output
+- id: nb-unlisted-param-miss-hit
+  front: "What happens to a dynamic param not listed by `generateStaticParams` under `next start`?"
+  back: "The first request renders it (`x-nextjs-cache: MISS`) and writes it to disk. The second is a `HIT`."
+  question: nextjs/deployment/next-build-output
+- id: nb-vary-header
+  front: "What `Vary` list does every cached response carry under `next start` (16.4.5)?"
+  back: "`Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch`. A CDN in front must respect it, along with `Cache-Control`, to cache those groups."
+  question: nextjs/deployment/next-build-output
+- id: nb-route-cache-seed
+  front: "What is the route-cache folder in `.next/server` (new in 16.4), per the 16.4.5 source?"
+  back: "The build's files are an immutable seed. On the first request for a path the file-system cache copies them into `.next/server/route-cache/<kind>/<sha256 of the source route>/$<path>`, serves from there, and writes regenerations there too."
+  question: nextjs/deployment/next-build-output
+- id: nb-edit-server-files-ignored
+  front: "Why was an edited `.next/server/app/.../index.html` never served by `next start`?"
+  back: "It keeps entries in memory (50 MB by default) and, on the first request, copies each build file into its runtime cache folder. Editing the build file afterwards changes nothing."
+  question: nextjs/deployment/next-build-output
+- id: nb-rebuild-wipes-route-cache
+  front: "What happened to `.next/server/route-cache/` after a second `next build`?"
+  back: "Measured on 16.4.5: it was gone, so pages generated at runtime are re-rendered on demand."
+  question: nextjs/deployment/next-build-output
+- id: nb-standalone-contents
+  front: "What does `output: 'standalone'` add, and what does it leave out?"
+  back: "`.next/standalone/` with a `server.js` and only the traced `node_modules` (41 MB here against 328 MB installed). It doesn't copy `public/` or `.next/static/`."
+  question: nextjs/deployment/next-build-output
+- id: nb-standalone-alone-404
+  front: "What happened deploying `.next/standalone` alone, and what fixed it?"
+  back: "Pages rendered, but every chunk and `public/` file was `404`. Copying `public/` and `.next/static/` into the standalone folder (or serving them from a CDN) fixed it."
+  question: nextjs/deployment/next-build-output
+- id: nb-next-start-standalone-error
+  front: "What happens running `next start` with `output: 'standalone'`?"
+  back: "It prints `\"next start\" does not work with \"output: standalone\" configuration. Use \"node .next/standalone/server.js\" instead.`"
+  question: nextjs/deployment/next-build-output
+- id: nb-webpack-differences
+  front: "What differed in the build output with `next build --webpack` on 16.4.5?"
+  back: "The route table and prerendered files were the same. Chunks had webpack names, `server/` gained `webpack-runtime.js`, and `.next/cache` was 70 MB against Turbopack's 24 MB."
+  question: nextjs/deployment/next-build-output
+- id: er-edge-sandbox
+  front: "What is the Edge Runtime, and how did you opt in?"
+  back: "A sandbox with web APIs only (`fetch`, `Request`/`Response`, streams, `crypto.subtle`, `TextEncoder`, an `AsyncLocalStorage` polyfill), designed to start fast close to users. You opted in with `export const runtime = 'edge'`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-deprecated-since
+  front: "Since which Next.js version is `runtime = 'edge'` deprecated, and is a removal version named?"
+  back: "Since v16.3.0 (PR #93369; v16.2.0 doesn't contain it). Neither the PR nor the message page names a removal version."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-deprecation-rationale
+  front: "What reason does the deprecation PR give, and what does the message page tell you to do?"
+  back: "The PR says Edge \"is being deprecated in favor of the Node.js runtime (the default)\" and gives no fuller reason. The message page says to delete the export, since \"no replacement is needed\"."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-new-work-targets-node
+  front: "What do the docs show about new features and the Edge Runtime?"
+  back: "New work targets Node.js: Proxy runs only on Node.js since 16, and Cache Components rejects any `runtime` export."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-node-apis-fail
+  front: "What failed on Edge when using Node APIs (measured on 16.4.5)?"
+  back: "Importing `node:fs` or `node:crypto` failed the build (`Native module not found: node:fs`). `process.version` was `undefined`, and `new Function()` threw `EvalError: Code generation from strings disallowed for this context`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-no-static-generation
+  front: "What does an Edge page lose for caching (measured on 16.4.5)?"
+  back: "The build warned `Using edge runtime on a page currently disables static generation for that page`. A page with `revalidate = 60` was listed `ƒ`, rendered on every request, with no `Cache-Control` header at all."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-still-runs
+  front: "Do edge routes still build and run on 16.4.5, and where does `next start` run them?"
+  back: "Yes, with a deprecation warning. `next start` runs them in a `vm` sandbox inside its own Node process, so `NEXT_RUNTIME` was `edge`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-migrate-delete-line
+  front: "How do you migrate an edge route handler to Node.js?"
+  back: "Delete the `runtime = 'edge'` line. Web APIs such as `crypto.subtle` work the same on Node.js, which adds `node:*` modules and caching."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-proxy-runtime-config
+  front: "What happens moving a `runtime` export into `proxy.js`?"
+  back: "The build fails: `Route segment config is not allowed in Proxy file`. Proxy always runs on Node.js (`NEXT_RUNTIME=nodejs`); a `middleware.js` with the same code logged `edge`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-cache-components-rejects-runtime
+  front: "What happens with an edge route when Cache Components is on?"
+  back: "Each failed the build: `Route segment config \"runtime\" is not compatible with nextConfig.cacheComponents. Please remove it.`"
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-local-not-real-edge
+  front: "Why isn't local `next start` proof that code runs on a real edge platform?"
+  back: "With Turbopack, `require('fs')` in an edge handler built silently and worked in the local sandbox. With `--webpack` the build warned `Can't resolve 'fs'` and the call threw `Cannot find module 'fs'`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-middleware-warning
+  front: "Does `middleware.js` trigger the Edge deprecation warning on 16.4.5?"
+  back: "Not on its own. A build with only `middleware.js` printed `The \"middleware\" file convention is deprecated. Please use \"proxy\" instead.` The 16.0 release post says middleware stays for Edge use cases but will be removed in a future version."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-preferred-region
+  front: "Is `preferredRegion` affected by the Edge deprecation?"
+  back: "Yes. PR #93369 deprecated it in the same change, because it only applied to Edge routes. It has its own message page and build warning."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-why-edge-existed
+  front: "Why did Edge routes exist, and was there a gain self-hosted?"
+  back: "The Next.js 14 docs pitched it for \"dynamic, personalized content at low latency with small, simple functions\", starting faster than Node.js functions on platforms deploying each route separately. Self-hosted there was no gain: the handler ran in a sandbox inside the same Node process."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: mi-per-instance-state
+  front: "Which state does `next start` keep per instance?"
+  back: "ISR pages and revalidation, `use cache` entries (an in-memory LRU per process) and optimized images (`.next/cache/images`). `revalidatePath`/`revalidateTag` mark entries stale only in the process that ran them."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-use-cache-remote
+  front: "What does `use cache: remote` do with several instances before `cacheHandlers.remote` is set?"
+  back: "It is the same in-memory LRU per process, so it isn't shared."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-image-optimizer-per-instance
+  front: "What happened to the same `/_next/image` URL across two instances (16.4.5)?"
+  back: "`MISS` then `HIT` on instance A, then `MISS` again on B. Each wrote its own file in `.next/cache/images`."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-action-ids-differ
+  front: "Why do separately built instances of the same commit fail Server Actions?"
+  back: "Each build generates an AES key and salts action IDs with it. Different keys give different IDs, so an action posted to the other instance got `409` and `Failed to find Server Action ... This request might be from an older or newer deployment.`"
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-rscinfo-14-days
+  front: "Where is the generated encryption key reused from, and for how long?"
+  back: "`.next/cache/.rscinfo`, for 14 days. A rebuild in the same folder reused it so IDs matched; a CI runner without that cache generates a new key."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-build-id-skew
+  front: "What did a client navigation answered by a different build do?"
+  back: "The build ID differs per build, so the navigation turned into a full page reload."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-fix-build-once-or-key
+  front: "How does the self-hosting guide say to make action IDs match across instances?"
+  back: "Build once and run that output everywhere, or set the same `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (base64, 16, 24 or 32 bytes) at every build."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-deployment-id
+  front: "What does setting `deploymentId` per deployment do?"
+  back: "Assets carry `?dpl=` and mismatches reload instead of mixing versions. With it set, the build ID is constant and skew detection moves to the `x-nextjs-deployment-id` response header."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-shared-deployment-id-pitfall
+  front: "What goes wrong sharing one `deploymentId` across different builds?"
+  back: "It silences skew detection. In the test, the navigation rendered B's page inside A's document."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-rolling-deploy-404
+  front: "What broke changing client code during a rolling deploy without routing by deployment?"
+  back: "A's HTML asked B for a chunk with `?dpl=v1` and got `404`; the page never hydrated, so forms fell back to native `POST`s. Next.js doesn't route on `?dpl=`; that's the proxy's or CDN's job."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-shared-cache-handlers
+  front: "What does the guide say to configure for shared caching across instances?"
+  back: "`cacheHandler` (ISR, route handlers, and images with `images.customCacheHandler: true`) and `cacheHandlers` (`use cache`), backed by a shared store with a tag index, plus `cacheMaxMemorySize: 0`. These handlers weren't built here."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-inprocess-handler-pitfall
+  front: "Why is an in-process cache handler (a `Map`) a pitfall?"
+  back: "The guide warns it gives each instance its own cache again."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-revalidate-tag-shared
+  front: "What does a shared handler need for `revalidateTag` to work across instances, per the docs?"
+  back: "A tag index in the shared store for `cacheHandler`. For `cacheHandlers`, a `refreshTags()` that syncs tag state before each request."
+  question: nextjs/deployment/multi-instance-hosting
+- id: oe-export-output
+  front: "What does `output: 'export'` write, and what happens on `next start` (16.4.5)?"
+  back: "A static site in `out/`: one `.html` per path, RSC payloads as `.txt` files, `_next/static/`, `public/` and `404.html`. `next start` refuses: `\"next start\" does not work with \"output: export\" configuration. Use \"npx serve@latest out\" instead.`"
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-what-you-keep
+  front: "What do you keep with `output: 'export'`?"
+  back: "Server Components rendered at build, Client Components, `<Link>` navigation and prefetching, `generateStaticParams` paths, and `GET` route handlers marked `force-static` (they become files such as `data.json`)."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-build-fails
+  front: "Which features failed the build under `output: 'export'` on 16.4.5?"
+  back: "`cookies()` or `headers()`, a route handler without `force-static`, a dynamic segment without `generateStaticParams`, an explicit `dynamicParams = true`, and Server Actions."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-warn-and-drop
+  front: "What happened to config `rewrites`, `redirects`, `headers` and a Proxy file under `output: 'export'` (16.4.5)?"
+  back: "The build warned and dropped them (`Specified \"rewrites\" will not automatically work with \"output: export\".`). The Proxy warning still names `next export` and middleware, and Proxy never runs."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-revalidate-silent
+  front: "What does `revalidate = 60` do under `output: 'export'`?"
+  back: "Measured on 16.4.5: it built as `○ /isr 1m 1y`, but nothing will ever regenerate the file."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-image-default-loader
+  front: "What happens with `next/image` and the default loader under `output: 'export'` (16.4.5)?"
+  back: "It built cleanly and wrote `srcset` URLs to `/_next/image`, which doesn't exist in `out/` (404, `naturalWidth` 0). Set `images.unoptimized: true` or a custom loader."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-image-check-source
+  front: "Why doesn't the default-loader image error fire for an App Router `<Image>` in 16.4.5?"
+  back: "`export/index.ts` throws only if `.next/export-marker.json` says `isNextImageImported: true`. In 16.4.5's `build/index.ts` that flag is collected only for Pages Router pages, so it stayed `false` under Turbopack and `--webpack`."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-dynamic-params-omitted
+  front: "What does `dynamicParams` do under `output: 'export'` when omitted versus `true`?"
+  back: "Omitted builds, and an unlisted path like `/blog/c` is just the host's 404. Only an explicit `true` fails the build (16.4.5)."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-route-handler-force-static
+  front: "Does a `GET` route handler that ignores the request count as static under `output: 'export'`?"
+  back: "No. Without `export const dynamic = 'force-static'` the build failed on 16.4.5."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-client-nav-works
+  front: "Does client navigation work from a plain static file server for an export?"
+  back: "Yes. Served from `out/` by a plain Node file server, Chrome 156 and Firefox 159 navigated from `/` to `/blog/a` without a reload, fetching `__next._tree.txt` and the page's segment `.txt`."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-good-fit
+  front: "What is a static export a fit for?"
+  back: "Docs, marketing sites and SPAs whose dynamic data comes from client-side fetches to some other API. Redirects, headers and auth move to the host or CDN."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-host-file-names
+  front: "What hosting pitfall comes with `out/`, and what does the docs' nginx example use?"
+  back: "A host serving only exact file names: `/blog/a` exists as `blog/a.html`. The docs' nginx example uses `try_files $uri $uri.html $uri/ =404`."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-vs-next-start-static
+  front: "How does an export differ from a fully `○` app under `next start`?"
+  back: "The files are the same kind, but `next start` still serves RSC variants by header, runs actions and the image optimizer, applies config rules and can revalidate. A static host only maps URLs to files."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-cookies-client-only
+  front: "Can a static export read cookies?"
+  back: "Only in the browser, in a Client Component after hydration. Nothing reads the request before the HTML is sent."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: np-compiler-instruction
+  front: "What does `NEXT_PUBLIC_` mean at build time?"
+  back: "An instruction to the compiler: during `next build`, every `process.env.NEXT_PUBLIC_X` is replaced with the build environment's value as a literal. Browsers have no `process.env`, so a literal is the only way the value reaches them."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-client-chunk-literal
+  front: "After building with `NEXT_PUBLIC_X=a` and starting with `NEXT_PUBLIC_X=b`, what does the client chunk contain (16.4.5)?"
+  back: "`dotted:\"a\"` in `.next/static/chunks/*.js`. No rebuild, no change."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-server-bundle-inlined
+  front: "Is a `NEXT_PUBLIC_` reference inlined in server bundles too?"
+  back: "Yes. A dynamic Server Component printed `x: \"a\"` and the built code read `{x:\"a\",secret:process.env.SECRET`."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-nonprefixed-runtime
+  front: "How are non-prefixed variables read on the server under `next start`?"
+  back: "As real lookups: the dynamic page printed `SECRET` as the start-time `s2`, and a `.env` value edited between build and start was read fresh."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-static-pages-freeze
+  front: "What do statically prerendered pages show for env values?"
+  back: "Build values for everything: the prerendered `/` showed `a`, `s1` and the old `.env` value, because it ran once, at build."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-destructuring-not-inlined
+  front: "Which `process.env` forms are not replaced by the `NEXT_PUBLIC_` inlining (16.4.5)?"
+  back: "Only the literal `process.env.NAME` form is replaced. Destructuring and a key held in a prop stayed runtime lookups: `b` in the server render, `undefined` in Chrome 156 and Firefox 159."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-turbopack-const-key
+  front: "Do the docs match Turbopack for `process.env[name]` with a constant key (16.4.5)?"
+  back: "No. The docs say dynamic lookups aren't inlined, but Turbopack turned `process.env[name]` with `const name = 'NEXT_PUBLIC_X'` into `\"a\"`. `--webpack` left it a lookup."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-staging-to-prod-image
+  front: "What happens promoting one image from staging to production with `NEXT_PUBLIC_` values?"
+  back: "It carries staging's public values, since the literals are in the shipped files. A restart or new container env changes nothing; only a rebuild does."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-docs-fix
+  front: "What fix do the docs give for per-environment runtime values?"
+  back: "Read them on the server in a dynamically rendered Server Component (`await connection()` or any request API makes it per request) and pass them to Client Components as props, or serve them from your own endpoint. Otherwise build once per environment."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-server-var-in-client
+  front: "What happens reading a server variable in a Client Component?"
+  back: "The server render printed `\"secret\":\"s2\"` into the HTML, then the browser rendered `undefined`. The value leaked and the markup disagreed."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-static-page-runtime-config
+  front: "What happens reading runtime config in a static page without a request API or `connection()`?"
+  back: "It ran at build and kept build values."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-env-files-at-start
+  front: "Does `next start` read `.env` files, and which source wins?"
+  back: "Yes. A dynamic page saw a `.env` value edited after the build, while the prerendered page kept the old one. Real environment variables win over `.env.production.local`, `.env.local`, `.env.production` and `.env`, in that order."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-not-secret
+  front: "Is a `NEXT_PUBLIC_` value a secret?"
+  back: "Never. It is a plain string in every client chunk that references it; anyone can read it."
+  question: nextjs/deployment/next-public-env-inlining
