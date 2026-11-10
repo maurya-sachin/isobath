@@ -1,0 +1,1839 @@
+# 01 App Router
+- id: segment-reachable-needs-page-or-route
+  front: "What makes an `app/` folder reachable as a URL?"
+  back: "A `page.js` (UI) or `route.js` (a handler) in it. Every folder is a route segment, but anything else colocated there, such as a component file, isn't served."
+  question: nextjs/app-router/app-router-component-tree
+- id: segment-folders-with-no-url-part
+  front: "Which `app/` folder forms add no URL part, and which opts a folder out of routing?"
+  back: "`(group)` and `@slot` folders add no URL part. `_folder` (a private folder) opts a folder out of routing. `[id]` makes a segment dynamic."
+  question: nextjs/app-router/app-router-component-tree
+- id: special-file-order-in-segment
+  front: "In what order, outermost first, does Next.js render the special files inside one segment?"
+  back: "`layout.js`, `template.js`, `error.js`, `loading.js`, `not-found.js`, then `page.js` or the next segment's layout."
+  question: nextjs/app-router/app-router-component-tree
+- id: special-files-react-primitives
+  front: "Which React primitive does each of `error.js`, `loading.js` and `not-found.js` correspond to in the component tree?"
+  back: "`error.js` is a React error boundary, `loading.js` is a `<Suspense>` boundary, and `not-found.js` is a boundary for `notFound()`."
+  question: nextjs/app-router/app-router-component-tree
+- id: child-segment-nesting
+  front: "Where is a child segment's whole stack rendered relative to its parent's files?"
+  back: "Where the parent's `page.js` would be, so it sits inside the parent's layout, template and boundaries."
+  question: nextjs/app-router/app-router-component-tree
+- id: layout-props
+  front: "What props does a layout receive?"
+  back: "The child stack as `children`, plus `params` and, with parallel routes, one prop per slot. It gets no `searchParams`."
+  question: nextjs/app-router/app-router-component-tree
+- id: error-loading-below-own-layout
+  front: "Can a segment's `error.js` or `loading.js` handle a problem in that same segment's `layout.js`?"
+  back: "No. They sit below the layout in the tree. The parent segment's files do that, and the root layout needs `global-error.js`."
+  question: nextjs/app-router/app-router-component-tree
+- id: parent-boundaries-wrap-child-layout
+  front: "Does a parent segment's `loading.js` cover a slow layout in a child segment?"
+  back: "Yes. The parent's boundaries wrap the child segment's layout, so the parent's `loading.js` covers a slow child layout."
+  question: nextjs/app-router/app-router-component-tree
+- id: error-js-must-be-client
+  front: "Which special file must be a Client Component, while layouts and pages default to Server Components?"
+  back: "`error.js`. Layouts and pages are Server Components by default."
+  question: nextjs/app-router/app-router-component-tree
+- id: layout-no-searchparams-why
+  front: "Why does a layout get no `searchParams`?"
+  back: "Layouts persist and don't re-render on navigation within the segment; only the page changes. Read the URL in the page or in a Client Component with `useSearchParams` or `usePathname`."
+  question: nextjs/app-router/app-router-component-tree
+- id: loading-next-to-slow-layout-no-cache-components
+  front: "Without Cache Components, what happens if you add `loading.js` next to a slow layout?"
+  back: "The navigation blocks until the layout finishes and the fallback never shows."
+  question: nextjs/app-router/app-router-component-tree
+- id: layout-cannot-pass-data-to-page
+  front: "Can a layout pass data to its page, and how do you avoid fetching twice?"
+  back: "No. Fetch in both and deduplicate with React `cache` or Next's `fetch` dedup."
+  question: nextjs/app-router/app-router-component-tree
+- id: root-layout-and-global-error
+  front: "What must the root layout render, and what sits above it?"
+  back: "`<html>` and `<body>`. Only `global-error.js` sits above it, replacing it when the root layout itself throws."
+  question: nextjs/app-router/app-router-component-tree
+- id: not-found-inside-suspense-why
+  front: "Why is the not-found boundary inside the Suspense boundary?"
+  back: "So `notFound()` thrown while the page streams still renders that segment's `not-found.js` inside the layout, under the same loading fallback."
+  question: nextjs/app-router/app-router-component-tree
+- id: colocated-files-404-observed
+  front: "In a scratch app on Next.js 16.4.5 (`next build && next start`), what did the route table and requests show for a colocated `Button.jsx` and a `_c/` folder?"
+  back: "The route table listed only folders with a `page.jsx`. The colocated `Button.jsx` and `_c/` were absent and answered `404`."
+  question: nextjs/app-router/app-router-component-tree
+
+- id: layout-keeps-state-why
+  front: "Why does a layout's Client Component keep its state on a `<Link>` navigation?"
+  back: "Next.js keeps the layouts shared by old and new routes and renders only segments below. The elements stay at the same position with the same types, so React keeps state. That is ordinary reconciliation, not a Next.js cache."
+  question: nextjs/app-router/layout-state-and-template
+- id: link-navigation-renders-below-shared-layout
+  front: "On a `<Link>` navigation, which part of the tree does Next.js render?"
+  back: "Only the segments below the deepest layout shared by the old and new routes. The document is not reloaded."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-key-remount
+  front: "What does `template.js` receive that a layout doesn't, and what does it cause?"
+  back: "A key for its own segment. When that segment's value changes (`/blog/a` to `/blog/b`), React remounts it: Client Component state resets, the DOM is recreated and effects re-run."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-no-remount-deeper-or-search
+  front: "Which navigations do not remount a template?"
+  back: "Deeper navigations don't remount a higher template, and search-param-only changes remount nothing."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-use-cases
+  front: "When do you reach for a template instead of a layout?"
+  back: "When something should start fresh per page while living above it: an enter animation, an effect that must re-run for each page, or form state to clear. Often a `key` on one component is enough."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-vs-layout-key-at-follow-up
+  front: "Why not put `key={pathname}` on a layout's children?"
+  back: "A layout can't read the pathname on the server, so you'd need a Client Component wrapper. A template already is a keyed wrapper at the right level."
+  question: nextjs/app-router/layout-state-and-template
+- id: template-observed-reset-result
+  front: "In the Next.js 16.4.5 test (Chrome 156, Firefox 159, `next start`, Cache Components off), what did the layout and template read after a `<Link>` from `/t/a` to `/t/b`?"
+  back: "The layout still read `layout: 2` with its typed text. The template read `template: 0` with an empty input, and the console showed `template unmounted`, `template mounted`."
+  question: nextjs/app-router/layout-state-and-template
+- id: search-param-link-no-template-remount
+  front: "In Next.js 16.4.5 (Chrome 156, Firefox 159), does following `<Link href=\"/t/a?q=1\">` from `/t/a` remount the template?"
+  back: "No. The button still read `template: 1` and nothing was logged. Templates key on the segment and its dynamic params, and a search-param-only change keeps the same key."
+  question: nextjs/app-router/layout-state-and-template
+- id: layout-resets-on-other-top-level-route
+  front: "With Cache Components off in Next.js 16.4.5, what happened going from `/t/a` to `/other` and back?"
+  back: "It logged `layout unmounted` and `template unmounted`, and coming back showed both at `0`. A layout keeps state only while shared by both routes."
+  question: nextjs/app-router/layout-state-and-template
+- id: cache-components-activity-hides-route
+  front: "With `cacheComponents: true`, how does Next.js treat the route you leave, and how many does it keep?"
+  back: "It hides the route with React `<Activity>` instead of unmounting it, and keeps up to three (Next.js 16.4)."
+  question: nextjs/app-router/layout-state-and-template
+- id: cache-components-template-restores
+  front: "With Cache Components on, does a template reset when you return to a recently visited segment?"
+  back: "No. The hidden instance is shown again, state included: the test restored `template: 2` and the typed text. The template still resets on a first visit."
+  question: nextjs/app-router/layout-state-and-template
+- id: cache-components-back-observed
+  front: "With Cache Components on in Next.js 16.4.5, what did going to `/other` and pressing Back show, and what happened to effects?"
+  back: "`layout: 2` and `template: 3`, the values left behind. Effects still logged `unmounted` and `mounted`, because Activity cleans up effects when hiding. The left route stayed in the DOM with `display: none`."
+  question: nextjs/app-router/layout-state-and-template
+- id: bfcacheid-reset-key
+  front: "With Cache Components, what do the docs recommend keying on to reset on every fresh push while keeping Back/Forward restoration?"
+  back: "`useRouter().bfcacheId`."
+  question: nextjs/app-router/layout-state-and-template
+- id: usepathname-no-template-needed
+  front: "Do you need a template just to read the new pathname?"
+  back: "No. A Client Component calling `usePathname` already re-renders on navigation without losing state."
+  question: nextjs/app-router/layout-state-and-template
+
+- id: loading-js-is-suspense-fallback
+  front: "What does Next.js turn `loading.js` into?"
+  back: "A `<Suspense>` boundary whose fallback is the file, placed below the segment's layout and wrapping the page and child segments."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: loading-js-prefetched-instant
+  front: "Why does a `<Link>` click show the `loading.js` fallback at once?"
+  back: "The fallback is part of the prefetched route, so it shows while the page renders on the server and streams in. On a first load it's in the initial HTML."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: loading-js-cannot-cover-own-layout
+  front: "Observed in Next.js 16.4.5, what happened to a `<Link>` navigation when a layout awaited uncached data and `loading.js` sat in the same folder?"
+  back: "Navigation was blocked for 1-2 seconds with the old page still showing, and the same-folder fallback never appeared. The parent's `loading.js` can cover it."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: error-js-catches-server-component-errors
+  front: "Does `error.js` catch Server Component errors?"
+  back: "Yes. It catches errors from rendering the page and child segments, including Server Component errors, which Next.js forwards to the client."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: error-production-message-digest
+  front: "In production, what do `error.message` and `error.digest` hold for a Server Component error?"
+  back: "`error.message` is React's generic error #441. `error.digest` matches the server log, so log and match on `digest`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: retry-vs-reset
+  front: "What is the difference between `retry()` and `reset()` in `error.js`?"
+  back: "`retry()` (stable since 16.3) refetches the segment from the server and re-renders it. `reset()` only clears the boundary's state and re-renders with what the client already has."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: error-js-not-own-layout
+  front: "Which `error.js` catches an error thrown by a segment's own `layout.jsx`?"
+  back: "The parent's. In the test, an error in `app/err/layout-throw/layout.jsx` rendered `app/err/error.jsx`, not the sibling file. `global-error.js` covers the root layout."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: not-found-triggers
+  front: "When does `not-found.js` render, and what meta tag does Next.js add?"
+  back: "When `notFound()` is thrown in the segment or below, and for unmatched URLs at the root. Next.js adds `<meta name=\"robots\" content=\"noindex\">`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-404-before-streaming
+  front: "When does `notFound()` yield a real `404` status?"
+  back: "Before anything has streamed. Once a `loading.js` or `<Suspense>` fallback has been sent, the headers are gone and the response stays `200` with `noindex`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-cache-components-200
+  front: "With Cache Components, what status does a request-time `notFound()` give, and how do you get a real `404`?"
+  back: "`200`, because the prerendered shell is sent first. Check before streaming starts, for example in `proxy.ts`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-soft-404-risk
+  front: "What is the SEO risk of relying on `notFound()` in a streamed page?"
+  back: "The response is `200` with `noindex`, so crawlers may count it as a soft 404."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: notfound-observed-timing
+  front: "In Next.js 16.4.5 under `next start`, Cache Components off, what status did `/products/nope` answer when `loading.jsx` existed, and without it for `/nf/x`?"
+  back: "`200` with `loading.jsx`, the `noindex` tag streaming in at 0.56 s. Without `loading.jsx`, the same shape at `/nf/x` answered `404`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: not-found-sent-with-every-route
+  front: "Why should the root `not-found.js` stay light?"
+  back: "The docs say each `not-found.js` is sent with every route under its segment. The not-found text was in the `/products/mug` response too."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+- id: boundaries-not-event-handlers
+  front: "Do `error.js` and the other boundaries catch errors in event handlers?"
+  back: "No. Like any React error boundary they catch rendering errors. Errors in event handlers or after an `await` in a callback need your own `try`/`catch`."
+  question: nextjs/app-router/loading-error-not-found-boundaries
+
+- id: slot-definition
+  front: "What is a parallel-route slot and how does the layout receive it?"
+  back: "An `@folder` is a slot, passed to the parent layout as a prop with that name. `children` is an implicit slot (`app/page.js` is `app/@children/page.js`)."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-not-a-segment
+  front: "Does an `@slot` folder add a URL segment?"
+  back: "No. `app/dash/@team/settings/page.js` serves `/dash/settings`."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-own-loading-error
+  front: "What can each slot have of its own so a panel streams or fails independently?"
+  back: "Its own `loading.js` and `error.js`."
+  question: nextjs/app-router/parallel-routes-default
+- id: soft-navigation-slot-keeps-page
+  front: "On soft navigation (`<Link>`, `router.push`), what does an unmatched slot show?"
+  back: "Its last active page. Going from `/dash` to `/dash/settings` swaps only `@team`; the other slots keep their `/dash` pages even though the URL no longer matches."
+  question: nextjs/app-router/parallel-routes-default
+- id: hard-navigation-default-js
+  front: "On hard navigation (reload, pasted URL), what does an unmatched slot render?"
+  back: "Its `default.js`, because the memory of the slot's active page is gone."
+  question: nextjs/app-router/parallel-routes-default
+- id: default-js-options
+  front: "What can a slot's `default.js` return or do?"
+  back: "Return `null` (a closed modal slot), call `notFound()`, or render a real fallback. It receives `params`."
+  question: nextjs/app-router/parallel-routes-default
+- id: strict-route-matching-16-4
+  front: "In Next.js 16.4.5, what does strict route matching (on by default since 16.4.0) do about missing defaults?"
+  back: "A missing `default.js` for any slot, `children` included, fails `next build`."
+  question: nextjs/app-router/parallel-routes-default
+- id: loose-route-matching-flag
+  front: "Before strict route matching, what did a missing named-slot default cause, and how do you restore it?"
+  back: "A `404` at request time, which some docs pages still describe. `deprecated.looseRouteMatching: true` restores it."
+  question: nextjs/app-router/parallel-routes-default
+- id: slots-share-rendering-mode
+  front: "If one parallel-route slot is dynamic, what about the others?"
+  back: "Slots are combined into one page for the segment, so they share its rendering mode: all of them are dynamic."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-role-hiding-still-renders
+  front: "If a layout picks a slot by role, does the hidden slot still run?"
+  back: "Yes. Both slots render and fetch on the server; the condition only picks the output. Authorize inside each slot."
+  question: nextjs/app-router/parallel-routes-default
+- id: build-error-missing-children-default
+  front: "What did the Next.js 16.4.5 build print without `app/dash/default.jsx`?"
+  back: "`/dash/settings is missing a matching page or default.tsx in children`."
+  question: nextjs/app-router/parallel-routes-default
+- id: build-output-no-defaults
+  front: "What did the 16.4.5 build print with no defaults at all?"
+  back: "`Parallel route slots cannot render the same URLs` naming `@analytics, children`, plus `Unmatched app pages` for `@team/settings/page.jsx`, and a warning that strict route matching is on by default."
+  question: nextjs/app-router/parallel-routes-default
+- id: use-selected-layout-segment-slot
+  front: "How do you read which page a slot is showing, and what is the argument?"
+  back: "In a Client Component, `useSelectedLayoutSegment('analytics')`. The argument is the slot name, without `@`."
+  question: nextjs/app-router/parallel-routes-default
+- id: slot-default-needed-modal-no-page
+  front: "In 16.4.5, when does a slot need a `default.js` even if it has no sub-route?"
+  back: "Whenever any sibling matches a URL the slot doesn't. A modal slot with no page for `/feed` failed the build until `default.jsx` returning `null` was added."
+  question: nextjs/app-router/parallel-routes-default
+
+- id: modal-two-conventions
+  front: "Which two conventions combine to give a modal its own URL?"
+  back: "A parallel route slot (`@modal`, whose `default.js` returns `null`) and an intercepting route inside it, named with a marker plus the target path, such as `(..)photo/[id]`."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-client-nav-only
+  front: "When does an intercepting route apply?"
+  back: "On a client-side navigation from under the layout holding the slot to the target path. The feed stays mounted with its state and the intercepted page renders in the slot."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-refresh-canonical
+  front: "What renders on a refresh or pasted URL of an intercepted route?"
+  back: "Nothing is intercepted, since it is a hard navigation. The canonical `app/photo/[id]/page.js` renders as a full page."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-back-forward
+  front: "What do Back and Forward do for an intercepted modal?"
+  back: "Back pops to `/feed` and the modal disappears; Forward brings it back."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-markers
+  front: "What do the interception markers `(.)`, `(..)`, `(..)(..)` and `(...)` mean?"
+  back: "`(.)` same level, `(..)` one level up, `(..)(..)` two up, `(...)` from the `app` root. They count route segments, not folders."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: markers-slots-groups-not-segments
+  front: "Why does `app/feed/@modal/(..)photo` reach `/photo` with `(..)`?"
+  back: "Slots and route groups aren't segments. The intercepting folder is two folders below `feed/` but only one segment."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-canonical-build-16-4
+  front: "What does `next build` do since Next.js 16.4.0 with an intercepting route that has no matching canonical route?"
+  back: "It rejects the build, which catches a wrong marker."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-wrong-marker-error
+  front: "What did `app/feed/@modal/(.)photo` print on the 16.4.5 build?"
+  back: "`Interception routes must have a canonical route`, `/feed/(.)photo/[id] (expected /feed/photo/[id])`."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-only-within-layout
+  front: "Does a link to `/photo/1` from `/other` open the modal?"
+  back: "No. Interception happens only where the layout holding the slot is rendered. It loaded the full photo page, client-side. The docs' login modal puts its slot in the root layout so it opens from any page."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-close-with-link-fails
+  front: "Why did a `<Link>` to `/feed` inside the intercepted dialog change the URL but not close it, and what closes it?"
+  back: "The slot kept its last page. Use `router.back()`, or give the slot a `page.js` or catch-all that returns `null`."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: interception-triple-up-marker-error
+  front: "What did `(..)(..)photo` do in `app/feed/@modal`, and what worked instead on 16.4.5?"
+  back: "The build failed: `Cannot use (..)(..) marker at the root level or one level up.` `(...)photo` built and intercepted correctly."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-vs-usestate
+  front: "Why not build the modal with `useState` instead?"
+  back: "It has no URL: it can't be shared, refresh closes it, and Back leaves the page instead of closing the modal."
+  question: nextjs/app-router/intercepting-routes-modal
+- id: modal-observed-behaviour
+  front: "Next.js 16.4.5, `next start`, Chrome 156 and Firefox 159: what happened on clicking the photo link from `/feed` with a counter at 1, then reloading?"
+  back: "URL `/photo/1`, the dialog shown, the feed still reading 1. Reload showed the full page with no feed."
+  question: nextjs/app-router/intercepting-routes-modal
+
+- id: route-group-no-url
+  front: "Does a `(group)` folder change the URL or `params`?"
+  back: "No. `app/(shop)/cart/page.js` serves `/cart`. The group name is dropped from the path and never appears in `params`; only layout nesting changes."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: route-groups-same-path-error
+  front: "What happens if two route groups resolve to the same path, such as `(marketing)/about` and `(shop)/about`?"
+  back: "The build fails. The 16.4.5 build stopped with `You cannot have two parallel pages that resolve to the same path.`"
+  question: nextjs/app-router/route-groups-root-layouts
+- id: group-layout-scope
+  front: "How far does a layout inside a route group (under a shared root layout) persist?"
+  back: "It wraps only the group's routes. Moving between two routes in the group keeps it mounted with its state; moving out unmounts it. The navigation is still client-side."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: multiple-root-layouts-how
+  front: "How do you create multiple root layouts?"
+  back: "Delete `app/layout.js` and give each route group its own layout with `<html>` and `<body>`."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: cross-root-layout-full-load
+  front: "What happens on a `<Link>` between routes under different root layouts, and why?"
+  back: "A full page load: a new document request, with JavaScript state and client caches gone. A root layout owns the document, so the router can't swap one for another in the same React tree."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: same-root-layout-soft
+  front: "Is navigation within one root layout soft or a full load?"
+  back: "Soft (client-side)."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: multiple-roots-when
+  front: "When are multiple root layouts justified, and what is the cost?"
+  back: "When sections differ at the document level: separate fonts, global CSS, `<html lang>`, or an admin app sharing nothing with marketing. The cost is a full reload whenever users cross between them."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: no-root-layout-home-in-group
+  front: "Without `app/layout.js`, where must the home page live, and what is missing?"
+  back: "In a group, such as `app/(shop)/page.js`. There is no single layout for a global 404; the experimental `global-not-found.js` covers that."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: global-not-found-experimental
+  front: "What is the status of `global-not-found.js` in Next.js 16.4?"
+  back: "Experimental, behind the `globalNotFound` flag."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: dynamic-segment-root-layout
+  front: "Is a root layout under a dynamic segment such as `app/[lang]/layout.js` several root layouts?"
+  back: "No, it is still one root layout. Switching `/en` to `/fr` stayed client-side in testing."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: root-layout-shared-header-remounts
+  front: "Does a shared header persist across different root layouts?"
+  back: "No. Each root renders its own copy, and crossing remounts it from scratch."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: detect-full-load
+  front: "How can you tell a navigation was a full load?"
+  back: "The Network panel shows a document request instead of an RSC fetch, and anything stored on `window` or in React state is gone."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: multiple-roots-observed
+  front: "Next.js 16.4.5 under `next start`, Chrome 156 and Firefox 159: which navigations kept a marker set on `window`?"
+  back: "`/cart` to `/account` (same root) kept it with no document request. `/account` to `/blog` and `/blog` to `/cart` each made a document request and lost it."
+  question: nextjs/app-router/route-groups-root-layouts
+- id: unknown-url-two-roots
+  front: "What did an unknown URL return with two root layouts and no `not-found.js`?"
+  back: "`/nope` answered `404` with Next.js's built-in \"This page could not be found.\" page."
+  question: nextjs/app-router/route-groups-root-layouts
+# 02 Rendering
+- id: sdd-decider-is-what-render-touches
+  front: "What decides whether `next build` prerenders a route or leaves it for request time?"
+  back: "What the render touches, not the file. Next.js prerenders every route unless rendering needs the request. The answer differs by rendering model: `cacheComponents` off (the framework default in 16.4.5) or on."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-granularity
+  front: "In Next.js 16.4.5 without Cache Components, at what level is the static or dynamic decision made?"
+  back: "Per route, all-or-nothing. One request-time API anywhere in the route's tree, layouts included, makes the whole route render per request (ƒ)."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-dynamic-triggers
+  front: "Without Cache Components, what makes a route render per request (ƒ)?"
+  back: "A request-time API (`cookies()`, `headers()`, `draftMode()`, `connection()`, awaited `searchParams`), a `fetch` with `cache: 'no-store'` or `revalidate: 0`, `dynamic = 'force-dynamic'`, or a dynamic segment with no `generateStaticParams`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-date-now-frozen
+  front: "Without Cache Components in 16.4.5, what happens to `Date.now()` and `Math.random()` in a page?"
+  back: "They run once during the build and their values are frozen into the HTML. They don't make the route dynamic: `/now` served the same build-time timestamp on every request."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-off-fetch-position
+  front: "Without Cache Components, when does a `fetch` with no options make a route dynamic?"
+  back: "Only if it runs after a request-time API. Reached before one, it runs once at build (the docs' `fetchCache: 'auto'` rule). With Cache Components it is uncached data and must be in `<Suspense>` or `use cache`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-root-layout-cookies
+  front: "What happens to every route when the root layout calls `cookies()` with Cache Components off?"
+  back: "Every route below it becomes ƒ, because a dynamic layout makes all its child routes dynamic. The CDN then gets `private, no-store`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-on-three-kinds
+  front: "With `cacheComponents: true`, which three kinds of work count as not known at build time?"
+  back: "Request data (`cookies()`, `headers()`, `searchParams`, unlisted `params`, `connection()`), uncached I/O (`fetch` outside `use cache`), and unstable values (`Date.now()`, `Math.random()`, `crypto.randomUUID()`)."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-on-handle-it
+  front: "With Cache Components on, where must each request-time or uncached read sit, and what happens to one that sits nowhere?"
+  back: "Inside `<Suspense>` (fallback joins the static shell, content streams per request) or inside `use cache` (result joins the shell). A read with neither fails the build."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-instant-false
+  front: "How do you accept a blocking route (ƒ) when Cache Components is on?"
+  back: "`export const instant = false`. It is the third fix, after `<Suspense>` and `use cache`, offered in the build error."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-route-table-symbols
+  front: "Which route table symbols does `next build` 16.4.5 print with Cache Components off, and with it on?"
+  back: "Off: ○ static, ● SSG (uses `generateStaticParams`), ƒ dynamic. On, the legend shows only ○ static, ◐ Partial Prerender and ƒ dynamic."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-gsp-marker-cc-on
+  front: "How did the 16.4.5 route table list `generateStaticParams` output with Cache Components on?"
+  back: "Listed paths (`/blog/a`, `/blog/b`) showed as ○, not ●. A `◐ /blog/[slug]` row was the shell used by unlisted slugs."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cache-control-tells
+  front: "In 16.4.5, which response headers showed a static, a dynamic, and a partial result?"
+  back: "Static: `Cache-Control: s-maxage=31536000` and `x-nextjs-cache: HIT`. Dynamic: `private, no-cache, no-store, max-age=0, must-revalidate`. Partial ones add `x-nextjs-postponed: 1`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-suspense-without-cc
+  front: "Does wrapping `cookies()` in `<Suspense>` keep a route static with Cache Components off?"
+  back: "No. In 16.4.5 the route stayed ƒ. Only Cache Components turns the boundary into a static/dynamic split."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-segment-config-rejected
+  front: "What does the 16.4.5 build do with `dynamic`, `revalidate` or `dynamicParams` exports when Cache Components is on?"
+  back: "It rejects each: `Route segment config \"dynamic\" is not compatible with nextConfig.cacheComponents. Please remove it.`"
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-edge-suspense-not-marker
+  front: "Does a `<Suspense>` boundary by itself make work dynamic?"
+  back: "No. The docs say a boundary around purely synchronous work still completes during prerendering. What is inside it decides."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-edge-sync-db-driver
+  front: "When do synchronous database drivers such as `better-sqlite3` or `node:sqlite` run, and how do you make them per request?"
+  back: "Their queries complete at build time in both models. Call `connection()` first if the data must be per request."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: sdd-cc-future-default
+  front: "What do the docs say will happen to Cache Components in the next major release?"
+  back: "It will be enabled everywhere, with the option removed. `create-next-app` 16.4 already enables `cacheComponents` and `partialPrefetching`."
+  question: nextjs/rendering/static-or-dynamic-decision
+- id: ara-why-promises
+  front: "Why did Next.js 15 make `cookies()`, `headers()`, `params` and `searchParams` async?"
+  back: "So it can prepare as much as possible before a request arrives. The promise makes explicit when a component waits for the request; synchronous access forced the request to exist before the render started."
+  question: nextjs/rendering/async-request-apis
+- id: ara-which-apis
+  front: "Which APIs became promises in Next.js 15?"
+  back: "`cookies()`, `headers()`, `draftMode()`, `params` (layouts, pages, route handlers, `default.js`, image metadata files) and `searchParams` (pages)."
+  question: nextjs/rendering/async-request-apis
+- id: ara-sync-removed-16
+  front: "What happened to synchronous access to request APIs in Next.js 14, 15 and 16?"
+  back: "Up to 14 they were synchronous. 15 kept synchronous access with warnings. 16.0 removed it."
+  question: nextjs/rendering/async-request-apis
+- id: ara-pass-down-unawaited
+  front: "What does the promise let a layout or page do that a plain object didn't?"
+  back: "Pass `params` or `searchParams` down without awaiting it. Only the child that awaits waits for the request."
+  question: nextjs/rendering/async-request-apis
+- id: ara-cc-on-shell
+  front: "With Cache Components, what is prerendered when a page awaits `searchParams` inside a `<Suspense>` boundary?"
+  back: "Everything outside that boundary goes into the static shell. Only the awaiting subtree streams per request."
+  question: nextjs/rendering/async-request-apis
+- id: ara-cc-off-await-dynamic
+  front: "Without Cache Components, what makes a route dynamic with respect to `searchParams`?"
+  back: "The `await`. In 16.4.5 a page that received `searchParams` but never awaited it stayed static (○)."
+  question: nextjs/rendering/async-request-apis
+- id: ara-client-use
+  front: "How does a Client Component page read `params`, versus a Server Component?"
+  back: "A Server Component uses `await`. A Client Component page reads the same promises with React's `use(params)`."
+  question: nextjs/rendering/async-request-apis
+- id: ara-sync-failure-modes
+  front: "What did synchronous reads do at request time in Next.js 16.4.5?"
+  back: "`cookies().get('theme')` failed with `TypeError: … .get is not a function` (a 500). `params.slug` and `searchParams.q` were silently `undefined`, and the page reading `searchParams.q` was even prerendered as static."
+  question: nextjs/rendering/async-request-apis
+- id: ara-ts-error
+  front: "Which TypeScript error flags synchronous `searchParams.q` access?"
+  back: "`Property 'q' does not exist on type 'Promise<…>'` (TS2339)."
+  question: nextjs/rendering/async-request-apis
+- id: ara-stale-reference-pages
+  front: "Which docs still describe synchronous access as working in Next.js 15, and who is right about 16?"
+  back: "The reference pages for `cookies`, `headers` and `page`. The version 16 upgrade guide and the 16.4.5 runtime agree synchronous access is gone."
+  question: nextjs/rendering/async-request-apis
+- id: ara-await-params-top-layout
+  front: "Why is awaiting `params` at the top of a layout a pitfall?"
+  back: "Everything under it then waits for the request. Pass the promise down and await it inside `<Suspense>`."
+  question: nextjs/rendering/async-request-apis
+- id: ara-gsp-params-sync
+  front: "Why is the `params` argument of `generateStaticParams` still synchronous?"
+  back: "It runs during the build, not for a request. It only receives parent segments' params that a parent `generateStaticParams` already produced."
+  question: nextjs/rendering/async-request-apis
+- id: ara-codemod-typegen
+  front: "Which commands help migrate to async request APIs?"
+  back: "`npx @next/codemod@canary next-async-request-api .` (from the 15 release), and `npx next typegen`, which generates global `PageProps` and `LayoutProps` helpers whose `params` and `searchParams` are promises."
+  question: nextjs/rendering/async-request-apis
+- id: ara-await-params-listed
+  front: "Does awaiting `params` always make a route dynamic?"
+  back: "No. A value listed by `generateStaticParams` is known at build time, so awaiting it still prerenders (`/shop/shoes` built as ◐ with Cache Components). Only unlisted values are request data."
+  question: nextjs/rendering/async-request-apis
+- id: ara-no-cc-gsp-ignored
+  front: "In the example page with Cache Components off, what did 16.4.5 build `/shop/[slug]` as?"
+  back: "`ƒ /shop/[slug]`, and `generateStaticParams` produced nothing. With Cache Components on, `/shop/shoes` built as ◐."
+  question: nextjs/rendering/async-request-apis
+- id: pps-what-is-ppr
+  front: "What does Partial Prerendering split a route into, and how is it enabled in Next.js 16?"
+  back: "A part rendered at build time and a part rendered per request. In 16 it is what `cacheComponents: true` does; there is no separate flag."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-legacy-flag
+  front: "What was the PPR flag before Next.js 16?"
+  back: "`experimental.ppr` in Next.js 15 canaries. 16.0 removed it in favour of `cacheComponents`."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-postpone
+  front: "How does the build handle a subtree that needs the request or uncached data?"
+  back: "React renders the nearest `<Suspense>` fallback instead and postpones that boundary, saving where it stopped."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-shell-contents
+  front: "What does the static shell contain?"
+  back: "Layouts and static markup, results of `use cache` functions and components (unless their lifetime is short), content for `params` values listed by `generateStaticParams`, and the fallbacks of postponed boundaries."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-not-in-shell
+  front: "What is not in the static shell and must sit inside `<Suspense>`?"
+  back: "Anything reading `cookies()`, `headers()`, `searchParams`, unlisted `params` or `connection()`, uncached I/O, or `Date.now()`/`Math.random()` outside a cache. Otherwise the build fails."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-request-flow
+  front: "What happens on a request to a partial route?"
+  back: "The server sends the stored shell immediately, resumes the postponed boundaries with the real request, and streams each result as hidden HTML plus a script that swaps it in for its fallback. It is one HTTP response (`x-nextjs-postponed: 1`)."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-vs-streaming
+  front: "How does PPR differ from plain streaming server rendering?"
+  back: "Streaming alone still renders the static parts on every request. PPR rendered them once at build."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-shell-rsc-payload
+  front: "What else does the shell exist as, and what is it used for?"
+  back: "An RSC payload, used for client navigations and prefetches."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-suspense-not-dynamic
+  front: "Does `<Suspense>` mean \"dynamic\" in PPR?"
+  back: "No. A boundary around work that completes at build time is just prerendered. Only request-time or uncached work inside it is postponed."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-cachelife-seconds-outside
+  front: "What happened in 16.4.5 to `cacheLife('seconds')` outside `<Suspense>`, and inside one?"
+  back: "Outside, it failed the build with the \"uncached or runtime data\" error, because `seconds` is excluded from prerenders. Inside a boundary it became a hole."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-cachelife-thresholds
+  front: "Which `cacheLife` values are excluded from prerenders, and which are left out of the App Shell?"
+  back: "`revalidate: 0`, `expire` under 5 minutes, or `stale` under 30 seconds are excluded (a dynamic hole). `stale` between 30 seconds and 5 minutes is prerendered but left out of the App Shell used for prefetching. Of the presets, only `seconds` is affected."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-await-params-top
+  front: "What is the shell for an unlisted param when the page awaits `params` at its top?"
+  back: "Empty. In 16.4.5 the `[slug].html` fallback shell was 0 bytes. Await `params` inside `<Suspense>` instead."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-app-shell-unknown-params
+  front: "What does Next.js prerender for a dynamic segment besides listed params?"
+  back: "A URL-independent App Shell (`◐ /blog/[slug]` in the route table) whose param-dependent parts are fallbacks."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-build-artifacts
+  front: "What does the build store per partial route?"
+  back: "The shell HTML (`ppr.html`), its RSC segments for navigation, and a `.meta` file whose `postponed` field holds React's serialized resume state."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-response-cache-control
+  front: "Why was a PPR response `private, no-cache, no-store, max-age=0, must-revalidate` under `next start`?"
+  back: "The full response contains per-user content. So a generic CDN in front cannot cache the shell; edge serving relies on a platform that stores the shell and resumes the render separately."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-swap-protocol
+  front: "Which markers does the streamed swap use, and whose protocol is it?"
+  back: "A `B:0` template marks the hole, `S:0` carries its content, and a `$RC(\"B:0\",\"S:0\")` call swaps them. It is React's streaming protocol, not something Next.js adds."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-browsers-paint-shell
+  front: "When did headless Chrome 156 and Firefox 159 see the fallback and the real content in the PPR example?"
+  back: "The fallback `Loading cart…` at 27 ms (Chrome) and 16 ms (Firefox); `cart empty` at 2301 ms in both."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-bots-skip-shell
+  front: "Which crawlers get no shell in Next.js 16.4.5, and what is the risk?"
+  back: "HTML-limited bots matched by user agent (`Twitterbot`, `facebookexternalhit`, `Slackbot`, `Bingbot` and others; not `Googlebot`, which got the shell). Data the shell needs at build time must also be reachable at request time, or the page fails only for crawlers."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-shell-data-age
+  front: "How old is the shell's data?"
+  back: "As old as the build until revalidated: `prices v7` stayed in the shell while the API's counter moved on."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: pps-proxy-buffering
+  front: "Why can a buffering proxy break PPR streaming, and what do the docs suggest?"
+  back: "Nginx and some CDNs collect the whole response, so the shell arrives together with the holes. The docs suggest `X-Accel-Buffering: no`."
+  question: nextjs/rendering/partial-prerendering-shell
+- id: gsp-what-it-does
+  front: "When does `generateStaticParams` run, and what does each listed value become?"
+  back: "Once during the build, before the page renders; it is not called again on revalidation. Each listed value becomes a prerendered page (● in the route table). Without the function the route renders per request (ƒ)."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-dp-true
+  front: "With Cache Components off, what does `dynamicParams = true` (the default) do for an unlisted value?"
+  back: "The first request renders the page, the response is cached, and later requests get the cached copy. That is on-demand ISR, the App Router's version of `getStaticPaths` with `fallback: 'blocking'`."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-dp-false
+  front: "With Cache Components off, what does `dynamicParams = false` do for an unlisted value?"
+  back: "Returns 404 immediately without running the page. In 16.4.5, `/products/2` returned 404 in 7 ms without calling `getProduct`."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-empty-array-cc-off
+  front: "What does returning `[]` from `generateStaticParams` do with Cache Components off?"
+  back: "It prerenders nothing at build time but keeps the route ●, so every path is generated on its first visit."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-dynamicparams-rejected
+  front: "What happens to `dynamicParams` and to an empty `generateStaticParams` array with `cacheComponents: true`?"
+  back: "Both fail the build. `dynamicParams` is \"not compatible with `nextConfig.cacheComponents`\"; an empty array fails because Next.js needs at least one real value to check the route for request-time access."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-unlisted
+  front: "How is an unlisted value served with Cache Components on?"
+  back: "It gets the route's App Shell (param-dependent parts behind `<Suspense>` fallbacks), its content streams in, and the completed page is cached for the next visit."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-notfound
+  front: "How do you reject unknown values with Cache Components on, where `dynamicParams = false` is unavailable?"
+  back: "Call `notFound()` when the data lookup fails."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cc-on-status-200
+  front: "What status does the first visit to a bad id get with Cache Components on, and what do the docs suggest?"
+  back: "`200` plus `<meta name=\"robots\" content=\"noindex\">`, because the shell starts the response before `notFound()` runs. The second visit got 404 from the cache. The docs suggest Proxy for a request-time 404."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-observed-isr-timing
+  front: "With Cache Components off, `dynamicParams = true` and a 500 ms `getProduct`, how did `/products/2` behave in 16.4.5?"
+  back: "0.57 s with `x-nextjs-cache: MISS`, then 0.003 s with `HIT`. `/products/9` returned 404 and that 404 was cached too."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-not-authorization
+  front: "Why is `dynamicParams = false` not authorization?"
+  back: "It only checks the URL against the build-time list; it says nothing about who may see the page."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-false-new-item
+  front: "When `dynamicParams` is `false`, when does a newly created item appear?"
+  back: "Not without a rebuild. It returns 404 until the next build lists it."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-cache-growth
+  front: "What is the cache-growth risk of `dynamicParams = true`?"
+  back: "Every distinct unknown value, including a bot's random slugs, became its own cached page, 404s included."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-nested-segments
+  front: "How do nested segments share `generateStaticParams` work?"
+  back: "A child's function receives each parent's params (synchronously) and runs once per parent value. A page can also return all segments itself, e.g. `[{ category: 'a', product: 'x' }]`."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-placeholder-trick
+  front: "What is the docs' placeholder trick for Cache Components, and its cost?"
+  back: "Return `[{ slug: '__placeholder__' }]` to satisfy \"at least one result\" when no real values are known, then call `notFound()` for it. The docs warn it weakens build-time validation."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: gsp-route-handlers
+  front: "Does `generateStaticParams` work in route handlers?"
+  back: "Yes. `route.js` can export it to generate GET responses at build time for each listed value."
+  question: nextjs/rendering/generate-static-params-dynamic-params
+- id: cbp-where-directive
+  front: "Where should `\"use client\"` go in a page?"
+  back: "On the smallest component that needs state, effects, handlers or browser APIs (the leaf). Keep `page.js` and `layout.js` on the server."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-module-boundary
+  front: "What does `\"use client\"` mark, and what ships to the browser?"
+  back: "The entry of the client module graph: that file, every module it imports, and the components it renders directly are bundled for the browser."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-still-server-rendered
+  front: "Does `\"use client\"` mean a component renders only in the browser?"
+  back: "No. It is still rendered to HTML on the server; the directive adds client JavaScript and hydration. `/high` was prerendered with all 40 list items in its HTML."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-children-stay-server
+  front: "What happens to Server Components passed as `children` into a Client Component?"
+  back: "They stay on the server. The client component receives their rendered output."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-high-boundary-costs
+  front: "What are the three costs of a `\"use client\"` boundary at the top of a page?"
+  back: "Code (libraries used only to render are downloaded, parsed and executed in the browser), hydration of the whole subtree, and no server access (no `next/headers`, secrets or direct database queries)."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-not-seo
+  front: "Is a boundary at the top of a page an SEO cost?"
+  back: "No. The HTML is still server-rendered."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-measured-chunks
+  front: "In the 16.4.5 Turbopack `next start` experiment, how did `/low` and `/high` differ in scripts?"
+  back: "`/low` loaded 7 scripts, 174,752 B gzip, with a 303-byte `LikeButton` as its only page-specific chunk. `/high` loaded an 8th chunk, 47,274 B (14,593 B gzip), containing js-yaml."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-wrapper-pattern
+  front: "How do you wrap server-rendered content in an interactive component?"
+  back: "Make the wrapper a `'use client'` component that takes `children` (a modal, collapsible, provider) and render it as deep as it can go. The `/slot` Collapsible added 240 bytes of uncompressed JavaScript over `/low`; js-yaml stayed on the server."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-theme-provider
+  front: "Where should a theme provider go?"
+  back: "In a `'use client'` provider file that takes `children`, rendered around `{children}` in the layout, not around `<html>`. The docs advise placing providers as deep as possible."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-not-always-more-bytes
+  front: "Is a high boundary always more bytes?"
+  back: "No. With 1,500 items of plain data, `/high` shipped a 9,412 B gzip data chunk, but `/low`'s HTML grew to 498 KB (26 KB gzip) because rendered output travelled twice, as HTML and inlined RSC payload. Code and hydration are the dependable costs."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-server-import-failure
+  front: "What happens in 16.4.5 when a client page imports `cookies`, and when it uses a plain secret?"
+  back: "The build fails with `You're importing a module that depends on \"next/headers\" into a React Client Component module.` Secrets fail silently: non-`NEXT_PUBLIC_` variables become empty strings. Import `server-only` to turn that into a build error."
+  question: nextjs/rendering/client-boundary-placement
+- id: cbp-directive-every-file
+  front: "Why not add `\"use client\"` to every client-side file?"
+  back: "Only entry points need it. Everything they import is already client code."
+  question: nextjs/rendering/client-boundary-placement
+- id: krs-usual-causes
+  front: "What are the usual causes of a route going dynamic?"
+  back: "`cookies()` or `headers()` in a layout (auth state, theme, locale), awaited `searchParams`, unlisted `params`, and uncached data."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-fixes
+  front: "How do you keep a route static despite per-user UI, URL variants and shared data?"
+  back: "Move per-user UI to the client (or behind `<Suspense>` with Cache Components). Give URL variants a segment plus `generateStaticParams` (`/[locale]/pricing`). Cache shared data: `fetch` with `cache: 'force-cache'` or `next.revalidate` without Cache Components, `use cache` with them."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-dynamic-error
+  front: "How do you turn a dynamic regression into a failed build without Cache Components?"
+  back: "`export const dynamic = 'error'`. In 16.4.5 a header reading cookies failed with `Route /err-cookies with `dynamic = \"error\"` couldn't be rendered statically because it used `cookies()``; a `no-store` fetch was reported as `revalidate: 0 fetch <url>`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-ensure-static
+  front: "How do you guard a route with Cache Components on, and since which version?"
+  back: "`export const ensureStatic = 'navigation'` on a page or layout, stable since 16.4.0. It requires the whole server-rendered route to prerender, so request data fails the build even inside `<Suspense>`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-ensure-static-levels
+  front: "What do the `'shell'` and `'prefetch'` values of `ensureStatic` cover?"
+  back: "Only the prefetch stages, unlike `'navigation'`, which requires the whole server-rendered route to prerender."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-ensure-static-no-cc
+  front: "What happens if `ensureStatic` is exported without `cacheComponents`?"
+  back: "The export itself fails the build."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-child-cannot-loosen
+  front: "Can a child segment loosen a parent's `ensureStatic`?"
+  back: "No. A child may set a stricter level; a weaker one fails the build (\"A child segment cannot override a parent segment with a less-constrained `ensureStatic`\"), per the docs."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-table-says-that-not-why
+  front: "What do the route table and the `next dev` indicator menu tell you about a dynamic route?"
+  back: "That it is dynamic (ƒ, or ◐ with Cache Components; `Route Dynamic` in the menu), but not why. The guard errors name the API."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-dev-indicator-observed
+  front: "What did the 16.4.5 dev indicator menu show in Chrome 156 and Firefox 159?"
+  back: "`Route | Dynamic` for `/cookies` and `Route | Static` for `/`. Route Info listed only the segment files. With Cache Components, the dev overlay shows blocking-route insights with source."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-debug-prerender
+  front: "What does `next build --debug-prerender` add?"
+  back: "It disables server minification and enables source maps. With Cache Components the build stack can otherwise be component names only (`at Suspense (<anonymous>)`); this gave `at Header (app/lib/Header.jsx:3:30)` with a code frame."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-debug-prerender-deploy
+  front: "Should you deploy a `--debug-prerender` build?"
+  back: "No. The docs warn it is unminified and not optimized for production."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-debug-build-paths
+  front: "How do you check a big app faster when debugging prerender errors?"
+  back: "`next build --debug-build-paths=<patterns>` builds only matching routes, and combines with `--debug-prerender`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-force-static-pitfall
+  front: "What does `dynamic = 'force-static'` do to `cookies()` and `headers()`?"
+  back: "It forces them to return empty values. With a `user=sachin` cookie the forced page still said `Hi guest`."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-dynamic-error-names-api
+  front: "Does `dynamic = 'error'` name the component that caused the problem?"
+  back: "No. It names the API (`cookies()`), not where it was called, so search for the call, layouts included."
+  question: nextjs/rendering/keeping-route-static
+- id: krs-partial-not-failure
+  front: "Is ◐ a failure with Cache Components on?"
+  back: "No. A partial route is expected there. Use `ensureStatic` only where per-request server work is truly unwanted."
+  question: nextjs/rendering/keeping-route-static
+# 03 Cache Components
+- id: uck-what-is-cached
+  front: "What does `'use cache'` store, and what does it need?"
+  back: "The function's return value, serialized with React's Server Components format (a component's entry is its rendered RSC output). It marks an async function, async component or whole file, and needs `cacheComponents: true` (Next.js 16)."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-key-parts
+  front: "What are the four parts of a `use cache` key, per the docs?"
+  back: "The build ID (or `deploymentId` if set), a function ID (a hash of where the function is defined), the serialized arguments (props for a component), and, in `next dev` only, an HMR hash."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-closure-bound
+  front: "How do values a cached function closes over affect its key?"
+  back: "The compiler binds them in as hidden arguments, so an inner cached function reading a parent's `userId` gets one entry per user. You can't hide an input."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-serialized-not-semantic
+  front: "Under `next build && next start`, do `getItem(1)` and `getItem('1')` share an entry? What about `{ a: 1, b: 2 }` and `{ b: 2, a: 1 }`?"
+  back: "No to both: two entries each. The key is the serialized bytes, not semantic equality."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-shared-across-routes
+  front: "Does a cached function called from two routes with the same argument run twice?"
+  back: "No, it ran once. Entries belong to the function, not the page."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-nonserializable-args
+  front: "What happens to non-serializable arguments of a `use cache` function?"
+  back: "They become opaque references that can be passed through (as `children` or to a Client Component) but not read. A component's `children` don't join its key, so a cached layout can wrap per-request content."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-children-hole
+  front: "What happened when a cached `Card` received `children` reading `cookies()` inside `<Suspense>`?"
+  back: "`Card` ran once at build and never at request time, yet requests with `who=sam` and `who=kim` each showed their own value. Children are serialized as a reference slot: not in the key, not frozen in the entry."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-where-entries-live
+  front: "Where do `use cache` results live, build time versus request time?"
+  back: "Results computed during `next build` go into the prerendered shell on disk. Request-time results go to the cache handler, by default an in-memory LRU per process, lost on restart and not shared between instances."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-class-instance-error
+  front: "What fails in 16.4.5 when a cached function reads a class instance argument, or calls a function argument?"
+  back: "The build failed with `Cannot access id on the server. You cannot dot into a temporary client reference from a server component.` for the instance, and `Attempted to call a temporary Client Reference from the server but it is on the client.` for the function."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-url-argument
+  front: "What happened in 16.4.5 when a `URL` was passed to a cached function?"
+  back: "It didn't fail. Inside, it was a string (`typeof url` printed `string`, `url.pathname` was `undefined`), its href, and the page rendered an empty paragraph with no warning. The docs list class instances, functions, symbols and `URL` as unsupported."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-build-vs-request-reuse
+  front: "Does a build-time `use cache` result get reused by a request-time call with the same arguments in 16.4.5 under `next start`?"
+  back: "No. `getItem('seed')` ran at build for a static page and ran again for a dynamic page. The build result lives in that page's prerendered HTML, not the in-memory handler."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-deploy-invalidates
+  front: "What happens to cache entries on deploy?"
+  back: "They are unreachable. The build ID is part of every key, so old-build entries, even in a remote handler, never match new keys."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-return-jsx
+  front: "Can a `use cache` function return JSX, and can it take JSX as an argument?"
+  back: "Returns can be JSX: return values use the richer Client Component serialization. Arguments use the stricter Server Component rules, where JSX is only passed through."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-file-level
+  front: "What rules apply to a file-level `'use cache'`?"
+  back: "Every export is cached and must be async. For a route segment, `'use cache'` at the top of `page` or `layout` follows the same rule, and the docs note each segment is its own entry."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-restart-reruns
+  front: "What happened to request-time entries after restarting `next start` on the same build?"
+  back: "Every one re-ran (the API counter went from 1 to 2 for each argument), and `.next/cache` got no new files. The default handler for `use cache` and `use cache: remote` is an in-memory LRU sized by `cacheMaxMemorySize`."
+  question: nextjs/cache-components/use-cache-keys
+- id: uck-high-cardinality
+  front: "Why does caching `getProducts(filters)` on `searchParams` give a near-zero hit rate?"
+  back: "Every combination of filters, and every ordering of the same filters in the object, is a new entry. Normalise the input (sorted keys or a small set of strings) and cache on the low-cardinality dimension."
+  question: nextjs/cache-components/use-cache-keys
+- id: cfrd-why-throws
+  front: "Why does Next.js forbid `cookies()` inside a `use cache` function?"
+  back: "The output is shared by every request with matching arguments and may be computed at build time with no request. Request data isn't in the key, so user A's cookie would decide what user B sees."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-which-throw
+  front: "Which request APIs throw inside a cached scope, and what is the documented exception?"
+  back: "`cookies()`, `headers()`, `searchParams` and `connection()`. `draftMode().isEnabled` is the exception. The rule follows the call stack: a helper that reads `headers()` fails the same way."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-fix-pattern
+  front: "What is the fix for needing request data in cached work?"
+  back: "An uncached component reads `cookies()` (inside `<Suspense>`, so it is a hole in the shell), extracts only what the cached work depends on, and passes it to the cached function as an argument, which joins the key."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-smallest-value
+  front: "Which value should you pass from a cookie into a cached function?"
+  back: "The smallest value that decides the output. A session ID makes one entry per user; a currency gives a handful shared by everyone."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-example-runs
+  front: "In the 16.4.5 `getPrices(currency)` example, what ran for requests with `currency=USD`, `USD`, `EUR`?"
+  back: "Only `RUN getPrices USD` and `RUN getPrices EUR`; the route built as `◐ /c-pass`."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-private-escape
+  front: "When is `use cache: private` the alternative to passing values as arguments?"
+  back: "When refactoring isn't practical, or per-user data must stay out of shared server caches. It allows request APIs at the cost of no server-side reuse across requests."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-static-route-build-error
+  front: "What happened in 16.4.5 when a cached function read `cookies()` on a static route?"
+  back: "The build failed: `Route \"/c-static\": `cookies()` can't be read inside `\"use cache\"`. Read it outside the cached function and pass what you need as an argument.`"
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-green-build-trap
+  front: "What happened when a helper reading `headers()` was called from a cached function on a ◐ route?"
+  back: "The build passed. Every request then failed in the hole with the same message, served with status 200."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-status-200
+  front: "Why does the request-time failure still return 200?"
+  back: "The shell was already sent. The error happened while resuming the postponed boundary, after headers went out, so it surfaced as an error digest in the stream for the nearest error boundary."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-pass-promise
+  front: "What happens in 16.4.5 if you pass the `cookies()` promise itself as a prop to a cached function?"
+  back: "The build stalled about 50 seconds, then failed with `A \"use cache\" function took too long during prerendering.` The docs still quote an older \"Filling a cache during prerender timed out\" message."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-top-of-page-no-suspense
+  front: "What is wrong with reading `cookies()` at the top of the page without `<Suspense>` under Cache Components?"
+  back: "Cache Components rejects request data outside a boundary."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-cookie-arg-risk
+  front: "Is passing a cookie value as an argument a risk of serving one user's data to another?"
+  back: "Not for that value: it is in the key. The risk returns if the cached function reaches other per-user state another way, such as a module-level variable set earlier in the request."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: cfrd-params-in-cache
+  front: "Can a cached function read `params`?"
+  back: "Pass the resolved value. `params` is a promise; awaiting request-time data inside the cache is the same hang as passing `cookies()`."
+  question: nextjs/cache-components/cached-functions-and-request-data
+- id: clp-three-numbers
+  front: "What are the three numbers in a `cacheLife` profile?"
+  back: "In seconds: `stale` (client router reuse with no request), `revalidate` (server: after this the entry is due for regeneration), `expire` (server: after this the old entry may not be served; must be greater than `revalidate`)."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-stale-header
+  front: "How does `stale` reach the browser, and what does the router enforce?"
+  back: "As `x-nextjs-stale-time`, not `Cache-Control`. The docs say the router enforces at least 30 s."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-expire-semantics
+  front: "What happens after a prerendered page passes `revalidate`, and after `expire`?"
+  back: "Past `revalidate`, it is served stale while regenerating in the background, like ISR. Past `expire`, the old entry may not be served and the next request waits for fresh output."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-presets
+  front: "What are the Next.js 16.4.5 presets (`stale` / `revalidate` / `expire`)?"
+  back: "`default` 5m/15m/1y; `seconds` 30s/1s/1m; `minutes` 5m/1m/1h; `hours` 5m/1h/1d; `days` 5m/1d/1w; `weeks` 5m/1w/30d; `max` 5m/30d/1y (m = minutes, s = seconds, h = hours, d = days, w = weeks, y = year)."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-custom-profiles
+  front: "How can you supply a `cacheLife` profile besides a preset?"
+  back: "Pass an inline object, define named profiles under `cacheLife` in `next.config`, or redefine the presets."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-outside-scope
+  front: "What does `cacheLife` do when called outside a `use cache` scope?"
+  back: "It throws. It sets the lifetime of the `use cache` scope it's called in."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-cache-control
+  front: "What `Cache-Control` header does a prerendered page get from its profile?"
+  back: "`s-maxage=<revalidate>, stale-while-revalidate=<expire − revalidate>`. For `{ stale: 30, revalidate: 10, expire: 300 }`, 16.4.5 sent `s-maxage=10, stale-while-revalidate=290`."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-short-lifetimes
+  front: "Which `cacheLife` values exclude a scope from prerendering, and which preset is affected?"
+  back: "`revalidate: 0`, `expire` under 5 minutes, or `stale` under 30 s. The scope becomes a request-time hole that needs `<Suspense>`. Only `seconds` crosses a threshold."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-nesting
+  front: "What lifetime does a `use cache` without its own `cacheLife` get when it contains other caches?"
+  back: "The shortest lifetime of the caches inside it; an explicit `cacheLife` always wins. An outer cache rendering a `cacheLife('minutes')` child built as `1m 1h`: shorter inner lifetimes pull the default down, longer ones can't extend it."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-nested-short-error
+  front: "What fails the build when a `seconds` cache is nested in a `use cache` with no `cacheLife`?"
+  back: "``A nested `\"use cache\"` with a short `expire` (under 5 minutes) is inside an outer `\"use cache\"` that has no `cacheLife()`.``"
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-isr-observed
+  front: "In the 16.4.5 `/isr` example, what happened 11 seconds after a fresh copy with `revalidate: 10`?"
+  back: "A request returned the old `v3` instantly with `x-nextjs-cache: STALE`; three seconds later the page said `v4` with `HIT`. The 2-second fetch never delayed a response. The route table showed `○ /isr  10s  5m`."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-request-time-no-swr
+  front: "Do request-time cache entries get stale-while-revalidate like prerendered pages?"
+  back: "Not with the built-in handler. A cached function inside a `<Suspense>` hole (`revalidate: 5`, `expire: 15`) blocked for the full 2 s once past `revalidate`, since the handler drops entries at `revalidate`. The docs say a custom handler may serve them until `expire`."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-default-never-expires
+  front: "The docs say `default` never expires. What did 16.4.5 show?"
+  back: "The build printed `15m 1y`, and the header was `stale-while-revalidate=31535100`, one year minus 900 s."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-stale-under-30-built
+  front: "How did a `cacheLife({ stale: 10 })` cache inside `<Suspense>` build in 16.4.5?"
+  back: "As ◐ with its fallback in the shell: any `stale` under 30 s can't be prerendered."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-action-revalidate
+  front: "Does a Server Action's `revalidateTag` wait for `stale` to run out in the browser?"
+  back: "No. The docs say a revalidation call from a Server Action clears the whole client cache immediately."
+  question: nextjs/cache-components/cachelife-profiles
+- id: clp-legacy-prefix
+  front: "What were `cacheLife` and `cacheTag` called in Next.js 15?"
+  back: "`unstable_cacheLife` and `unstable_cacheTag`. 16.0 dropped the prefix."
+  question: nextjs/cache-components/cachelife-profiles
+- id: prc-private-what
+  front: "What does `use cache: private` allow, and what does it forbid?"
+  back: "`cookies()`, `headers()` and `searchParams` are allowed inside; `connection()` is not."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-storage
+  front: "Where is a `use cache: private` result kept in production?"
+  back: "Not in a server cache across requests. Matching calls within one request reuse it, and the client router keeps the rendered output for its `stale` time."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-shell
+  front: "Can `use cache: private` be in the static shell, or use a custom handler?"
+  back: "No to both. It runs only at request time, and custom handlers can't be configured for it."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-when
+  front: "When do the docs reserve `use cache: private`?"
+  back: "Compliance cases, or code you can't refactor to pass values as arguments."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-observed
+  front: "In the 16.4.5 `getRecs` example with cookies `user=ann`, `ann`, `bo`, what was printed?"
+  back: "`recs 1 1`, `recs 2 2`, `recs 1 1`: one run per request (two calls, one execution), and no reuse between requests."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-not-per-user-cache
+  front: "Why is `private` the wrong tool to cache per user?"
+  back: "It removes server reuse entirely. Reading the cookie outside and passing the value to `use cache` gives a real, shared entry per value."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-private-cachelife
+  front: "Why does `use cache: private` take a `cacheLife`?"
+  back: "Its `stale` sets how long the browser's router reuses the output, and the route uses the shortest `stale` among its entries. `stale: Infinity` keeps a request-dedup-only function from lowering it."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-rules
+  front: "What rules does `use cache: remote` keep, and what does it change?"
+  back: "The same as `use cache`: no request APIs, pass values as arguments. Entries go to the `remote` cache handler instead."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-why
+  front: "Why use `use cache: remote`, and what does it cost?"
+  back: "At request time, content in a `<Suspense>` hole runs on every request, and per-instance memory (especially serverless) gives low hit rates. A shared store (Redis, key-value service) gives every instance the same entries, protecting slow or rate-limited backends, at the cost of a network lookup per call and storage. It pays off only when keys have few distinct values."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-no-handler
+  front: "What does `use cache: remote` do in 16.4.5 self-hosted with no `cacheHandlers.remote`?"
+  back: "It uses an in-memory LRU like the default handler, so `remote` changes nothing. Ports 3041 and 3042 each ran the function once, and a restart ran it again."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-configured
+  front: "How did a configured file-based `cacheHandlers.remote` behave across instances?"
+  back: "Port 3062 reused the entry port 3061 had written, and a restarted server reused it too. The plain `use cache` page on the same servers ran once per instance."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-rebuild
+  front: "What happened to a remote handler's entries after a rebuild?"
+  back: "They missed: the new build ID made a new key, and the store held two files. That is by design, so old-shaped data never reaches new code."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-nesting-error
+  front: "What happens when a `private` function is called inside a `remote` one?"
+  back: "It failed at request time: `\"use cache: private\"` can't be nested inside `\"use cache\"` because a shared cached function can't depend on private request data."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: prc-remote-session-key
+  front: "Why is keying a remote cache on a session ID a pitfall?"
+  back: "Each user gets an entry that is never hit again. Key on low-cardinality values (locale, currency)."
+  question: nextjs/cache-components/private-and-remote-cache
+- id: ucvo-scope-axes
+  front: "On which two axes do React `cache`, `use cache` and `unstable_cache` differ?"
+  back: "How long a result lives and who shares it."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache
+  front: "What does React's `cache(fn)` do, and when is it dropped?"
+  back: "Request-scoped memoization for Server Components: calls with the same arguments in one server render return the same result, and React drops it all when the request ends. It stores live values, not serialized ones."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache-equality
+  front: "How does React's `cache` compare arguments?"
+  back: "With `Object.is`, so objects are compared by reference."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache-job
+  front: "What is React's `cache` for, and not for?"
+  back: "Deduplication: three components calling `getUser(id)` cause one query. It never reused a result between requests, so it does not cut database load across requests."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-use-cache-persistent
+  front: "How long does a `use cache` result live and who shares it?"
+  back: "It is serialized into a cache handler (default: in-process memory) and reused by later requests and other routes until its `cacheLife` runs out or a `cacheTag` is invalidated. Entries don't survive a new build."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-unstable-cache-key
+  front: "What forms an `unstable_cache` key?"
+  back: "Your `keyParts` plus the arguments and the function's source text. A closed-over variable must be added to `keyParts` by hand; `use cache` binds closed-over values into the key automatically."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-unstable-cache-persist
+  front: "Where does `unstable_cache` store entries, and does it survive a deploy?"
+  back: "In Next's data cache (on disk under `next start`, in `.next/cache/fetch-cache`, one file per key). The docs say it persists across deployments, which `use cache` does not. On hosting that wipes `.next`, persistence depends on the platform's data cache."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-unstable-cache-with-cc
+  front: "Does `unstable_cache` still work with Cache Components, and how does the migration guide map its options?"
+  back: "Yes. The migration guide maps `revalidate` to `cacheLife` and `tags` to `cacheTag`."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-combine
+  front: "When do you use each of the three caches together?"
+  back: "`use cache` for what can be reused across users, React's `cache` for per-request dedup of uncached or request-specific reads, `unstable_cache` only when data must outlive a deploy."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-observed-counters
+  front: "In the 16.4.5 test, how did the counters for react, uc and usecache move across a second request, a restart and a rebuild?"
+  back: "Second request: `react=2,2 uc=1,1 usecache=1,1`. After restart: `react=3,3 uc=1,1 usecache=2,2`. After a fresh `next build`: `react=4,4 uc=1,1 usecache=3,3`. Only `uc` outlived the rebuild."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-react-cache-twice
+  front: "How often did Next.js 16.4.5 run a React `cache` function body per request?"
+  back: "Twice on most requests (apparently a second render pass with its own `cache` scope), though the one `fetch` inside was made once."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-isolated-scope
+  front: "Can a parent share data into a `use cache` function through React's `cache`?"
+  back: "No. The scope is isolated: a store set by the parent read `null` inside the cached component."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-dedup-builtin
+  front: "Does `use cache` need React's `cache` for dedup within a render?"
+  back: "No. The Next.js docs say `use cache` already deduplicates calls with the same arguments within a render and across requests."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+- id: ucvo-legacy-flags
+  front: "What was the Cache Components option called in Next.js 15?"
+  back: "Experimental: `experimental.dynamicIO`, later `experimental.cacheComponents`. 16.0 made `cacheComponents` a top-level option."
+  question: nextjs/cache-components/use-cache-vs-other-caches
+# 04 Previous caching
+- id: dcl-four-layers
+  front: "With `cacheComponents` off (the 16.4.5 default), which four cache layers did the Next.js 14 docs name?"
+  back: "Request memoization, the data cache, the full route cache and the router cache. The 16.4.5 docs mostly drop the names, but the layers are still there."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-memoization-scope
+  front: "How long does request memoization last, and where does it live?"
+  back: "One server render, in memory. Identical `GET` `fetch` calls during that render share one response, and the entry is gone when the render ends."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-data-cache-contents
+  front: "What does the data cache store, and where is it under `next start`?"
+  back: "`fetch` responses that opt in with `cache: 'force-cache'` or `next.revalidate`, plus `unstable_cache` results. One JSON file per entry in `.next/cache/fetch-cache`, holding its `revalidate` and `tags`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-full-route-cache-files
+  front: "What does the full route cache store, and where?"
+  back: "A route prerendered at build time, as `.html`, `.rsc` and `.meta` files under `.next/server/app`. It is served without rendering. A static GET route handler is stored as `.body` and `.meta`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-full-route-cache-headers
+  front: "Which response headers showed a full route cache hit in the 16.4.5 observations?"
+  back: "`x-nextjs-cache: HIT` and `Cache-Control: s-maxage=…`. For the option-less static page, `s-maxage` was `31536000` with no `revalidate`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-router-cache-rules
+  front: "What does the router cache hold, and what are its 15+ reuse rules?"
+  back: "RSC payloads of visited and prefetched routes, in browser memory. Dynamic pages are refetched on every `<Link>` navigation (`staleTimes.dynamic` is 0); static pages are reused for 5 minutes; back/forward always restores."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-layers-independent
+  front: "Can a dynamic route still read from the data cache?"
+  back: "Yes. The layers are independent. A dynamic route has no full route cache, but a `force-cache` fetch in it is still served from the data cache. In the example the page re-rendered per request while the fetch stayed at `1`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-optionless-fetch-since-15
+  front: "Since Next.js 15, when does a `fetch` with no `cache` option run?"
+  back: "Once at build if the route is static, and on every request if the route is dynamic. In the 16.4.5 example it hit the API on every request, even when placed before `cookies()`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-legacy-14-defaults
+  front: "What were the Next.js 14 defaults for `fetch`, GET handlers and dynamic pages in the router cache?"
+  back: "`fetch` defaulted to `force-cache`, GET handlers were static by default, and dynamic pages stayed in the router cache for 30 seconds."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-static-keeps-build-data
+  front: "How does a static route with no `revalidate` pick up new data?"
+  back: "It doesn't on its own. It keeps what its build-time fetches returned until revalidated. In the 16.4.5 example `/default` served its build-time value with `s-maxage=31536000`."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-revalidate-tag-effect
+  front: "What did `revalidateTag(tag, 'max')` do to a cached page in the 16.4.5 observations?"
+  back: "It marked data and route entries stale: the next request was served stale and triggered a refetch, and the one after showed new data. Per the docs, not run here, they also clear the router cache."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-restart-and-multi-instance
+  front: "Do the data and full route caches survive `next start` restarts?"
+  back: "Yes, they are files under `.next`. On several instances each has its own copy unless a shared `cacheHandler` is configured (per the docs, not run here)."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-draft-mode
+  front: "Does Draft Mode read the data cache?"
+  back: "No. The `fetch` docs say Draft Mode bypasses it entirely, neither reading nor writing (per the docs, not run here)."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-stale-status
+  front: "What does `x-nextjs-cache: STALE` mean without Cache Components?"
+  back: "The server sent the old page and regenerated it in the background. This is how ISR works without Cache Components. The route's lifetime is the lowest `revalidate` in it."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-build-time-fetch-cache
+  front: "What did an option-less fetch reached during `next build` write to `fetch-cache` in 16.4.5?"
+  back: "An entry with `revalidate: 31536000`, even on a route that later turned dynamic. The source calls it an implicit build-time cache shared between build workers. At request time the same fetch hit the API every time."
+  question: nextjs/previous-caching/default-cache-locations
+- id: dcl-dev-vs-start
+  front: "Why test caching with `next build && next start` rather than `next dev`?"
+  back: "`next dev` renders pages on every request, and its HMR cache can reuse even `no-store` fetches between edits (per the docs, not run here)."
+  question: nextjs/previous-caching/default-cache-locations
+- id: cd-direction
+  front: "In which direction did Next.js caching defaults move from 14 to 15?"
+  back: "From \"cached unless you opt out\" to \"uncached unless you opt in\". 15 made `fetch`, GET route handlers and the router cache's dynamic pages uncached by default."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-14-fetch
+  front: "In Next.js 14, what did a `fetch` with no `cache` option do?"
+  back: "It used `force-cache` unless the route used a dynamic function or config, so data could stay in the data cache indefinitely."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-14-handlers-router
+  front: "In Next.js 14, how were GET route handlers and the client router cache treated?"
+  back: "GET handlers were prerendered at build unless they read the request. The router cache kept dynamic pages for 30 seconds and static ones for 5 minutes."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-15-fetch-label
+  front: "What do the 16.4.5 docs call the 15 default for an option-less `fetch`?"
+  back: "`auto no cache`: run once at build if the route is static, on every request if it is dynamic. It behaves `no-store`-like."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-15-stale-times
+  front: "What happened to `staleTimes.dynamic` in 15, and what still reused the cache?"
+  back: "It went from 30 to 0, so `<Link>` refetches dynamic pages. Shared layouts, `loading.js` and back/forward still reuse the cache."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-15-reason
+  front: "What reason did the Next.js 15 release post give for flipping the defaults?"
+  back: "Feedback on the opinionated defaults, and how they would interact with Partial Prerendering and third-party libraries using `fetch`. A library's internal `fetch` could be cached without its author or user knowing."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-16-no-flip
+  front: "Did Next.js 16 flip any caching defaults back? What does 16.4.5 do with Cache Components off?"
+  back: "No. It added opt-in `cacheComponents`, where nothing is cached unless marked `use cache`. With Cache Components off, 16.4.5 behaves like 15."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-16-revalidate-tag
+  front: "What changed about `revalidateTag` in Next.js 16, per the upgrade guide?"
+  back: "It takes a `cacheLife` profile as its second argument, and `updateTag` handles immediate expiry from Server Actions. The one-argument form is deprecated and a TypeScript error (per the upgrade guide, not run here)."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-opt-back-in
+  front: "Which per-layer options restore caching in 15/16 without Cache Components?"
+  back: "`cache: 'force-cache'` or `next.revalidate` on a fetch, `fetchCache = 'default-cache'` on a segment, `dynamic = 'force-static'` on a handler, and `experimental.staleTimes` for the router cache."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-root-layout-fetchcache
+  front: "What did a root-layout `fetchCache = 'default-cache'` do in 16.4.5 in Chrome 156 and Firefox 159?"
+  back: "Full page loads used it, but each client-side navigation to a dynamic page fetched again (`n=2`, then `n=3`). The same export on the page itself worked."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-stale-times-config
+  front: "What did `experimental.staleTimes: { dynamic: 30 }` do on 16.4.5 within one tab?"
+  back: "The second `<Link>` click to the dynamic page reused the payload with no request."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-still-static
+  front: "Did anything stay cached by default in Next.js 15?"
+  back: "Yes. Routes with no request-time reads are still prerendered, and their option-less fetches run once at build. Per the release post, metadata files like `sitemap.ts` stay static unless they read the request (not run here)."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-route-table-symbols
+  front: "How does the 16.4.5 `next build` route table show which model a route used?"
+  back: "○ and ● for prerendered, ƒ for per request without Cache Components. ◐ appears only with Cache Components."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: cd-force-static-handler
+  front: "What did `dynamic = 'force-static'` on a GET handler give in 16.4.5?"
+  back: "`next build` listed it as `○ /api/plain`, and two `curl` calls returned the same `t`."
+  question: nextjs/previous-caching/caching-defaults-14-to-16
+- id: sc-where-and-when
+  front: "Where are `dynamic`, `revalidate` and `fetchCache` exported, and in which model do they exist?"
+  back: "From `page.js`, `layout.js` or `route.js`, read at build time. They exist only in the default model, with `cacheComponents` off."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-dynamic-values
+  front: "What do the four `dynamic` values `'auto'`, `'force-static'`, `'force-dynamic'` and `'error'` do?"
+  back: "`'auto'` (default) decides by what the render reads. `'force-static'` prerenders anyway. `'force-dynamic'` renders every request. `'error'` prerenders and fails the build if anything reads the request."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-force-static-empty
+  front: "What do `cookies()` and `headers()` do under `dynamic = 'force-static'`?"
+  back: "They silently return empty values rather than throwing. In 16.4.5 a request sending a cookie got `cookie=none ua=none` every time. The docs add `useSearchParams()` (not run here). Use `'error'` to fail the build."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-force-dynamic-fetches
+  front: "Under `dynamic = 'force-dynamic'`, how are fetches without their own `cache` option treated?"
+  back: "They aren't cached. In 16.4.5 an option-less fetch went `1` to `5` over five requests."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-values
+  front: "What do `revalidate = false`, a number and `0` mean?"
+  back: "`false` (default) keeps a static route until redeploy or on-demand revalidation. A number makes it ISR with that many seconds. `0` makes the route dynamic."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-fetch-inherit
+  front: "How do fetches relate to a segment's `revalidate`, per the docs?"
+  back: "Fetches without options inherit it. A fetch's own lower `next.revalidate` lowers the whole route's interval (per the docs, not run here)."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-literal
+  front: "Can `revalidate` be written as `60 * 10`?"
+  back: "No. The docs say the value must be statically analyzable, a literal such as `600` (not run here)."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-observed
+  front: "How did a `revalidate = 10` page behave on 16.4.5 under `next start`?"
+  back: "It built as `○ 10s 1y`. After 10 seconds one request got the old page and the next showed the new value (`rv=2`)."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-fetchcache-values
+  front: "What do `fetchCache` values `'default-cache'` and `'default-no-store'` do?"
+  back: "They set the default `cache` option for the segment's fetches. `'default-cache'` caches option-less fetches even after a request-time read; `'default-no-store'` stops caching them even before one."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-fetchcache-only
+  front: "What do `fetchCache = 'only-cache'` and `'only-no-store'` do?"
+  back: "They fail the build on the opposite choice. In 16.4.5 a `no-store` fetch under `only-cache` stopped the build with `cache: 'no-store' used on fetch for … with 'export const fetchCache = 'only-cache'`."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-explicit-force-cache-wins
+  front: "In 16.4.5, does `force-dynamic` or `fetchCache = 'force-no-store'` bypass a fetch with explicit `cache: 'force-cache'`?"
+  back: "No, the fetch stayed cached (`fd=1` over five requests), though the docs say the segment value overrides. The source sets `revalidate: false` for `force-cache` before it checks the segment's opt-out."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-dynamic-error-message
+  front: "What does `dynamic = 'error'` print in 16.4.5 when the route reads `cookies()`?"
+  back: "``Route /dynerr with `dynamic = \"error\"` couldn't be rendered statically because it used `cookies()`.`` The build stops."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-revalidate-zero-force-cache
+  front: "Does `revalidate = 0` stop a `force-cache` fetch from being cached in 16.4.5?"
+  back: "No. The route became ƒ and option-less fetches ran per request, but the `force-cache` fetch stayed at `1`, as the docs describe."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-cache-components-rejects
+  front: "What happens to these segment configs with `cacheComponents: true` in 16.4.5?"
+  back: "The build rejects them: `Route segment config \"revalidate\" is not compatible with nextConfig.cacheComponents. Please remove it.` The same printed for `dynamic`, `fetchCache`, `dynamicParams` and `runtime`; `maxDuration` built."
+  question: nextjs/previous-caching/segment-config-options
+- id: sc-replacements
+  front: "What replaces `dynamic`, `revalidate` and `fetchCache` with Cache Components on?"
+  back: "`use cache`, `cacheLife` and `instant`."
+  question: nextjs/previous-caching/segment-config-options
+- id: fd-scope
+  front: "What is the scope of Next.js `fetch` memoization?"
+  back: "One React render on the server. It dedupes calls across Server Components, layouts, pages and `generateMetadata`, so data can be fetched where it's used instead of passed down. Nothing is stored between requests."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-render-surfaces
+  front: "Besides components and layouts, which functions share the memoized fetch in a request, per the docs?"
+  back: "`generateMetadata`, and per the docs `generateStaticParams` and `generateViewport` (the latter two not run here). In 16.4.5 a `generateMetadata` call and a page call of the same URL made one request."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-method
+  front: "Which HTTP methods are deduplicated, and is `POST` with identical bodies?"
+  back: "`GET` (the source also allows `HEAD`, not run here). `POST` is not deduplicated, even with identical bodies: two `POST` calls made two requests."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-signal
+  front: "How does passing a `signal` affect `fetch` dedup?"
+  back: "It opts out. An `AbortController` signal is the documented opt-out; two calls with signals made two requests. Per the source, `keepalive` also opts out (not run here)."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-key-fields
+  front: "Which fields make up the dedup key in the 16.4.5 source?"
+  back: "URL and headers, plus `mode`, `redirect`, `credentials`, `referrer`, `referrerPolicy` and `integrity` (per the source, not run here). A differing header value is a separate key: `x-v: 1` and `x-v: 2` made two requests."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-clone
+  front: "How can two callers both read the body of a deduplicated response?"
+  back: "Per the source (not run here), the second caller gets a clone of the first response, so each can read the body."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-route-handler
+  front: "Are repeated `fetch` calls deduplicated in a route handler?"
+  back: "No. A route handler isn't part of the component tree. A GET handler fetching the same URL twice made two requests on every call."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-cache-option-ignored
+  front: "Does the dedup key include the `cache` option in 16.4.5?"
+  back: "No. A plain fetch and a `cache: 'no-store'` fetch of the same URL made one request, and the source says whichever ran first decides the caching. The docs' wording, \"the same URL and options\", suggests otherwise."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-not-cache
+  front: "How does `fetch` memoization differ from the data cache?"
+  back: "It dedupes even uncached fetches and stores nothing between requests. Every new request fetched again."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-react-cache
+  front: "How do you dedupe a database or SDK call within a request?"
+  back: "Wrap the function in React's `cache`. The Next.js guide recommends it for ORMs and database clients; it memoizes by argument identity for one request, like `fetch` memoization."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-trace-headers
+  front: "Which headers are ignored by the dedup key, per the 16.4.5 source?"
+  back: "Only `traceparent` and `tracestate` (not run here). Any other per-call header that varies, such as a trace or auth header, makes each value a separate key."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-request-object
+  front: "Does `fetch(url)` dedupe with `fetch(new Request(url))` for the same URL?"
+  back: "Yes, in 16.4.5 they made one request. The key comes from the normalised `Request`."
+  question: nextjs/previous-caching/fetch-request-deduplication
+- id: fd-static-builds
+  front: "Does fetch dedup need the route to be dynamic?"
+  back: "No. The docs scope it to any server render pass, so build-time prerendering too (not run here). The example used `connection()` only so counts could be compared per request."
+  question: nextjs/previous-caching/fetch-request-deduplication
+# 05 Mutations
+- id: sa-transport
+  front: "What is Next.js's transport for a Server Action call, and which three headers matter?"
+  back: "A `POST` to the current page's URL with `Next-Action` (the action id), `Next-Router-State-Tree` (the segments the client already has) and `Accept: text/x-component`."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-rerender-triggers
+  front: "Which action behaviours make Next.js re-render the current route in the same response?"
+  back: "Calling `revalidatePath`, `updateTag` (or the deprecated one-argument `revalidateTag`), calling `refresh()`, setting or deleting a cookie, or calling `redirect()` (the destination is rendered instead)."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-one-stream
+  front: "What does one Flight stream carry when an action revalidated?"
+  back: "The action's return value and a fresh RSC payload for the route. The router commits the tree like a navigation, with no second request for the page."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-no-invalidation
+  front: "What does the response carry if the action does no invalidating call, or only `revalidateTag(tag, 'max')`?"
+  back: "Only the return value. The page stays as it was: in the 16.4.5 run the old `v` and `t` stayed on screen, with no `x-action-revalidated` header."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-revalidated-header
+  front: "What do the `x-action-revalidated` values `1` and `2` mean in 16.4.5?"
+  back: "`1` after `revalidatePath`, `updateTag`, one-argument `revalidateTag` or a cookie write. `2` after `refresh()`. Absent after `revalidateTag(tag, 'max')` or nothing."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-cache-components-same
+  front: "Did `cacheComponents` on change the action response shape in the 16.4.5 run?"
+  back: "No. The same response shape and the same rules held with it off and on."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-sequential-dispatch
+  front: "How does Next.js dispatch several Server Actions from one client, per the docs?"
+  back: "One at a time. The client queues them, so `Promise.all` gives no parallelism (per the docs, not run here). Do parallel work inside one action."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-router-cache-cleared
+  front: "What do invalidating calls do to the browser's router cache?"
+  back: "They empty it, so prefetched pages are fetched again. After `revalidatePath`, `updateTag` and a cookie write both browsers re-requested a `<Link>` prefetch; after `refresh()` they didn't."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-redirect-order
+  front: "Why call `revalidatePath` or `updateTag` before `redirect()` in an action?"
+  back: "`redirect` throws, so a later call never runs and the destination can render stale data."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-redirect-cost
+  front: "What did `updateTag('v')` then `redirect('/other')` cost in requests on 16.4.5?"
+  back: "One `POST /rt` (`x-action-revalidated: 1`). The page switched to `/other` with the new value and no `GET` for `/other` followed."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-refresh-cached-data
+  front: "Does `refresh()` in an action show new data from a tagged cached fetch?"
+  back: "No. It re-renders the route (`x-action-revalidated: 2`, a new timestamp) but a tagged cached `v` stayed old. It helps only for data that isn't cached."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-post-url-picks-route
+  front: "Which decides the action function: the POST URL or the action id?"
+  back: "The id. In the 16.4.5 test any page's URL worked for any action id. The path only decides which route is re-rendered."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-envelope
+  front: "What do rows `0` and `1` of an action's Flight response hold in 16.4.5?"
+  back: "Row 0 is the envelope: `a` points at the return value, `t` is the new tree when revalidated, and `b` matched `.next/BUILD_ID` when not. Row 1 is the return value."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-state-kept
+  front: "Does a page re-rendered by an action response keep its `useState` values?"
+  back: "Yes, per the docs: client state lives in the React tree (not run here)."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-server-checks
+  front: "What does the server do with the action id and `Origin` before running an action?"
+  back: "It looks the id up in its server reference manifest, checks `Origin` against `Host`, decodes the body and runs the function."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: sa-tag-max-own-edit
+  front: "Why is `revalidateTag('projects', 'max')` wrong after a user's own edit?"
+  back: "It is stale-while-revalidate and adds no re-render to the response, so the user still sees the old value. `updateTag` expires the tag and includes the re-rendered page."
+  question: nextjs/mutations/server-action-single-round-trip
+- id: rv-two-questions
+  front: "Which two questions do the revalidation APIs answer?"
+  back: "What gets invalidated, and how stale the next read may be."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-path
+  front: "What does `revalidatePath(p)` invalidate, and is the next read fresh?"
+  back: "Entries rendered by route `p`, through the `_N_T_/…` tags attached to each route and layout. The next read is fresh. Other routes using the same data stay cached. Works in Server Actions and route handlers."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-path-pattern
+  front: "How do you revalidate a dynamic pattern like `/blog/[slug]` with `revalidatePath`?"
+  back: "Pass `'layout'` or `'page'` as the second argument."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-tag-max
+  front: "How does `revalidateTag(t, 'max')` behave on the next read?"
+  back: "Stale-while-revalidate. Every entry tagged `t` is marked stale, the next read gets the old value and refreshes it in the background. Its profile caps how long stale may be served. It does not re-render the page in an action."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-tag-profile
+  front: "What can the second argument of `revalidateTag` be?"
+  back: "`'max'`, another `cacheLife` profile, or `{ expire }`."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-update-tag
+  front: "What is `updateTag` for, and where can it run?"
+  back: "Read-your-own-writes: it expires the tag so the next read waits for fresh data, and re-renders the page. Server Actions only; in a route handler it threw."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-refresh
+  front: "What does `refresh()` invalidate?"
+  back: "Nothing. It re-renders the current route so uncached state (cookies, an uncached database read) shows its new value. Cached data stays as it was. It is Server Action only."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-router-refresh
+  front: "What does the client-side `router.refresh()` do?"
+  back: "A `GET` for the current route's payload, with no server invalidation. Cached data stays as it was."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-render-throws
+  front: "What happened when the four revalidation APIs were called during render in 16.4.5?"
+  back: "All four threw. The `updateTag` error advised \"Call it from a Server Action or Route Handler instead\", but the route handler threw too."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-update-tag-handler-error
+  front: "What did `updateTag` in a route handler throw in 16.4.5?"
+  back: "\"updateTag can only be called from within a Server Action. To invalidate cache tags in Route Handlers or other contexts, use revalidateTag instead.\""
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-tag-max-observed
+  front: "How did the next `GET` behave after `revalidateTag('v', 'max')` on 16.4.5?"
+  back: "The next `GET /rt` returned the old `v` with `x-nextjs-cache: STALE` and the one after it the new `v` with `HIT`."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-legacy-one-arg
+  front: "What did one-argument `revalidateTag(tag)` do before 16.0, and what happens now?"
+  back: "It expired immediately. Now it fails type-checking (`error TS2554: Expected 2 arguments, but got 1.` under TypeScript 5.9) and logs a deprecation warning, but still behaves like `updateTag`."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-expire-zero
+  front: "A CMS webhook must remove an entry now, and `updateTag` isn't available. What then?"
+  back: "`revalidateTag(tag, { expire: 0 })` in the route handler. Per the docs, nothing stale is served and the next request blocks on a fresh render (not run here)."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: rv-path-handler-miss
+  front: "What did the next request look like after `revalidatePath` from a route handler on an ISR page?"
+  back: "A `MISS` with fresh data, not a `STALE` response. Rendering happened on that request, not at the call."
+  question: nextjs/mutations/revalidation-apis-compared
+- id: isr-window
+  front: "How is an ISR route with `revalidate = 10` served by `next build` and `next start` on 16.4.5?"
+  back: "Prerendered at build (`○ /isr 10s 1y`) and served from the server cache with `Cache-Control: s-maxage=10, stale-while-revalidate=31535990`. Inside the window responses are `x-nextjs-cache: HIT`."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-stale-request
+  front: "What happens to the first request after an ISR entry is older than its `revalidate` time?"
+  back: "Nothing happens until a request arrives. That request still gets the old page, marked `STALE`, and starts a background regeneration. The next request is a `HIT` with new data."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-lag
+  front: "How does ISR freshness lag, and who waits for the render?"
+  back: "Freshness lags by one request, and nobody waits for a render."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-regen-fails
+  front: "What happens if ISR regeneration throws, per the docs?"
+  back: "The last good page keeps being served and the next request retries (not run here)."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-ondemand-path
+  front: "What did the next request look like after `revalidatePath` on an ISR route on 16.4.5?"
+  back: "A `MISS` that rendered fresh data. After `revalidateTag(…, 'max')` the next requests were `STALE` until the background render finished."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-per-instance
+  front: "Does on-demand revalidation propagate across `next start` instances by default?"
+  back: "No. The cache and tag state live in each process, and a call reaches only the instance that received it. After `revalidatePath` on A, A served the new page while B and C kept serving the old one with `HIT`."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-cache-handler
+  front: "What makes revalidation global across instances?"
+  back: "A shared `cacheHandler` whose tag index lives in Redis or similar, so a call on one instance invalidates entries on all."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-shared-disk
+  front: "Do instances sharing a build folder share the ISR cache?"
+  back: "No. B, on A's folder, kept serving its in-memory copy; only after a restart did it read the page A had written. The cache is memory in front of the `.next` folder on disk."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-disk-location
+  front: "Where did a regenerated ISR page go on disk in 16.4.5?"
+  back: "`.next/server/route-cache/APP_PAGE/<hash>/$/isr.html` with `.rsc`, `.meta` and segment files. `.next/server/app/isr.html` kept the build-time value."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-load-balancer
+  front: "What goes wrong sending on-demand revalidation through a load balancer?"
+  back: "It lands on one instance. The others serve stale pages until their own `revalidate` time runs out."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-endpoint-auth
+  front: "Why check a secret in a revalidation route handler?"
+  back: "Unauthenticated, anyone could force re-renders. The secret check in the example returned `401` without it."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-cdn
+  front: "What must a CDN in front of ISR do, per the docs?"
+  back: "Cache the HTML and RSC responses together and respect `Vary`, or navigations can mix renders (not run here). `s-maxage` and `stale-while-revalidate` let a CDN serve the stale page too."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: isr-cache-components
+  front: "What replaces ISR's timer with Cache Components on, and do on-demand calls change?"
+  back: "`use cache` with `cacheLife` sets the lifetimes. On-demand calls are the same functions with the same per-instance limit."
+  question: nextjs/mutations/isr-and-on-demand-revalidation
+- id: aa-page-check
+  front: "Why does a page's admin-only check not protect the Server Action behind its form?"
+  back: "The page's check controls which UI appears; the action is a separate entry point. Next.js routes a `POST` by the `Next-Action` header, and any page URL will do. A `curl` `POST` with the id and no cookie ran the delete action on 16.4.5."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-no-js-field
+  front: "How is an action identified from a form posted without JavaScript?"
+  back: "By a `$ACTION_ID_…` field, instead of the `Next-Action` header."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-origin-check
+  front: "How does Next.js check the origin of a Server Action request?"
+  back: "The host in `Origin` must match `Host` or `X-Forwarded-Host`, else the request is rejected. `serverActions.allowedOrigins` lists extra hosts. A request with no `Origin` header is allowed with a warning."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-origin-scope
+  front: "What does the `Origin` check stop, and what doesn't it?"
+  back: "It stops browsers on other sites, not scripts, since a missing `Origin` is allowed with a warning."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-allowed-origins-exact
+  front: "What did `allowedOrigins: ['shop.example']` accept in the 16.4.5 test?"
+  back: "`shop.example` only. `shop.example:8443` and `app.shop.example` were rejected."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-ids
+  front: "How are Server Action ids protected, per the docs?"
+  back: "Ids are hashes, each cached for at most 14 days, and an action is reachable only if its module is compiled into the server bundle. Unused ids are stripped."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-unused-export
+  front: "Is an exported action nobody renders private?"
+  back: "No. `unusedExport` from the same `'use server'` file as rendered actions never appeared in HTML or client chunks, but a `POST` with its id ran it."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-unimported-module
+  front: "Was a `'use server'` module nobody imports reachable?"
+  back: "No. It had no entry in `server-reference-manifest.json`, so there was no id to call."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-closures-body-limit
+  front: "How are closed-over values and body size handled for Server Actions?"
+  back: "Values an inline action closes over travel to the client encrypted (per the docs, not run here); `.bind` arguments don't. The body limit is 1 MB by default (`bodySizeLimit`)."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-inside-action
+  front: "What must go inside each action, or a server-only data access layer it calls?"
+  back: "Authenticate from the session, authorize this user for this resource (re-read ownership; don't trust an id or object from the client), validate the input, and return only what the UI needs."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-resource-authz
+  front: "What goes wrong if an action checks only \"logged in\"?"
+  back: "One user can delete another's post by sending its id. Authorize the specific resource, not just the user."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-stale-id
+  front: "What does an action id from an older build return on 16.4.5?"
+  back: "`409 Conflict` with `x-nextjs-action-not-found: 1`, logged as \"Failed to find Server Action … This request might be from an older or newer deployment.\""
+  question: nextjs/mutations/server-action-authorization
+- id: aa-ids-rebuild
+  front: "Did a rebuild that kept `.next` change action ids in 16.4.5?"
+  back: "No, it produced the same ids, though the docs say a new build regenerates them. Deleting `.next` changed every id."
+  question: nextjs/mutations/server-action-authorization
+- id: aa-cross-origin
+  front: "What did a cross-origin `Origin: https://evil.example` call get in 16.4.5?"
+  back: "A `500` and a log line that the `x-forwarded-host` header does not match the `origin` header from a forwarded Server Actions request, \"Aborting the action.\""
+  question: nextjs/mutations/server-action-authorization
+- id: aa-cve
+  front: "What was CVE-2025-66478?"
+  back: "Remote code execution through React's decoding of action payloads (December 2025), before any app code ran. The fix was upgrading Next.js."
+  question: nextjs/mutations/server-action-authorization
+- id: ae-two-kinds
+  front: "How should a Server Action report expected versus unexpected errors?"
+  back: "Expected errors (validation, \"name taken\") are return values, such as `{ error }`, rendered from `useActionState`. Unexpected errors are thrown."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-echo-values
+  front: "Why echo submitted values back from an action that returns an error?"
+  back: "React resets uncontrolled fields after the action, so `defaultValue={state.name}` keeps what the user typed."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-pending-sources
+  front: "Where does pending state come from in a form with a Server Action?"
+  back: "`isPending`, the third item of `useActionState`, or `useFormStatus()` in a component inside the form."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-usefromstatus-child
+  front: "Where must `useFormStatus` be called?"
+  back: "In a child of the `<form>`, not the component that renders it. Per React's docs it reads only a parent `<form>` (not run here)."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-form
+  front: "How does Next.js render an action form without JavaScript?"
+  back: "As a real HTML form: `method=\"POST\"`, `encType=\"multipart/form-data\"`, with hidden fields naming the action and carrying the previous state. Submitting does a full-page `POST` and returns HTML with the new state."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-pending
+  front: "What pending feedback exists without JavaScript?"
+  back: "Only the browser's own loading indicator. No script runs, so `useFormStatus` never reports `true`. Pending UI is a JavaScript enhancement."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-errors
+  front: "Did returned error messages show without JavaScript on 16.4.5?"
+  back: "Yes, with the echoed input, in Chrome 156 and Firefox 159, just as with JS."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-wire-difference
+  front: "How do the JS and no-JS submissions differ on the wire in 16.4.5?"
+  back: "With JS: one `POST` with a `Next-Action` header returning `text/x-component`. Without: one `POST` without it, returning `text/html`."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-thrown-js
+  front: "What happens to a thrown action error with JavaScript, and without?"
+  back: "With JS the nearest `error.js` renders; the message is replaced in production and `error.digest` matches the server log. Without JS the response was a bare `500 Internal Server Error` page."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-thrown-message
+  front: "Does the client see a thrown action's message in production on 16.4.5?"
+  back: "No. The response row was `1:E{\"digest\":\"…\"}` and `error.js` received \"Minified React error #441\" with that digest."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-prevstate-forged
+  front: "Why not trust `prevState` in an action?"
+  back: "Without JS it comes back from the browser. A forged `$ACTION_1:1` field of `[{\"error\":null,\"n\":41}]` produced \"Saved Eve (42)\"."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-state-survival
+  front: "How did previous state survive a full-page post without JS?"
+  back: "Hidden inputs: `$ACTION_REF_1`, `$ACTION_1:0` (the action id), `$ACTION_1:1` (the state) and `$ACTION_KEY` (the hook). The response rewrote `$ACTION_1:1` with the new state."
+  question: nextjs/mutations/action-errors-and-pending-state
+- id: ae-no-js-url
+  front: "Where does the page go after a no-JS form submit?"
+  back: "It stays on the same URL, since the form's `action` is empty. `useActionState`'s third argument, a permalink, changes that target (per React's docs, not run here)."
+  question: nextjs/mutations/action-errors-and-pending-state
+# 06 Navigation
+- id: lc-link-intercept
+  front: "What does hydrated `<Link>` do on a plain left click?"
+  back: "It renders a real `<a>`, so it works without JavaScript and opens new tabs. Once hydrated it calls `preventDefault()` and the App Router navigates inside a React transition. No HTML document is requested."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-prefetched-static
+  front: "What does a click on a link to a prefetched static route do?"
+  back: "The whole page was prefetched, so the click commits from memory with no request."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-dynamic-loading
+  front: "What does a click do for a dynamic route with a `loading.js`, or with Cache Components?"
+  back: "The router commits the prefetched shared layouts plus the loading UI or static shell at once, pushes the URL, and requests the rest."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-dynamic-nothing
+  front: "What does a click on a dynamic route with neither `loading.js` nor Cache Components do?"
+  back: "Only metadata was prefetched, so the old page stays on screen until the server answers, and the URL changes then too."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-request-shape
+  front: "What does the navigation request for a dynamic route look like?"
+  back: "`GET /d?_rsc=…` with `RSC: 1` and a `Next-Router-State-Tree` header listing the segments the client already holds. The response is `text/x-component`."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-segments-rendered
+  front: "Which segments does the server render for a client navigation?"
+  back: "Only those below the deepest shared layout. Layouts the client already has come back empty (`\"r\":null`) in the RSC payload, so layouts don't re-render on the server."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-merge
+  front: "How does the router merge the navigation response?"
+  back: "Shared layouts aren't re-rendered on the client, so their state survives. The page segment is swapped in, Suspense boundaries fill as chunks arrive, and Next.js scrolls to the new page if it is out of view."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-activity
+  front: "How does the old route behave with Cache Components on during a navigation?"
+  back: "It is hidden with `<Activity>` instead of unmounted."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-timings
+  front: "In the Chrome 156 test with 400 ms added latency, when did each navigation show something?"
+  back: "Cache Components off: no `loading.js` took 410 ms; with `loading.js`, 5 ms. Cache Components on: the shell after 6 ms. Next.js 16.4.5 under `next start`; the added latency was Chrome-only (Firefox under Puppeteer's BiDi has no network emulation)."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-suspense-not-enough
+  front: "Does an in-page `<Suspense>` make a dynamic route feel instant without Cache Components?"
+  back: "No. Only `loading.js` is prefetched; the in-page fallback arrived with the server's response."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-dev-prefetch
+  front: "Why not judge navigation speed in `next dev`?"
+  back: "Automatic prefetching only runs in production builds, so dev timings mislead."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-url-timing
+  front: "Why does the URL stay old while a slow page loads?"
+  back: "With nothing to show, the router keeps the old UI inside a transition and commits URL and tree together. `pushState` fired at 410 ms with the response; with a shell or loading UI cached it fired within 7 ms."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-link-status
+  front: "How do you show progress on a slow `<Link>` click?"
+  back: "`useLinkStatus()` inside the link returns `pending: true` while its navigation is in flight (per the docs, not run here). Better: add `loading.js` or Cache Components so the click commits at once."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-rsc-param
+  front: "What is the `_rsc` query value on navigation requests?"
+  back: "Not random: every link with the same router headers sent the same value, whatever its path. A wrong one got a `307` with the right one in `location`. With `Vary`, it keeps RSC payloads and HTML for one URL apart in HTTP caches."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-metadata-only
+  front: "What does a prefetch of a dynamic route with no `loading.js` return without Cache Components?"
+  back: "`next-router-state-tree` ended in `\"metadata-only\"` and the response was 832 bytes of route tree and `<head>` data, no UI. That is what the docs mean by \"skipped\"."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-prefetch-false-click
+  front: "What did `prefetch={false}` do to a click on a static page in the 400 ms test?"
+  back: "No request on viewport entry or hover, so the click waited for its round trip (413 ms at 400 ms latency)."
+  question: nextjs/navigation/link-click-to-render
+- id: lc-cc-partial-either
+  front: "With Cache Components on, did `partialPrefetching` change whether the dynamic page's shell was prefetched?"
+  back: "No. The shell was prefetched either way, so the fallback appeared at once. The server never ran the dynamic component for an automatic prefetch."
+  question: nextjs/navigation/link-click-to-render
+- id: pf-prod-only
+  front: "When does `<Link>` prefetch, and in which builds?"
+  back: "In production builds only; `next dev` made no prefetch requests, even on hover. It prefetches when it enters the viewport and again on hover if what it fetched has expired. `prefetch={false}` turns both off."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-cc-off
+  front: "What does a `<Link>` prefetch without Cache Components?"
+  back: "A static route in full. A dynamic route gets everything down to its nearest `loading.js`, or with none only its route tree and `<head>` metadata. `prefetch={true}` renders the whole route, dynamic data included, at prefetch time."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-cc-on
+  front: "What does a `<Link>` prefetch with Cache Components on and `partialPrefetching: false`?"
+  back: "The dynamic route's prerendered static shell, so it needs no `loading.js`. `prefetch={true}` is still the full render."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-app-shell
+  front: "What does `partialPrefetching: true` prefetch by default (16.3+)?"
+  back: "The route's App Shell: static and cached output that doesn't depend on `params` or `searchParams`. Every link to `/p/[id]` shares one shell. It requires Cache Components; `next build` fails without it."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-true-with-partial
+  front: "What does `prefetch={true}` do with `partialPrefetching` on?"
+  back: "It adds that link's URL data and the cached content behind it, but no longer prefetches uncached data; that streams after the click. It costs a second request per link (`next-router-prefetch: 2`)."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-headers
+  front: "How are prefetch requests structured and marked?"
+  back: "Per segment: first the route tree, then each segment the client lacks, marked by `Next-Router-Prefetch` and `Next-Router-Segment-Prefetch` headers."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-counts
+  front: "How many prefetch requests to `/p/*` did a page with 20 links make in the 16.4.5 test across the three configs?"
+  back: "Cache Components off: 24 (4 route trees, 20 per-link metadata). On with `partialPrefetching: false`: 8 (4 trees, 4 copies of the same shell). On with `partialPrefetching: true`: 5 (4 trees, 1 shared shell). Same counts in Chrome 156 and Firefox 159."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-shell-size
+  front: "What did the single shared shell request look like with both flags on?"
+  back: "`next-router-segment-prefetch: /p/$d$id/__PAGE__`, 3,346 bytes holding the heading and `loading item…`. Clicking `/p/7` showed the fallback at once and `item 7` from one more request."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-defaults-removed
+  front: "What do the docs say about the two prefetch flags in the next major?"
+  back: "Both become the default, and are removed."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-side-effects
+  front: "Why avoid side effects in a layout or page with `prefetch={true}`?"
+  back: "With Partial Prefetching off, the server log showed the dynamic component rendering at prefetch time, before any click."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-prefetch-false-hover
+  front: "Does `prefetch={false}` mean \"prefetch on hover\"?"
+  back: "No, it disables hover too. The docs' pattern starts at `false` and switches to `null` in `onMouseEnter`; with Partial Prefetching, `'auto'` before hover and `true` after."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-refetch-on-hover
+  front: "When is a prefetched route fetched again?"
+  back: "When its data has expired and the link is hovered. A static page fetched at load was fetched again on hover at 312 s, not 272 s: the 5-minute default. Invalidations such as `revalidatePath` refetch at once."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-per-route-opt-in
+  front: "Can Partial Prefetching be adopted one route at a time?"
+  back: "Yes, per the docs (not run here): with the global flag off, `export const prefetch = 'partial'` from a page or layout opts that route in. A codemod removes those exports once the flag is on."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: pf-cookies-in-shell
+  front: "Where do `cookies()` and `headers()` fit in the App Shell?"
+  back: "Per the docs (not run here), they vary per session, not per link, so their output can be in the App Shell, which the client then caches per session."
+  question: nextjs/navigation/prefetch-and-partial-prefetching
+- id: st-contents
+  front: "What does the App Router client cache hold, and what empties it?"
+  back: "RSC payloads of prefetched and visited routes, keyed by segment, in the tab's memory. A reload empties it."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-static
+  front: "What does `staleTimes.static` default to and cover?"
+  back: "300 s. Prerendered pages, `loading.js` UI, and anything prefetched with `prefetch={true}` or `router.prefetch()`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-dynamic
+  front: "What does `staleTimes.dynamic` default to, and what was it before Next.js 15.0?"
+  back: "0 s: every new visit to a dynamic page fetches it again. It was 30 s until Next.js 15.0."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-config-header
+  front: "Where are `staleTimes` set in 16.4.5, and how does the server communicate the value?"
+  back: "Under `experimental.staleTimes` in `next.config`; the build lists it under \"Experiments (use with caution)\". The server sends the value with each response, such as `x-nextjs-stale-time: 300`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-cachelife-stale
+  front: "How does `cacheLife` interact with the router cache's stale time with Cache Components?"
+  back: "A page's `cacheLife` `stale` sets it per route: `stale: 45` got `x-nextjs-stale-time: 45`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-lazy-expiry
+  front: "How does router cache expiry work?"
+  back: "Lazily. An expired prefetch is fetched again when the link is hovered; an expired page when you navigate to it. Nothing refreshed in the background while idle."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-back-forward
+  front: "Do stale times apply to Back and Forward?"
+  back: "No. They restore what was on screen from memory, even a dynamic page with `dynamic: 0`."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-emptied-by
+  front: "What empties the whole router cache, not just the touched route?"
+  back: "A Server Action that calls `revalidatePath` or `updateTag` or sets a cookie: visible links were prefetched again at once. `router.refresh()` did the same for their page segments."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-refresh-disagree
+  front: "Where do the `cacheLife` docs and the mutations chapter's test disagree about `refresh()`?"
+  back: "The `cacheLife` docs list an action's `refresh()` as emptying the cache, but in the mutations chapter's test it caused no new prefetches."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-observed-dynamic
+  front: "What did `staleTimes.dynamic: 30` do going `/` to `/d` to `/` to `/d` on 16.4.5?"
+  back: "The second visit to `/d` made no request and showed the same `t`; after 35 s idle it fetched again. With the defaults it made a new request and showed a new `t`. Cache Components on and off agreed."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-observed-static
+  front: "When was a static link prefetched at load fetched again on hover?"
+  back: "After 42 s with `static: 30`, and after 312 s (not 272 s) with the default. Expiry timings ran in Chrome only."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-raise-dynamic
+  front: "What is the risk of raising `staleTimes.dynamic` for speed?"
+  back: "Every page shows data up to that old, unless an action invalidates it."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-refresh-timer
+  front: "What did `router.refresh()` do to visible links in 16.4.5?"
+  back: "Its docs say it clears the cache for the current route, but each call also made both browsers re-prefetch every visible link's page."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-revalidate-path-broad
+  front: "Does `revalidatePath('/s')` in an action clear only `/s` in the router cache?"
+  back: "No. After an action called it, both browsers re-prefetched every visible link, `/d` as well as `/s`. A no-op action caused no prefetch requests."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-layouts-not-refetched
+  front: "Are shared layouts fetched again when a page's entry is stale?"
+  back: "No. The navigation request lists the segments the client has, and the server skips layouts above the changed page. The docs note `staleTimes` doesn't change this."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-static-cachelife
+  front: "How does `staleTimes.static` relate to `cacheLife`, per the docs?"
+  back: "Setting it also changes the `stale` of the `default` cache profile, and `cacheLife` enforces a 30-second minimum `stale` so a prefetch can't expire before the click (not run here)."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: st-vs-bfcache
+  front: "How is the router cache different from the browser's back/forward cache?"
+  back: "The bfcache keeps a whole document for a cross-document Back. The router cache is the router's memory within one document."
+  question: nextjs/navigation/client-router-cache-stale-times
+- id: bf-off-behaviour
+  front: "What happens to a page's client state on navigating away without Cache Components?"
+  back: "The page segment unmounts: Client Components' state and DOM are gone, and Back renders it again from scratch."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-activity
+  front: "What does `cacheComponents: true` do to the route you leave?"
+  back: "Wraps each route in React's `<Activity>`. Leaving sets it to `hidden`: components stay mounted, the DOM is hidden with `display: none`, and effect cleanups run as if it had unmounted. Coming back shows the same instance."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-observed-on-back
+  front: "What was restored on Back with Cache Components on in 16.4.5, Chrome 156 and Firefox 159?"
+  back: "Input text, a `useState` counter, an open `<details>` and `scrollY` 1500, all restored."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-link-return
+  front: "What happens returning to a hidden route by `<Link>` rather than Back?"
+  back: "State is restored, but scroll is at the top, as for any push."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-off-back
+  front: "What did Back show with Cache Components off in the 16.4.5 test?"
+  back: "Input empty, count 0, `<details>` closed. The scroll position was still restored."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-limit-three
+  front: "How many routes does Next.js keep hidden?"
+  back: "The docs say up to three. The page survived after visiting two other routes and was fresh after three, so three counts the one on screen."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-not-bfcache
+  front: "Is Activity retention the browser's back/forward cache?"
+  back: "No. The document never changed; the router keeps the hidden route in the same document."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-reset-options
+  front: "How do the docs suggest resetting retained state?"
+  back: "In an event handler, in a `useLayoutEffect` cleanup that runs on hide, or by keying a subtree on `useRouter().bfcacheId`, which changes on push and replace but not on Back or Forward."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-keyed-draft
+  front: "What did keying `<Draft>` on `bfcacheId` do?"
+  back: "Back kept the typed `draft`, but a fresh link to the page showed an empty input and `count: 0`."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-hidden-dom
+  front: "What does a hidden route look like in the DOM?"
+  back: "Its `<main>` is still in the document with `style=\"display: none !important;\"`. `document.querySelectorAll('#form-main')` still matched it while on another page, so filter by visibility or use role-based queries."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-effects
+  front: "Do effects keep running on a hidden page?"
+  back: "No, cleanups ran on hide, so timers and subscriptions stop. Per the docs, a `<video>` keeps playing under `display: none` unless an effect pauses it."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-stale-state-risk
+  front: "What risks does retained state carry?"
+  back: "A success message, an open dropdown or another user's draft stays until reset. The docs warn about state left from a previous user after logout."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-layouts
+  front: "Do shared layouts behave differently under Activity?"
+  back: "No. A layout shared by both routes was never hidden; it stays mounted on any navigation. Activity matters for the segments that change."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-data-refetch
+  front: "Is the page's data re-fetched on Back with Cache Components on?"
+  back: "No, Back restored the hidden route without a request. A `<Link>` to a dynamic page fetched it again, with a new server timestamp."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: bf-logout-reset
+  front: "How do you force a full reset on logout, per the docs?"
+  back: "Navigate with `window.location.href` for a full document load, or key components by user id (not run here)."
+  question: nextjs/navigation/state-retained-on-back-navigation
+- id: rn-mechanism
+  front: "How do `redirect()`, `permanentRedirect()` and `notFound()` stop rendering from any depth?"
+  back: "They throw an `Error` whose `digest` encodes the instruction, such as `NEXT_REDIRECT;replace;/s;307;` or `NEXT_HTTP_ERROR_FALLBACK;404`. Their return type is `never`. Next.js catches it where it builds the response."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-where-callable
+  front: "Where can these functions be called?"
+  back: "From a component, a function it awaits, a Server Action or a route handler, any number of calls deep. Per the docs, not from an event handler; use `useRouter().push` there."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-statuses
+  front: "What statuses did `redirect`, `permanentRedirect` and `notFound` give in a page on 16.4.5?"
+  back: "`redirect('/s')`: `307` with `location: /s`. `permanentRedirect`: `308`. `notFound()`: `404` and `<meta name=\"robots\" content=\"noindex\"/>`. In a route handler `redirect` gave `307`. Cache Components on and off alike."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-streamed
+  front: "What status does a redirect or `notFound()` inside `<Suspense>` after streaming started produce?"
+  back: "`200`, because the status was already sent. The redirect came as `<meta id=\"__next-page-redirect\" http-equiv=\"refresh\" content=\"1;url=/s\"/>` plus an error row in the RSC stream; `notFound()` gave `200` with the `noindex` tag."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-streamed-crawlers
+  front: "Who can move the user when a redirect happens inside `<Suspense>`?"
+  back: "Only the meta refresh and the client router. Crawlers see a `200`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-streamed-no-js
+  front: "What does a streamed redirect do without JavaScript?"
+  back: "With JavaScript disabled in Chrome 156, loading the page fetched `/r/stream` (`200`), then `/s` after the 1-second meta refresh."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-action-redirect
+  front: "What does `redirect()` in a Server Action produce with and without JavaScript?"
+  back: "Called from JavaScript: a `200` RSC response, then a client-side push to `/s`. A form posted without JavaScript got `303` to `/s`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-try-catch
+  front: "What happens when `redirect('/s')` sits inside a `try`/`catch`?"
+  back: "The `catch` swallows it: rendering continues in the `catch` block and the page answered `200` with the catch branch's content (`NEXT_REDIRECT | digest=NEXT_REDIRECT;replace;/s;307;`). In an action the user stayed put."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-prerendered-catch
+  front: "What happened to the caught-redirect page at build time?"
+  back: "Nothing else in it was dynamic, so it was prerendered with the catch branch and served with `Cache-Control: s-maxage=31536000`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-fix
+  front: "How do you avoid swallowing a redirect or `notFound()` in a `catch`?"
+  back: "Keep the call outside the `try`, or call `unstable_rethrow(error)` first thing in the `catch`, which rethrows Next.js's own errors and returns for yours. `/r/rethrow` returned `307` with `location: /s`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-catch-notfound
+  front: "What happens when `notFound()` is called inside a data-loading `try`/`catch`?"
+  back: "The catch turned the 404 into a `200` page showing the error UI."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-after-redirect
+  front: "Why not call `revalidatePath` or `updateTag` after `redirect()` in an action?"
+  back: "The throw skips them."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-push-replace
+  front: "Is an action redirect a push or a replace?"
+  back: "A push by default: the caught digest read `NEXT_REDIRECT;push;/s;307;`, and Back from `/s` returned to the form page in Chrome 156 and Firefox 159. In render the digest says `replace`; per the docs `type` has no effect in Server Components."
+  question: nextjs/navigation/redirect-and-notfound-control-flow
+- id: rn-307-not-302
+  front: "Why 307 and not 302 for a redirect?"
+  back: "A 307 keeps the request method, so a redirected `POST` stays a `POST`; a 302 lets browsers switch to `GET`. Form actions use `303` precisely to force the `GET`."
+  question: nextjs/navigation/redirect-and-notfound-control-flow

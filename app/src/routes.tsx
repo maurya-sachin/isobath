@@ -53,6 +53,10 @@ export const routes: RouteObject[] = [
             loader: loadChangelog,
           },
           {
+            path: 'privacy',
+            lazy: async () => ({ Component: (await import('@/pages/PrivacyPage')).PrivacyPage }),
+          },
+          {
             path: 'cheatsheet/:topic/:chapter',
             lazy: async () => ({ Component: (await import('@/pages/CheatsheetPage')).CheatsheetPage }),
             loader: ({ params }: LoaderFunctionArgs) => loadCheatsheet(params.topic, params.chapter),

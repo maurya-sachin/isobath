@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { createBrowserRouter, matchRoutes, RouterProvider } from 'react-router'
 import './index.css'
+import { initAnalytics } from './lib/analytics.ts'
 import { routes } from './routes.tsx'
 
 const basename = import.meta.env.BASE_URL
@@ -22,6 +23,8 @@ async function loadMatchedPages() {
 
 async function start() {
   await loadMatchedPages()
+  // Before the first render: the consent store reads PostHog's state as soon as the app renders without hydrating.
+  initAnalytics()
   const router = createBrowserRouter(routes, { basename })
   const app = (
     <StrictMode>
