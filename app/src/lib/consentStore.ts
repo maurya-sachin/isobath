@@ -8,14 +8,29 @@ import { analyticsEnabled } from './analytics.ts'
 const listeners = new Set<() => void>()
 let reopened = false
 
+const CHOICE_KEY_PREFIX = '__ph_opt_in_out_'
+
+/** PostHog keeps the choice in local storage, so a choice made in another tab arrives as a `storage` event. */
+function onStorage(event: StorageEvent): void {
+  if (event.key?.startsWith(CHOICE_KEY_PREFIX)) notify()
+}
+
+function notify(): void {
+  for (const listener of listeners) listener()
+}
+
 function subscribe(listener: () => void): () => void {
+  if (listeners.size === 0) window.addEventListener('storage', onStorage)
   listeners.add(listener)
-  return () => listeners.delete(listener)
+  return () => {
+    listeners.delete(listener)
+    if (listeners.size === 0) window.removeEventListener('storage', onStorage)
+  }
 }
 
 function setReopened(next: boolean): void {
   reopened = next
-  for (const listener of listeners) listener()
+  notify()
 }
 
 function isPromptOpen(): boolean {
