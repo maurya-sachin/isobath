@@ -120,6 +120,8 @@
   html {
     /* Anchors and focused elements scroll clear of the sticky header. */
     scroll-padding-top: calc(var(--header-height) + 1rem);
+    /* Set while the consent prompt is open, so focused elements do not end up under it. */
+    scroll-padding-bottom: calc(var(--consent-height, 0px) + 1rem);
   }
   [data-reading-font='sans'] {
     --reading-font: var(--font-sans);

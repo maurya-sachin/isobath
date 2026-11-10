@@ -17,10 +17,11 @@ export function PrivacyPage() {
           device type. There are no accounts, and no advertising or tracking by anyone else.
         </p>
 
-        <h2 className="mt-4 text-xl font-semibold">If you decline, or have not chosen</h2>
+        <h2 className="mt-4 text-xl font-semibold">If you decline, or have not chosen yet</h2>
         <p>
-          Your visit is still counted, anonymously. Nothing is stored on your device: no cookie and no local storage.
-          The server turns your address into a short-lived anonymous identifier and does not keep the address.
+          Your visit is still counted, anonymously. No cookie is set and nothing that identifies you is stored on your
+          device; the only thing kept is one local-storage entry recording your choice, so you are not asked again. The
+          server turns your address into a short-lived anonymous identifier and does not keep the address.
         </p>
 
         <h2 className="mt-4 text-xl font-semibold">If you accept</h2>
