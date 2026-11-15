@@ -2106,3 +2106,288 @@
   front: "Is `register` a good place for a database pool?"
   back: "It can create one, since it runs once per server and runtime, but every server instance gets its own: each `next start` ran `register` again. Size pools per instance."
   question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+# 08 Optimizations
+- id: im-two-parts
+  front: "What are the two parts of `next/image`?"
+  back: "A component that writes `<img>` markup, and an optimizer route, `/_next/image?url=…&w=…&q=…`, that produces the files the markup points at."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-srcset-widths
+  front: "How does `next/image` build `srcset` (16.4.5)?"
+  back: "From `deviceSizes` and `imageSizes`. A 400 px image without `sizes` got `w=640 1x, w=828 2x`; with `sizes`, nine `w` candidates from 384w to 3840w; `fill` without `sizes` got `sizes=\"100vw\"` and device widths only."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-loading-defaults
+  front: "What loading attributes does `next/image` add by default, and what does `preload` change (16.4.5)?"
+  back: "`loading=\"lazy\"` and `decoding=\"async\"`. `preload` (and the deprecated `priority`) drops `loading` and puts `<link rel=\"preload\" as=\"image\" imagesrcset>` in `<head>`. Neither adds `fetchpriority`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-width-height-static-import
+  front: "How does `next/image` get `width` and `height` for a static import?"
+  back: "It reads them at build time, along with the blur placeholder, and writes `width` and `height` to reserve space."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-optimizer-validation
+  front: "What does the `/_next/image` optimizer validate, and what happens otherwise (16.4.5)?"
+  back: "It checks `url` against `localPatterns`/`remotePatterns`, `w` against the configured widths and `q` against `qualities` (default `[75]`). Anything else is a `400`, such as `\"q\" parameter (quality) of 80 is not allowed`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-no-upscale-format
+  front: "How does the optimizer pick size and format (16.4.5)?"
+  back: "It resizes without upscaling (`w=3840` of a 1600 px source came back 1600 px wide) and picks the format from `Accept` and `images.formats`: WebP by default, AVIF only if configured, the original JPEG for `Accept: */*`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-cache-headers
+  front: "Where does the optimizer cache and what `Cache-Control` does it send (16.4.5)?"
+  back: "In `.next/cache/images`. `Cache-Control: public, max-age=14400, must-revalidate` (`minimumCacheTTL`, 4 hours since 16), or `max-age=315360000, immutable` for static imports, with `X-Nextjs-Cache: MISS`, then `HIT`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-what-stays-yours
+  front: "What must you still supply with `next/image`?"
+  back: "Dimensions or `fill` inside a positioned, sized parent; a `sizes` that matches the layout; real `alt` text; the host allowlists; and `preload` or `loading=\"eager\"` on the one LCP image. It only nags about them in development."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-browser-lazy-differs
+  front: "Did Chrome 156 and Firefox 159 lazy-load a below-the-fold `next/image` the same way?"
+  back: "No. Chrome fetched the below-the-fold avatar at once; Firefox waited until the page was scrolled. Both lazy-load thresholds are browser choices."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-fill-without-sizes
+  front: "What happens to a `fill` image with no `sizes`?"
+  back: "It defaults to `100vw`, so a 300 px card downloaded the 1920w file."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-dev-checks-only
+  front: "Are missing `width`, `height` and `alt` caught in a production build (16.4.5)?"
+  back: "No. `<Image src=\"/hero.jpg\" quality={80} />` built silently and rendered an `<img>` with no `alt`, no dimensions, `sizes=\"100vw\"` and `q=75`. The source throws for missing `width` only in development (not run here)."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-unlisted-host
+  front: "What happens with an unlisted remote host in dev versus production?"
+  back: "`next dev` returned 500: `hostname \"images.unsplash.com\" is not configured under images in your next.config.js`. The production page rendered, and its image request got `400 \"url\" parameter is not allowed`: a broken image, no error."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-replace-same-url
+  front: "What happens if you replace an image file at the same URL?"
+  back: "The optimized copy is served until `minimumCacheTTL` runs out. There is no invalidation API, and the cache survived a rebuild (`HIT`)."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-query-string-16
+  front: "Why does `src=\"/hero.jpg?v=2\"` break after upgrading to Next.js 16?"
+  back: "Local images with a query string now need a `localPatterns` entry with `search`. Without it the optimizer answered `400 \"url\" parameter is not allowed`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-multi-instance-cache
+  front: "Where does the image cache live with several instances?"
+  back: "On each instance's disk, in `.next/cache/images`, capped by `maximumDiskCacheSize`. Instances don't share it, so a CDN in front relies on `Cache-Control` and `Vary: Accept`, and must forward `Accept`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-avif-cost
+  front: "Is AVIF worth enabling for `next/image` (16.4.5 measurement)?"
+  back: "It was 1,854 bytes against WebP's 3,178, but the first request took 88 ms to encode against 2 ms for a cache hit. Each format is cached separately. The docs still recommend WebP for most sites."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-priority-vs-preload
+  front: "How do `priority` and `preload` differ on `next/image`?"
+  back: "Not in output: both removed `loading` and added the same `<link rel=\"preload\">`. `priority` is deprecated since 16; the docs suggest `loading=\"eager\"` or `fetchPriority=\"high\"` in most cases."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: nf-self-hosting
+  front: "How does `next/font/google` self-host fonts?"
+  back: "During `next build` it fetches Google's CSS and font files, writes the files to `/_next/static/media/` (`Cache-Control: public, max-age=31536000, immutable`) and puts the `@font-face` rules into the route's CSS. In Chrome 156 and Firefox 159 no request went to `fonts.googleapis.com` or `fonts.gstatic.com`."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-self-host-gains
+  front: "What does self-hosting fonts through `next/font` remove?"
+  back: "A third-party connection and the CSS-then-font request chain; visitors' IP addresses never reach Google. `next/font/local` does the same for your own files."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-preloading
+  front: "Which font files does `next/font` preload?"
+  back: "Those for the `subsets` you list, via `<link rel=\"preload\" as=\"font\" crossorigin>`, on routes whose modules call the font function. Other Google subsets use `unicode-range` and are fetched only if needed: Inter got seven faces and one preload."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-face
+  front: "What fallback face does `next/font` generate?"
+  back: "A face such as `Inter Fallback` pointing at `local(Arial)`, rescaled with `size-adjust`, `ascent-override`, `descent-override` and `line-gap-override` matched to the font. The class sets `font-family: Inter, Inter Fallback`, under the default `font-display: swap`."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-widths
+  front: "How close was `Inter Fallback` to Inter in width (18 px, 60 characters)?"
+  back: "Inter measured 517.5 px, `Inter Fallback` 515.5 px and plain Arial 481.3 px. In Chrome, a 360 px-wide paragraph was 147 px tall in both Inter and its fallback."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-firefox-height
+  front: "Is layout shift fully removed by `next/font` in Firefox 159?"
+  back: "No. The paragraph was 161 px tall in Inter and 152.9 px in `Inter Fallback`: the overrides matched widths, but Inter's normal line height still came out 2 px taller there."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-variable-option
+  front: "What does the `variable` option of a `next/font` function add?"
+  back: "A class that declares a custom property (such as `--font-inter`) for CSS or Tailwind to use. The function returns `className`, `style` and, with `variable`, that class."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-adjust-false-turbopack
+  front: "What happens with `adjustFontFallback: false` under Turbopack (16.4.5)?"
+  back: "It is ignored: Lora still got a `Lora Fallback` face, while `next build --webpack` left it out. Issue #74134 and PR #101397 trace it to the option never being read."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-option-turbopack
+  front: "What happens when you set `fallback` under Turbopack (16.4.5)?"
+  back: "Roboto with `fallback: ['system-ui']` got `font-family: Roboto, system-ui` and no adjusted face at all (issue #100221). Webpack emits both."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-shared-fonts-module
+  front: "What goes wrong with one shared module defining three fonts?"
+  back: "Every route importing it preloaded all three files, even a page using one."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-flash-remains
+  front: "Does `next/font` remove the flash of fallback text?"
+  back: "No. With `swap` the fallback still paints first; the adjusted face only makes the redraw smaller. `display: 'optional'` lets the browser skip the font on a slow first load instead (per the CSS spec, not run here)."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-family-choice
+  front: "How does Next.js choose a Google font's fallback family?"
+  back: "Arial for sans-serif families and Times New Roman for serif ones, with overrides computed from metrics it bundles for each Google font. Lora got `size-adjust: 115.2%` on `local(Times New Roman)`."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-local-adjust
+  front: "Does `next/font/local` adjust fallbacks?"
+  back: "Per the docs, yes: `adjustFontFallback` defaults to `'Arial'` and accepts `'Times New Roman'` or `false` (not run here)."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-local-src-download
+  front: "Which file does the browser download for a `src: local(Arial)` fallback face, and what does `size-adjust: 107.12%` do?"
+  back: "None: `local(Arial)` uses the installed system font. `size-adjust` scales Arial's glyphs by 107.12% so a line is about as wide as Inter (515.5 px against 517.5 px at 18 px)."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: gm-prerendered
+  front: "Where does `generateMetadata` output land on a prerendered route?"
+  back: "In `<head>`, resolved at build. A `force-static` page with a `no-store` fetch in `generateMetadata` had its `<title>` before `<body>`, and the API was hit once, during the build."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-streams-per-request
+  front: "What does a browser get from a per-request page whose `generateMetadata` awaits a 2 s fetch (16.4.5)?"
+  back: "The `200` and a shell at 74 ms. `<title>` and `<meta name=\"description\">` arrived at 2,101 ms, appended inside `<body>`. Metadata streaming has existed since 15.2."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-title-in-body
+  front: "Does a `<title>` streamed into `<body>` still name the document?"
+  back: "Yes. Chrome 156 and Firefox 159 both left it in `<body>`, with JavaScript on or off, because HTML takes the first `<title>` in tree order. Tools that read only `<head>` miss it."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-html-limited-bots
+  front: "What is `htmlLimitedBots` and how do matching user agents differ?"
+  back: "A regex tested per request against the user agent; its default list includes Bingbot, Twitterbot, facebookexternalhit and Google's non-search crawlers. Matches wait for `generateMetadata`: `facebookexternalhit/1.1` got its first byte at 2,061 ms with the tags in `<head>`."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-googlebot
+  front: "Is Googlebot in `htmlLimitedBots`?"
+  back: "No, on purpose, because it runs JavaScript. It gets the streamed version, like `curl`, so testing with its user agent won't show blocking output."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-fetch-dedup
+  front: "Is a `fetch` shared by `generateMetadata` and the page one request?"
+  back: "Yes: both run in the same render, so a `fetch` both made was one request per page load. A plain function standing in for a database call ran twice per request; wrapped in React's `cache`, once."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-cache-components-error
+  front: "What happens to an uncached fetch in `generateMetadata` on a static page with `cacheComponents: true`?"
+  back: "The build fails: \"Next.js encountered uncached or runtime data in `generateMetadata()`\". Fix it with `'use cache'`, or a `connection()` marker inside `<Suspense>`, which makes the route partially prerendered with metadata streaming after the shell."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-notfound-after-await
+  front: "What does `notFound()` in `generateMetadata` after an `await` give a browser (16.4.5)?"
+  back: "A `200`. With JavaScript off it showed the page body with `<meta name=\"robots\" content=\"noindex\">`; with it on, the 404 UI. facebookexternalhit got a real `404`."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-redirect-in-metadata
+  front: "What does `redirect()` in `generateMetadata` give a browser versus a bot (16.4.5)?"
+  back: "Browsers got `200` plus `<meta http-equiv=\"refresh\" content=\"1;url=/dedup\">`, then the client redirect. The bot got a real `307`."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-turn-off-streaming
+  front: "How do you turn streaming metadata off?"
+  back: "`htmlLimitedBots: /.*/` in `next.config`: every user agent then waits for `generateMetadata` before the first byte. Per the docs, a custom regex replaces the default list rather than extending it."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-connection-bots
+  front: "With Cache Components and a `connection()` marker, what do bots get?"
+  back: "The tags in `<head>`: facebookexternalhit waited 1,571 ms for the slow fetch instead of getting the prerendered shell first."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: ns-when-element-created
+  front: "What do `next/script` strategies decide?"
+  back: "When the `<script>` element gets created; once it exists, the browser's normal rules apply. No strategy puts a `<script src>` in the server HTML."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-before-interactive
+  front: "How does `beforeInteractive` load (16.4.5, Chrome 156 and Firefox 159)?"
+  back: "The server HTML has a `<link rel=\"preload\" as=\"script\">` and an inline `self.__next_s.push([src])`. Next's bootstrap appends the scripts to `<head>` one by one, waiting for each `load`, and only then hydrates. It ran after `DOMContentLoaded`."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-before-interactive-blocks
+  front: "Does `beforeInteractive` block hydration?"
+  back: "The docs say it doesn't, but on 16.4.5 a 1.5 s script pushed hydration to 1,651 ms. It delays hydration by its full download time."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-after-interactive
+  front: "How does `afterInteractive` (the default) load (16.4.5)?"
+  back: "A preload hint from the server; the element is appended to `<body>` by the component's effect just after hydration (390 ms). It ran at 391 ms."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-after-vs-load
+  front: "Does `afterInteractive` run before the window `load` event?"
+  back: "Not by rule: it's tied to hydration. It ran at 391 ms, before `load` at 850 ms, only because a slow image held `load` back. With nothing else loading, `load` came before hydration, so it ran after `load`."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-lazy-onload
+  front: "How does `lazyOnload` load (16.4.5)?"
+  back: "No preload hint; the element is appended after `load`, inside `requestIdleCallback` (854 ms in the test)."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-worker
+  front: "Does the `worker` strategy work in the App Router?"
+  back: "No. It is experimental and per the docs not supported in the App Router. With `nextScriptWorkers` on and Partytown installed, the script was never requested (16.4.5)."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-worker-partytown
+  front: "What does enabling `worker` ask for (16.4.5)?"
+  back: "`experimental.nextScriptWorkers` made the build fail until `@builder.io/partytown` was installed; the guide names `@qwik.dev/partytown`. Even then, the App Router page rendered no script for it."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-vs-plain-async-defer
+  front: "How do plain `<script async>` and `<script defer>` compare with `next/script` strategies?"
+  back: "React wrote them straight into the HTML and both ran at 153 ms in Chrome 156, ahead of every strategy. `beforeInteractive` runs after `DOMContentLoaded` and after plain `defer` scripts."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-handlers-client-only
+  front: "Why must `onLoad`, `onReady` and `onError` live in a Client Component?"
+  back: "They are functions, so a Server Component can't pass them: the build failed with \"Event handlers cannot be passed to Client Component props\"."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-dedup-by-id-src
+  front: "How does `next/script` deduplicate scripts?"
+  back: "Per document, by `id`, else `src`: the same `src` rendered twice made one element, and navigating away and back didn't run it again (`nav.js` was requested once across `/p1` → `/p2` → `/p1`). Inline scripts have no `src`, so they need an `id`."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-inline-no-id
+  front: "What happens to an inline `<Script>` without `id` on back navigation?"
+  back: "It ran again each time the page was navigated back to; the one with an `id` ran once."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-before-interactive-root-layout
+  front: "What happens with `beforeInteractive` outside the root layout (16.4.5)?"
+  back: "The build didn't complain and a full load ran it, but a client-side navigation to the page only preloaded the file; it never ran."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-onready
+  front: "How do `onLoad` and `onReady` differ?"
+  back: "`onLoad` fires once, when the file loads. Per the docs and source, `onReady` also fires on every later mount once the script is cached, so it fits re-initialising a widget after navigation (remount not run here)."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-firefox-onerror
+  front: "How did Firefox 159 differ from Chrome 156 in the `next/script` test?"
+  back: "Firefox kept the same order, but `onError` came at 380 ms with `lazy`."
+  question: nextjs/optimizations/next-script-strategies
+- id: mr-what-they-are
+  front: "What are `sitemap.js`, `robots.js` and `opengraph-image.jsx`?"
+  back: "Special route handlers at fixed URLs (`/sitemap.xml`, `/robots.txt`, `/opengraph-image`), to which the build applies the usual static-or-dynamic rule (16.4.5, Turbopack; `--webpack` matched)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-prerendered
+  front: "Which metadata routes were prerendered (`○`) on 16.4.5?"
+  back: "The root image, `sitemap.xml`, `robots.txt`, and an image whose plain `fetch` ran once, at build. Repeat requests returned the same bytes with `x-nextjs-cache: HIT`."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-dynamic
+  front: "What made a metadata route per-request (`ƒ`) on 16.4.5?"
+  back: "Reading `cookies()`, a `no-store` fetch, `dynamic = 'force-dynamic'`, or a dynamic segment like `blog/[slug]/opengraph-image` with no `generateStaticParams`. Each request produced new bytes."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-no-search-params
+  front: "Can a query string vary a generated metadata image?"
+  back: "No. The image function receives only `params`; `/opengraph-image?v=1` returned the cached build output."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-cache-control
+  front: "What `Cache-Control` do metadata routes send (16.4.5)?"
+  back: "`public, max-age=0, must-revalidate` on every one, static or dynamic (the loader hard-codes it). A CDN may store the file but must revalidate it every time; set longer caching at the CDN."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-og-tags
+  front: "Which tags does Next.js write into the page for a generated image?"
+  back: "`og:image` with `?<hash>`, plus type, width, height and `og:image:alt` from the `size`, `contentType` and `alt` exports. With no `twitter-image` file, the same image filled `twitter:image`."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-hash-scope
+  front: "What does the `?<hash>` on `og:image` track?"
+  back: "The image file's content hash. Editing that file changed it, but editing a component it imports, or rebuilding with new data, didn't, so it can't be trusted to bust social-preview caches."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-multiple-images
+  front: "How do you produce several images or sitemaps from one file (16.4.5)?"
+  back: "`generateImageMetadata` (ids `small` and `2` gave `/gim/opengraph-image/small` and `/2`, two sets of `og:image` tags) and `generateSitemaps` (`/products/sitemap/0.xml`; `/products/sitemap.xml` was a 404)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-id-promise
+  front: "What type is `id` in `generateImageMetadata` and `generateSitemaps` handlers since Next.js 16?"
+  back: "A promise. It resolved to a string even when the id was the number `2`."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-image-response-limits
+  front: "What does `ImageResponse` render with, and what limits do the docs give?"
+  back: "Satori, which supports flexbox and a subset of CSS. The docs also cap the bundle at 500 KB and allow only ttf, otf and woff fonts (not tested here)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-display-grid
+  front: "What happens with `display: 'grid'` in `ImageResponse` (16.4.5)?"
+  back: "A prerendered image failed the build: `Invalid value for CSS property \"display\". Allowed values: \"flex\" | \"block\" | \"contents\" | \"none\" | \"-webkit-box\"`. A dynamic one closed the connection with no status code."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-dynamic-sitemap
+  front: "What turns `sitemap.js` dynamic?"
+  back: "The same things as any route: per the docs, a request-time API or a dynamic config option. For images, an uncached `fetch` and `cookies()` did it; a plain `fetch` kept the route static and ran once at build."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-static-image-limits
+  front: "What size limits apply to a static `opengraph-image.png`?"
+  back: "Per the docs and the loader source, the build fails above 8 MB for `opengraph-image` and 5 MB for `twitter-image` (not run here)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-alt-text
+  front: "How do you add alt text to static and generated metadata images?"
+  back: "For a static image, a sibling `opengraph-image.alt.txt`, per the docs. For generated images, `export const alt` became `og:image:alt` and `twitter:image:alt`."
+  question: nextjs/optimizations/file-based-metadata-routes
