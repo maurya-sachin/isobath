@@ -30,7 +30,7 @@ Coverage checklist: each concept points to the questions covering it; `→ —` 
 | 010 | [How do `getStaticProps`, `getServerSideProps` and `getStaticPaths` map to App Router code?](010-data-functions-to-app-router.md) | medium | 🟡 draft |
 | 020 | [What changes about data, layouts and client JavaScript when a page moves to `app/`?](020-moving-page-to-app.md) | medium | 🟡 draft |
 | 030 | [Can `pages/` and `app/` coexist, and what isn't shared between them?](030-pages-and-app-coexistence.md) | medium | 🟡 draft |
-| 040 | [What did `_app` and `_document` do, and what replaces them?](040-app-and-document-replacements.md) | easy | 🔴 planned |
+| 040 | [What did `_app` and `_document` do, and what replaces them?](040-app-and-document-replacements.md) | easy | 🟡 draft |
 <!-- generated:questions:end -->
 
 ## Sources
