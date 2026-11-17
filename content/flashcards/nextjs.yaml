@@ -1837,3 +1837,1103 @@
   front: "Why 307 and not 302 for a redirect?"
   back: "A 307 keeps the request method, so a redirected `POST` stays a `POST`; a 302 lets browsers switch to `GET`. Form actions use `303` precisely to force the `GET`."
   question: nextjs/navigation/redirect-and-notfound-control-flow
+# 07 Route handlers and Proxy
+- id: rh-action-is-post-to-page
+  front: "What is a Server Action on the wire?"
+  back: "A `POST` to the current page's URL with a build-generated `Next-Action` id and a body encoded by React. The response is an RSC stream that can carry the re-rendered page plus the return value."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-handler-shape
+  front: "What does a route handler (`app/**/route.js`) export, receive and return?"
+  back: "It exports verb functions (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`), receives a Web `Request` (a `NextRequest`) and returns any `Response`: JSON, XML, a file, a stream or a redirect."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-when-handler-over-action
+  front: "When do you pick a route handler over a Server Action?"
+  back: "When someone else calls it (webhook, mobile app, CLI, partner), when you need HTTP itself (other verbs, status codes, `Content-Type`, CORS, the raw body), when you serve a cacheable read, or when you stream a long response."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-webhook-cant-be-action
+  front: "Why can't a Server Action serve a payment provider's webhook?"
+  back: "The provider can't send a `Next-Action` id or React's body encoding, and a new build can change the id. A webhook needs a stable URL and a documented body, which a route handler gives."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-actions-one-at-a-time
+  front: "Why are Server Actions a poor way to fetch data?"
+  back: "They are `POST`s and, per the docs, the client runs them one at a time, so they queue behind each other. Use a Server Component or a `GET` handler."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-get-uncached-since-15
+  front: "Is a `GET` route handler cached by default?"
+  back: "No, not since Next.js 15.0. On 16.4.5 (Cache Components off) two `curl` calls returned different timestamps. Opt in with `dynamic = 'force-static'` (shown as `○` in the build table) or `revalidate`."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-dynamic-export-vs-cache-components
+  front: "What happens to `export const dynamic` in a route handler once `cacheComponents` is on (16.4.5)?"
+  back: "The build fails: \"Route segment config \"dynamic\" is not compatible with `nextConfig.cacheComponents`. Please remove it.\""
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-get-handler-cache-components
+  front: "How does a `GET` handler behave under Cache Components (16.4.5)?"
+  back: "One that returns a constant is prerendered (`○`) and served from the build. One reading `Date.now()`, `Math.random()` or the `request` is `ƒ`, dynamic per request."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-dont-call-own-handler
+  front: "Why not call your own route handler from a Server Component?"
+  back: "Per the docs it is an extra HTTP hop, and it fails at build for a prerendered page (not run here). Call the data function directly."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-webhook-read-text-first
+  front: "Why read `request.text()` before parsing in a signed-webhook handler?"
+  back: "The signature covers the exact bytes, which `request.json()` would discard. Compute the HMAC over the text, compare with `timingSafeEqual`, then `JSON.parse` the same text."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-unexported-verbs
+  front: "How does a handler exporting only `GET` and `POST` answer other verbs (16.4.5)?"
+  back: "`PUT` and `DELETE` get `405`, `HEAD` gets `200`, and `OPTIONS` gets `204` with `allow: GET, HEAD, OPTIONS, POST`, generated without an `OPTIONS` export."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-use-cache-in-handler
+  front: "How do you cache part of a route handler with Cache Components on?"
+  back: "Move the work into a `'use cache'` helper; the directive can't sit in the handler body. A handler reading `request.nextUrl` stayed `ƒ`, but its cached helper returned the same timestamp across requests and query strings."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-handler-streams
+  front: "Does a streamed route handler response really stream?"
+  back: "Yes. A `ReadableStream` enqueuing a chunk every 500 ms reached `curl` with a 3 ms time to first byte and a 1.5 s total, each chunk printing as it arrived."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: rh-route-and-page-conflict
+  front: "Can `route.js` and `page.js` share a segment?"
+  back: "No. Per the docs they conflict, because each takes over every verb for that URL."
+  question: nextjs/route-handlers-and-proxy/route-handler-vs-server-action
+- id: px-what-it-can-do
+  front: "What can a `proxy.js` function do with a matched request?"
+  back: "`NextResponse.redirect()` or `rewrite()`, pass request headers on with `NextResponse.next({ request: { headers } })`, set response headers and cookies, or return its own `Response`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-execution-order
+  front: "Where does Proxy run relative to `next.config` rules (16.4.5, `next start`)?"
+  back: "After config `headers` and `redirects`, before every rewrite and the filesystem. A config redirect for `/old` answered `307` without Proxy running; for a `beforeFiles` rewrite of `/bf` to `/dash`, Proxy saw `/bf`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-what-belongs
+  front: "What belongs in Proxy, and what doesn't?"
+  back: "Decisions from the request alone: A/B or locale rewrites, cookie or header redirects, adding headers, the optimistic no-session-cookie check. Not database calls (it runs on every matched request, prefetches included) and not static redirects, which belong in `next.config`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-no-cache-no-shared-state
+  front: "What can't Proxy do regarding caching and module state?"
+  back: "Per the docs (not run here), `use cache` and `fetch` caching options have no effect there. It also shares no module state with routes: a counter imported by both was incremented in Proxy and read `0` in a route handler."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-why-renamed
+  front: "Why did Next.js 16.0 rename `middleware` to `proxy`?"
+  back: "Per the docs, \"middleware\" was confused with Express middleware, inviting app logic into a feature meant as a last resort. \"Proxy\" names a network boundary in front of the app that may be deployed apart from it."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-middleware-still-builds
+  front: "What does a leftover `middleware.js` do on 16.4.5?"
+  back: "It still builds, with a deprecation warning, and runs on the Edge runtime (`NEXT_RUNTIME=edge`). The codemod is `npx @next/codemod@canary middleware-to-proxy .`."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-node-only
+  front: "Which runtime does Proxy get in Next.js 16?"
+  back: "Node.js only. On 16.4.5 `process.env.NEXT_RUNTIME` was `nodejs`, `process.version` was `v24.19.0`, and `require` and `Buffer` existed."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-runtime-export-fails
+  front: "What happens if `proxy.js` keeps `export const runtime = 'edge'`?"
+  back: "The build fails: \"Route segment config is not allowed in Proxy file at \"./proxy.js\". Proxy always runs on Node.js runtime.\""
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-both-files-fail
+  front: "What happens if both `middleware.js` and `proxy.js` exist?"
+  back: "The build fails: \"Both middleware file \"./middleware.js\" and proxy file \"./proxy.js\" are detected.\""
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-no-matcher
+  front: "What happens when Proxy ships without a `matcher`?"
+  back: "It runs for every JavaScript chunk, `public/` file and `/_next/image` request. On 16.4.5 one page load logged seven chunk requests."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-next-headers-mistake
+  front: "Why is `NextResponse.next({ headers })` not the same as `{ request: { headers } }`?"
+  back: "The first sets response headers; the second forwards request headers to the route. Passing a copy of the request headers in the first form made the response echo the client's `Cookie` and `Authorization` back to it."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-prefetch-and-actions
+  front: "Does Proxy run for prefetches and Server Action calls (Chrome 156, 16.4.5)?"
+  back: "Yes, both went through it. The `rsc` and `next-router-prefetch` headers and the `_rsc` query were hidden from `request`, so a prefetch can't be treated differently by mistake; `next-action` was visible."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: px-config-vs-proxy
+  front: "Why use Proxy rather than `next.config` for headers, redirects and rewrites?"
+  back: "Config rules are static: a path pattern plus, per the docs (not run here), `has`/`missing` conditions on headers, cookies or query. Proxy is code: it can compute a bucket, read a signed cookie or call a fast service."
+  question: nextjs/route-handlers-and-proxy/proxy-ts-and-middleware-rename
+- id: pa-matcher-coverage
+  front: "Why can a Server Action run with no auth even when Proxy matches `/dashboard/:path*` (16.4.5)?"
+  back: "An action is a `POST` to whichever page renders it. One also imported by the public home page ran with no cookie when posted to `/`, while the same call to `/dashboard` got a `307` to `/login`."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-api-excluded
+  front: "Why does copying the docs' auth matcher leave route handlers uncovered?"
+  back: "The docs' matcher excludes `/api` by design, so every route handler is uncovered unless it checks for itself. On 16.4.5 `GET /api/projects`, outside the matcher, returned data."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-silent-coverage-loss
+  front: "What do the Proxy docs warn about moving an action or editing the matcher?"
+  back: "That it \"can silently remove Proxy coverage\"."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-request-not-resource
+  front: "Why can't Proxy decide whether user 7 may delete project 42?"
+  back: "It sees the request, not the resource: it can tell a session cookie exists and is validly signed, but ownership needs the record. A database lookup there would run on every matched request, including each `<Link>` prefetch."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-cve-2025-29927
+  front: "What was CVE-2025-29927 and which versions fixed it?"
+  back: "A request carrying the internal `x-middleware-subrequest` header skipped middleware entirely. Per the advisory it was fixed in 15.2.3, 14.2.25, 13.5.9 and 12.3.5; the workaround was dropping the header at the edge."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-cve-on-16
+  front: "Did `x-middleware-subrequest: proxy:proxy:proxy:proxy:proxy` bypass Proxy on 16.4.5?"
+  back: "No. The request was still redirected by Proxy."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-2026-advisories
+  front: "What did the 2026 Proxy and middleware bypass advisories cover?"
+  back: "Prefetch-segment `.rsc` URLs, injected route params and a Turbopack i18n case, each reaching protected content without the check. Five advisories were published between May and July 2026, so upgrading hasn't closed the class of bug."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-dal-pattern
+  front: "Where should the real authorization check live if not in Proxy?"
+  back: "In a data access layer: every Server Action, route handler and data function verifies the session and authorizes the specific resource. Then a matcher mistake or routing bug costs a redirect, not data."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-why-keep-proxy-auth
+  front: "Why still have Proxy auth at all?"
+  back: "UX and static pages. A signed-out user is redirected before any rendering, and a prerendered page shared by all users has no per-request code where a data-layer check could run."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-x-user-header
+  front: "Why is trusting a header Proxy sets, such as `x-user`, unsafe?"
+  back: "A route outside the matcher read `admin` from a client-sent `x-user: admin`; Next.js didn't strip it."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-cookie-is-not-authz
+  front: "Why is \"has a valid session cookie\" not authorization?"
+  back: "It says who, not what they may touch, and a revoked session stays valid until the cookie expires unless something checks the store."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: pa-arbitrary-action-id
+  front: "Could an attacker post any action id to any public page (16.4.5)?"
+  back: "Not while only `/dashboard` used the action: a form-encoded `POST /` got `409 Server Action unavailable`, and one with a `Next-Action` header was forwarded internally to `/dashboard`, re-entering Proxy. Once `/` imported the action, it ran."
+  question: nextjs/route-handlers-and-proxy/proxy-not-enough-for-auth
+- id: af-what-it-is
+  front: "What does `after` from `next/server` do and what is it for?"
+  back: "It takes a callback and runs it once the response (or prerender) is done. It is for side effects the user shouldn't wait for: an audit log, analytics, a webhook to another system, warming a cache."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-timing-measured
+  front: "When did an `after` callback run relative to the response (16.4.5, `next start`, a 1 s sleep)?"
+  back: "After it. A route handler's `curl` finished in 7 ms and the callback ended at +1002 ms; the action's response took 45 ms and its callback ended at +1007 ms; the page responded in 9 ms and its callback finished at +1005 ms."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-streamed
+  front: "For a streamed response, when does `after` run?"
+  back: "After the last byte. A handler streaming three chunks 500 ms apart closed its stream at +1504 ms and `after` ran at +1505 ms."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-where-callable
+  front: "Where can `after` be used, and does it run after errors?"
+  back: "In route handlers, Server Actions, Server Components and Proxy (16.4.5). It also ran when the handler threw (`500`) and when a page called `redirect()` (`307`)."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-not-dynamic
+  front: "Does calling `after` make a route dynamic, and what happens when a route is prerendered?"
+  back: "It isn't a request-time API, so it doesn't make a route dynamic. With Cache Components on, a `GET` handler that only returned a constant was prerendered and its `after` callback ran during `next build`."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-request-apis
+  front: "Can you read `headers()` and `cookies()` inside an `after` callback?"
+  back: "In route handlers and actions, yes (it read `curl/8.7.1`). In Server Components they throw there; read them during render and close over the values."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-cookies-in-page-error
+  front: "What error does `cookies()` inside `after` in a page throw (16.4.5)?"
+  back: "\"Route /after-page used `cookies()` inside `after()` while rendering. This is not supported.\""
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-host-lifetime
+  front: "Who keeps an `after` callback alive, and for how long?"
+  back: "The host. `next start` keeps running and on `SIGTERM` waited for a pending callback. Serverless hosts need a `waitUntil`, which Next.js looks up via `globalThis[Symbol.for('@next/request-context')]`; per the docs the callback is bounded by `maxDuration` (not run here)."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-errors-logged
+  front: "What happens when an `after` callback throws (16.4.5)?"
+  back: "The response was still `200` and the server only logged \"An error occurred in a function passed to `after()`\". It doesn't fail the request or reach `onRequestError`."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-prerender-throw
+  front: "What happens to a throwing `after` in a prerendered route with Cache Components on?"
+  back: "It ran at build and `next build` exited with \"Error occurred prerendering page \"/api/after-err\"\"."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-not-durable
+  front: "Is `after` safe for work that must happen?"
+  back: "No. `kill -9` during a pending callback lost it, and a crash would too. Durable jobs belong in a queue."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-vs-floating-promise
+  front: "How is `after` different from a floating promise?"
+  back: "A floating promise isn't tied to the request. Per the docs, serverless hosts keep an invocation alive only for promises given to `waitUntil`, as `after`'s are (not run here). Under `next start`, a pending `after` was drained on `SIGTERM`."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-timer-and-register
+  front: "Can `after` be called from a timer or from `register()` (16.4.5)?"
+  back: "A call inside a `setTimeout` started by the handler still worked, since the request context followed the timer. Called from `register()` in `instrumentation.js`, it threw: \"`after` was called outside a request scope.\""
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: af-proxy-waituntil
+  front: "What does Proxy offer besides `after` for post-response work?"
+  back: "`event.waitUntil(promise)` on its second argument, a `NextFetchEvent`. Per the docs it keeps the invocation alive until the promise settles (not run here)."
+  question: nextjs/route-handlers-and-proxy/after-api
+- id: io-file-location
+  front: "Where does `instrumentation.js` live and what does it export?"
+  back: "At the project root or in `src/`, not inside `app/`. It has two optional exports, `register()` and `onRequestError(error, request, context)`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-register-timing
+  front: "When does `register()` run (16.4.5, `next start`)?"
+  back: "Once per server start, before requests are handled (per the docs). It logged at boot with no request made and again after each restart; `next build` never called it."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-register-per-runtime
+  front: "Does `register()` run once per server or once per runtime?"
+  back: "Per runtime. With an Edge `middleware.js` present, a second `register` logged `edge` on the first request that middleware handled."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-node-only-imports
+  front: "How do you keep Node-only imports out of the Edge bundle of `instrumentation.js`?"
+  back: "The file is bundled for both runtimes, so put them behind `process.env.NEXT_RUNTIME === 'nodejs'` and a dynamic `import()`. Top-level Node imports made the build warn \"A Node.js API is used (process.pid …) which is not supported in the Edge Runtime\"."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-onrequesterror-args
+  front: "What are the arguments of `onRequestError` (since 15.0)?"
+  back: "`error` (the thrown value; render and action errors carry a `digest`), `request` (`{ path, method, headers }`, with `path` including the query string) and `context`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-context-fields
+  front: "What fields does the `onRequestError` `context` have?"
+  back: "`routerKind`, `routePath` (the route file's path), `routeType` (`render`, `route`, `action` or `proxy`), `revalidateReason`, and for renders `renderSource`. The docs also list `renderType`; none of the observed errors carried it (16.4.5)."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-reporting-only
+  front: "Can `onRequestError` change the response or see browser errors?"
+  back: "No to both. It is a reporting hook only and runs on the server, so Client Component errors in the browser need a client-side reporter."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-not-reported
+  front: "Which errors never reach `onRequestError`?"
+  back: "`notFound()` and `redirect()` (they answered `404` and `307`; control flow, not errors), a throwing `after()` callback, and on 16.4.5 errors thrown in a Node.js `proxy.js`; the last two were only printed to the server log."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-proxy-gap
+  front: "What happened with a throwing Node.js `proxy.js` versus an Edge `middleware.js` (16.4.5)?"
+  back: "The Node `proxy.js` returned `500` with no hook call (issue #85261 reports the same on 16.0). An Edge `middleware.js` error did reach it, as `routeType: \"proxy\"`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-route-type-rename
+  front: "What did PR #85006 change about the Edge middleware error context?"
+  back: "It renamed `routeType` from `middleware` to `proxy` for 16.0. The observed context was `{\"routerKind\":\"Pages Router\",\"routePath\":\"/proxy\",\"routeType\":\"proxy\"}` in an App Router project."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-observed-contexts
+  front: "How did `renderSource` differ across error kinds (16.4.5)?"
+  back: "A page error had `routeType: \"render\"` and `renderSource: \"react-server-components\"`; an SSR error from a Client Component had `\"server-rendering\"`; an action had `routeType: \"action\"`, `method: \"POST\"` and `\"react-server-components-payload\"`. A route handler error had no `digest`."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-digest-matching
+  front: "How do you match a user's error report to the server log?"
+  back: "By `digest`. The action's error reached the client as `1:E{\"digest\":\"4140478798\"}`, and `onRequestError` received the same digest with the real message, which the client never sees."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-await-reporter
+  front: "What do the docs say about async work in `onRequestError`?"
+  back: "Await it. Per the docs; not run here."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+- id: io-db-pool
+  front: "Is `register` a good place for a database pool?"
+  back: "It can create one, since it runs once per server and runtime, but every server instance gets its own: each `next start` ran `register` again. Size pools per instance."
+  question: nextjs/route-handlers-and-proxy/instrumentation-and-request-errors
+# 08 Optimizations
+- id: im-two-parts
+  front: "What are the two parts of `next/image`?"
+  back: "A component that writes `<img>` markup, and an optimizer route, `/_next/image?url=…&w=…&q=…`, that produces the files the markup points at."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-srcset-widths
+  front: "How does `next/image` build `srcset` (16.4.5)?"
+  back: "From `deviceSizes` and `imageSizes`. A 400 px image without `sizes` got `w=640 1x, w=828 2x`; with `sizes`, nine `w` candidates from 384w to 3840w; `fill` without `sizes` got `sizes=\"100vw\"` and device widths only."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-loading-defaults
+  front: "What loading attributes does `next/image` add by default, and what does `preload` change (16.4.5)?"
+  back: "`loading=\"lazy\"` and `decoding=\"async\"`. `preload` (and the deprecated `priority`) drops `loading` and puts `<link rel=\"preload\" as=\"image\" imagesrcset>` in `<head>`. Neither adds `fetchpriority`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-width-height-static-import
+  front: "How does `next/image` get `width` and `height` for a static import?"
+  back: "It reads them at build time, along with the blur placeholder, and writes `width` and `height` to reserve space."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-optimizer-validation
+  front: "What does the `/_next/image` optimizer validate, and what happens otherwise (16.4.5)?"
+  back: "It checks `url` against `localPatterns`/`remotePatterns`, `w` against the configured widths and `q` against `qualities` (default `[75]`). Anything else is a `400`, such as `\"q\" parameter (quality) of 80 is not allowed`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-no-upscale-format
+  front: "How does the optimizer pick size and format (16.4.5)?"
+  back: "It resizes without upscaling (`w=3840` of a 1600 px source came back 1600 px wide) and picks the format from `Accept` and `images.formats`: WebP by default, AVIF only if configured, the original JPEG for `Accept: */*`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-cache-headers
+  front: "Where does the optimizer cache and what `Cache-Control` does it send (16.4.5)?"
+  back: "In `.next/cache/images`. `Cache-Control: public, max-age=14400, must-revalidate` (`minimumCacheTTL`, 4 hours since 16), or `max-age=315360000, immutable` for static imports, with `X-Nextjs-Cache: MISS`, then `HIT`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-what-stays-yours
+  front: "What must you still supply with `next/image`?"
+  back: "Dimensions or `fill` inside a positioned, sized parent; a `sizes` that matches the layout; real `alt` text; the host allowlists; and `preload` or `loading=\"eager\"` on the one LCP image. It only nags about them in development."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-browser-lazy-differs
+  front: "Did Chrome 156 and Firefox 159 lazy-load a below-the-fold `next/image` the same way?"
+  back: "No. Chrome fetched the below-the-fold avatar at once; Firefox waited until the page was scrolled. Both lazy-load thresholds are browser choices."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-fill-without-sizes
+  front: "What happens to a `fill` image with no `sizes`?"
+  back: "It defaults to `100vw`, so a 300 px card downloaded the 1920w file."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-dev-checks-only
+  front: "Are missing `width`, `height` and `alt` caught in a production build (16.4.5)?"
+  back: "No. `<Image src=\"/hero.jpg\" quality={80} />` built silently and rendered an `<img>` with no `alt`, no dimensions, `sizes=\"100vw\"` and `q=75`. The source throws for missing `width` only in development (not run here)."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-unlisted-host
+  front: "What happens with an unlisted remote host in dev versus production?"
+  back: "`next dev` returned 500: `hostname \"images.unsplash.com\" is not configured under images in your next.config.js`. The production page rendered, and its image request got `400 \"url\" parameter is not allowed`: a broken image, no error."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-replace-same-url
+  front: "What happens if you replace an image file at the same URL?"
+  back: "The optimized copy is served until `minimumCacheTTL` runs out. There is no invalidation API, and the cache survived a rebuild (`HIT`)."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-query-string-16
+  front: "Why does `src=\"/hero.jpg?v=2\"` break after upgrading to Next.js 16?"
+  back: "Local images with a query string now need a `localPatterns` entry with `search`. Without it the optimizer answered `400 \"url\" parameter is not allowed`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-multi-instance-cache
+  front: "Where does the image cache live with several instances?"
+  back: "On each instance's disk, in `.next/cache/images`, capped by `maximumDiskCacheSize`. Instances don't share it, so a CDN in front relies on `Cache-Control` and `Vary: Accept`, and must forward `Accept`."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-avif-cost
+  front: "Is AVIF worth enabling for `next/image` (16.4.5 measurement)?"
+  back: "It was 1,854 bytes against WebP's 3,178, but the first request took 88 ms to encode against 2 ms for a cache hit. Each format is cached separately. The docs still recommend WebP for most sites."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: im-priority-vs-preload
+  front: "How do `priority` and `preload` differ on `next/image`?"
+  back: "Not in output: both removed `loading` and added the same `<link rel=\"preload\">`. `priority` is deprecated since 16; the docs suggest `loading=\"eager\"` or `fetchPriority=\"high\"` in most cases."
+  question: nextjs/optimizations/next-image-responsibilities
+- id: nf-self-hosting
+  front: "How does `next/font/google` self-host fonts?"
+  back: "During `next build` it fetches Google's CSS and font files, writes the files to `/_next/static/media/` (`Cache-Control: public, max-age=31536000, immutable`) and puts the `@font-face` rules into the route's CSS. In Chrome 156 and Firefox 159 no request went to `fonts.googleapis.com` or `fonts.gstatic.com`."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-self-host-gains
+  front: "What does self-hosting fonts through `next/font` remove?"
+  back: "A third-party connection and the CSS-then-font request chain; visitors' IP addresses never reach Google. `next/font/local` does the same for your own files."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-preloading
+  front: "Which font files does `next/font` preload?"
+  back: "Those for the `subsets` you list, via `<link rel=\"preload\" as=\"font\" crossorigin>`, on routes whose modules call the font function. Other Google subsets use `unicode-range` and are fetched only if needed: Inter got seven faces and one preload."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-face
+  front: "What fallback face does `next/font` generate?"
+  back: "A face such as `Inter Fallback` pointing at `local(Arial)`, rescaled with `size-adjust`, `ascent-override`, `descent-override` and `line-gap-override` matched to the font. The class sets `font-family: Inter, Inter Fallback`, under the default `font-display: swap`."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-widths
+  front: "How close was `Inter Fallback` to Inter in width (18 px, 60 characters)?"
+  back: "Inter measured 517.5 px, `Inter Fallback` 515.5 px and plain Arial 481.3 px. In Chrome, a 360 px-wide paragraph was 147 px tall in both Inter and its fallback."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-firefox-height
+  front: "Is layout shift fully removed by `next/font` in Firefox 159?"
+  back: "No. The paragraph was 161 px tall in Inter and 152.9 px in `Inter Fallback`: the overrides matched widths, but Inter's normal line height still came out 2 px taller there."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-variable-option
+  front: "What does the `variable` option of a `next/font` function add?"
+  back: "A class that declares a custom property (such as `--font-inter`) for CSS or Tailwind to use. The function returns `className`, `style` and, with `variable`, that class."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-adjust-false-turbopack
+  front: "What happens with `adjustFontFallback: false` under Turbopack (16.4.5)?"
+  back: "It is ignored: Lora still got a `Lora Fallback` face, while `next build --webpack` left it out. Issue #74134 and PR #101397 trace it to the option never being read."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-option-turbopack
+  front: "What happens when you set `fallback` under Turbopack (16.4.5)?"
+  back: "Roboto with `fallback: ['system-ui']` got `font-family: Roboto, system-ui` and no adjusted face at all (issue #100221). Webpack emits both."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-shared-fonts-module
+  front: "What goes wrong with one shared module defining three fonts?"
+  back: "Every route importing it preloaded all three files, even a page using one."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-flash-remains
+  front: "Does `next/font` remove the flash of fallback text?"
+  back: "No. With `swap` the fallback still paints first; the adjusted face only makes the redraw smaller. `display: 'optional'` lets the browser skip the font on a slow first load instead (per the CSS spec, not run here)."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-fallback-family-choice
+  front: "How does Next.js choose a Google font's fallback family?"
+  back: "Arial for sans-serif families and Times New Roman for serif ones, with overrides computed from metrics it bundles for each Google font. Lora got `size-adjust: 115.2%` on `local(Times New Roman)`."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-local-adjust
+  front: "Does `next/font/local` adjust fallbacks?"
+  back: "Per the docs, yes: `adjustFontFallback` defaults to `'Arial'` and accepts `'Times New Roman'` or `false` (not run here)."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: nf-local-src-download
+  front: "Which file does the browser download for a `src: local(Arial)` fallback face, and what does `size-adjust: 107.12%` do?"
+  back: "None: `local(Arial)` uses the installed system font. `size-adjust` scales Arial's glyphs by 107.12% so a line is about as wide as Inter (515.5 px against 517.5 px at 18 px)."
+  question: nextjs/optimizations/next-font-layout-shift
+- id: gm-prerendered
+  front: "Where does `generateMetadata` output land on a prerendered route?"
+  back: "In `<head>`, resolved at build. A `force-static` page with a `no-store` fetch in `generateMetadata` had its `<title>` before `<body>`, and the API was hit once, during the build."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-streams-per-request
+  front: "What does a browser get from a per-request page whose `generateMetadata` awaits a 2 s fetch (16.4.5)?"
+  back: "The `200` and a shell at 74 ms. `<title>` and `<meta name=\"description\">` arrived at 2,101 ms, appended inside `<body>`. Metadata streaming has existed since 15.2."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-title-in-body
+  front: "Does a `<title>` streamed into `<body>` still name the document?"
+  back: "Yes. Chrome 156 and Firefox 159 both left it in `<body>`, with JavaScript on or off, because HTML takes the first `<title>` in tree order. Tools that read only `<head>` miss it."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-html-limited-bots
+  front: "What is `htmlLimitedBots` and how do matching user agents differ?"
+  back: "A regex tested per request against the user agent; its default list includes Bingbot, Twitterbot, facebookexternalhit and Google's non-search crawlers. Matches wait for `generateMetadata`: `facebookexternalhit/1.1` got its first byte at 2,061 ms with the tags in `<head>`."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-googlebot
+  front: "Is Googlebot in `htmlLimitedBots`?"
+  back: "No, on purpose, because it runs JavaScript. It gets the streamed version, like `curl`, so testing with its user agent won't show blocking output."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-fetch-dedup
+  front: "Is a `fetch` shared by `generateMetadata` and the page one request?"
+  back: "Yes: both run in the same render, so a `fetch` both made was one request per page load. A plain function standing in for a database call ran twice per request; wrapped in React's `cache`, once."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-cache-components-error
+  front: "What happens to an uncached fetch in `generateMetadata` on a static page with `cacheComponents: true`?"
+  back: "The build fails: \"Next.js encountered uncached or runtime data in `generateMetadata()`\". Fix it with `'use cache'`, or a `connection()` marker inside `<Suspense>`, which makes the route partially prerendered with metadata streaming after the shell."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-notfound-after-await
+  front: "What does `notFound()` in `generateMetadata` after an `await` give a browser (16.4.5)?"
+  back: "A `200`. With JavaScript off it showed the page body with `<meta name=\"robots\" content=\"noindex\">`; with it on, the 404 UI. facebookexternalhit got a real `404`."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-redirect-in-metadata
+  front: "What does `redirect()` in `generateMetadata` give a browser versus a bot (16.4.5)?"
+  back: "Browsers got `200` plus `<meta http-equiv=\"refresh\" content=\"1;url=/dedup\">`, then the client redirect. The bot got a real `307`."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-turn-off-streaming
+  front: "How do you turn streaming metadata off?"
+  back: "`htmlLimitedBots: /.*/` in `next.config`: every user agent then waits for `generateMetadata` before the first byte. Per the docs, a custom regex replaces the default list rather than extending it."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: gm-connection-bots
+  front: "With Cache Components and a `connection()` marker, what do bots get?"
+  back: "The tags in `<head>`: facebookexternalhit waited 1,571 ms for the slow fetch instead of getting the prerendered shell first."
+  question: nextjs/optimizations/generate-metadata-streaming-dedup
+- id: ns-when-element-created
+  front: "What do `next/script` strategies decide?"
+  back: "When the `<script>` element gets created; once it exists, the browser's normal rules apply. No strategy puts a `<script src>` in the server HTML."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-before-interactive
+  front: "How does `beforeInteractive` load (16.4.5, Chrome 156 and Firefox 159)?"
+  back: "The server HTML has a `<link rel=\"preload\" as=\"script\">` and an inline `self.__next_s.push([src])`. Next's bootstrap appends the scripts to `<head>` one by one, waiting for each `load`, and only then hydrates. It ran after `DOMContentLoaded`."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-before-interactive-blocks
+  front: "Does `beforeInteractive` block hydration?"
+  back: "The docs say it doesn't, but on 16.4.5 a 1.5 s script pushed hydration to 1,651 ms. It delays hydration by its full download time."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-after-interactive
+  front: "How does `afterInteractive` (the default) load (16.4.5)?"
+  back: "A preload hint from the server; the element is appended to `<body>` by the component's effect just after hydration (390 ms). It ran at 391 ms."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-after-vs-load
+  front: "Does `afterInteractive` run before the window `load` event?"
+  back: "Not by rule: it's tied to hydration. It ran at 391 ms, before `load` at 850 ms, only because a slow image held `load` back. With nothing else loading, `load` came before hydration, so it ran after `load`."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-lazy-onload
+  front: "How does `lazyOnload` load (16.4.5)?"
+  back: "No preload hint; the element is appended after `load`, inside `requestIdleCallback` (854 ms in the test)."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-worker
+  front: "Does the `worker` strategy work in the App Router?"
+  back: "No. It is experimental and per the docs not supported in the App Router. With `nextScriptWorkers` on and Partytown installed, the script was never requested (16.4.5)."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-worker-partytown
+  front: "What does enabling `worker` ask for (16.4.5)?"
+  back: "`experimental.nextScriptWorkers` made the build fail until `@builder.io/partytown` was installed; the guide names `@qwik.dev/partytown`. Even then, the App Router page rendered no script for it."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-vs-plain-async-defer
+  front: "How do plain `<script async>` and `<script defer>` compare with `next/script` strategies?"
+  back: "React wrote them straight into the HTML and both ran at 153 ms in Chrome 156, ahead of every strategy. `beforeInteractive` runs after `DOMContentLoaded` and after plain `defer` scripts."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-handlers-client-only
+  front: "Why must `onLoad`, `onReady` and `onError` live in a Client Component?"
+  back: "They are functions, so a Server Component can't pass them: the build failed with \"Event handlers cannot be passed to Client Component props\"."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-dedup-by-id-src
+  front: "How does `next/script` deduplicate scripts?"
+  back: "Per document, by `id`, else `src`: the same `src` rendered twice made one element, and navigating away and back didn't run it again (`nav.js` was requested once across `/p1` → `/p2` → `/p1`). Inline scripts have no `src`, so they need an `id`."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-inline-no-id
+  front: "What happens to an inline `<Script>` without `id` on back navigation?"
+  back: "It ran again each time the page was navigated back to; the one with an `id` ran once."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-before-interactive-root-layout
+  front: "What happens with `beforeInteractive` outside the root layout (16.4.5)?"
+  back: "The build didn't complain and a full load ran it, but a client-side navigation to the page only preloaded the file; it never ran."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-onready
+  front: "How do `onLoad` and `onReady` differ?"
+  back: "`onLoad` fires once, when the file loads. Per the docs and source, `onReady` also fires on every later mount once the script is cached, so it fits re-initialising a widget after navigation (remount not run here)."
+  question: nextjs/optimizations/next-script-strategies
+- id: ns-firefox-onerror
+  front: "How did Firefox 159 differ from Chrome 156 in the `next/script` test?"
+  back: "Firefox kept the same order, but `onError` came at 380 ms with `lazy`."
+  question: nextjs/optimizations/next-script-strategies
+- id: mr-what-they-are
+  front: "What are `sitemap.js`, `robots.js` and `opengraph-image.jsx`?"
+  back: "Special route handlers at fixed URLs (`/sitemap.xml`, `/robots.txt`, `/opengraph-image`), to which the build applies the usual static-or-dynamic rule (16.4.5, Turbopack; `--webpack` matched)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-prerendered
+  front: "Which metadata routes were prerendered (`○`) on 16.4.5?"
+  back: "The root image, `sitemap.xml`, `robots.txt`, and an image whose plain `fetch` ran once, at build. Repeat requests returned the same bytes with `x-nextjs-cache: HIT`."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-dynamic
+  front: "What made a metadata route per-request (`ƒ`) on 16.4.5?"
+  back: "Reading `cookies()`, a `no-store` fetch, `dynamic = 'force-dynamic'`, or a dynamic segment like `blog/[slug]/opengraph-image` with no `generateStaticParams`. Each request produced new bytes."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-no-search-params
+  front: "Can a query string vary a generated metadata image?"
+  back: "No. The image function receives only `params`; `/opengraph-image?v=1` returned the cached build output."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-cache-control
+  front: "What `Cache-Control` do metadata routes send (16.4.5)?"
+  back: "`public, max-age=0, must-revalidate` on every one, static or dynamic (the loader hard-codes it). A CDN may store the file but must revalidate it every time; set longer caching at the CDN."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-og-tags
+  front: "Which tags does Next.js write into the page for a generated image?"
+  back: "`og:image` with `?<hash>`, plus type, width, height and `og:image:alt` from the `size`, `contentType` and `alt` exports. With no `twitter-image` file, the same image filled `twitter:image`."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-hash-scope
+  front: "What does the `?<hash>` on `og:image` track?"
+  back: "The image file's content hash. Editing that file changed it, but editing a component it imports, or rebuilding with new data, didn't, so it can't be trusted to bust social-preview caches."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-multiple-images
+  front: "How do you produce several images or sitemaps from one file (16.4.5)?"
+  back: "`generateImageMetadata` (ids `small` and `2` gave `/gim/opengraph-image/small` and `/2`, two sets of `og:image` tags) and `generateSitemaps` (`/products/sitemap/0.xml`; `/products/sitemap.xml` was a 404)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-id-promise
+  front: "What type is `id` in `generateImageMetadata` and `generateSitemaps` handlers since Next.js 16?"
+  back: "A promise. It resolved to a string even when the id was the number `2`."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-image-response-limits
+  front: "What does `ImageResponse` render with, and what limits do the docs give?"
+  back: "Satori, which supports flexbox and a subset of CSS. The docs also cap the bundle at 500 KB and allow only ttf, otf and woff fonts (not tested here)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-display-grid
+  front: "What happens with `display: 'grid'` in `ImageResponse` (16.4.5)?"
+  back: "A prerendered image failed the build: `Invalid value for CSS property \"display\". Allowed values: \"flex\" | \"block\" | \"contents\" | \"none\" | \"-webkit-box\"`. A dynamic one closed the connection with no status code."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-dynamic-sitemap
+  front: "What turns `sitemap.js` dynamic?"
+  back: "The same things as any route: per the docs, a request-time API or a dynamic config option. For images, an uncached `fetch` and `cookies()` did it; a plain `fetch` kept the route static and ran once at build."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-static-image-limits
+  front: "What size limits apply to a static `opengraph-image.png`?"
+  back: "Per the docs and the loader source, the build fails above 8 MB for `opengraph-image` and 5 MB for `twitter-image` (not run here)."
+  question: nextjs/optimizations/file-based-metadata-routes
+- id: mr-alt-text
+  front: "How do you add alt text to static and generated metadata images?"
+  back: "For a static image, a sibling `opengraph-image.alt.txt`, per the docs. For generated images, `export const alt` became `og:image:alt` and `twitter:image:alt`."
+  question: nextjs/optimizations/file-based-metadata-routes
+# 09 Deployment
+- id: nb-build-output-parts
+  front: "What are the main parts of `.next/` after `next build` on Next.js 16.4.5 (Turbopack)?"
+  back: "`static/` (hashed client chunks), `server/` (a bundle per route plus prerendered output), manifests mapping URLs to both, and `cache/` (the builder's own cache, reused by the next build)."
+  question: nextjs/deployment/next-build-output
+- id: nb-static-chunk-header
+  front: "What `Cache-Control` did `next start` send for a `.next/static` chunk on 16.4.5?"
+  back: "`public, max-age=31536000, immutable`. Chunk names carry content hashes, so a long-lived immutable cache is safe."
+  question: nextjs/deployment/next-build-output
+- id: nb-server-app-files
+  front: "Which files does `.next/server/app` hold for a prerendered path?"
+  back: "`index.html`, `index.rsc` (the RSC payload for client navigation), `index.meta` (headers and cache tags) and an `index.segments/` folder for per-segment prefetches. A static route handler becomes `.body` plus `.meta`."
+  question: nextjs/deployment/next-build-output
+- id: nb-route-table-symbols
+  front: "What do `○`, `●` and `ƒ` mean in the `next build` route table, and which have files in `server/app`?"
+  back: "`○` Static and `●` SSG (from `generateStaticParams`) have files in `server/app`. `ƒ` Dynamic has only a server bundle."
+  question: nextjs/deployment/next-build-output
+- id: nb-ppr-symbol
+  front: "What does `◐` mean in the route table, and when does it appear?"
+  back: "Partial Prerender, with `cacheComponents: true`. The static shell is prerendered (`ppr.html`, `ppr.meta`, `ppr.segments/`) and the holes render per request."
+  question: nextjs/deployment/next-build-output
+- id: nb-next-start-what-it-does
+  front: "What does `next start` do that a plain file server can't?"
+  back: "Picks HTML or RSC by request headers, regenerates ISR pages, renders unlisted dynamic params, and runs Server Actions, route handlers, Proxy and the `/_next/image` optimizer."
+  question: nextjs/deployment/next-build-output
+- id: nb-cache-headers-measured
+  front: "On 16.4.5, which `Cache-Control` came with a prerendered `/` and with an ISR page at `revalidate` 1 minute?"
+  back: "Measured: `/` got `s-maxage=31536000` (no `public`); the ISR page got `s-maxage=60, stale-while-revalidate=31535940`. Both were `x-nextjs-cache: HIT`. The self-hosting guide says fully static pages get `public`; 16.4.5 didn't send it."
+  question: nextjs/deployment/next-build-output
+- id: nb-dynamic-and-public-headers
+  front: "On 16.4.5, which `Cache-Control` did a `ƒ` route and `public/robots.txt` get?"
+  back: "Measured: the dynamic route got `private, no-cache, no-store, max-age=0, must-revalidate`. `public/robots.txt` got `public, max-age=0` (with an `ETag`)."
+  question: nextjs/deployment/next-build-output
+- id: nb-unlisted-param-miss-hit
+  front: "What happens to a dynamic param not listed by `generateStaticParams` under `next start`?"
+  back: "The first request renders it (`x-nextjs-cache: MISS`) and writes it to disk. The second is a `HIT`."
+  question: nextjs/deployment/next-build-output
+- id: nb-vary-header
+  front: "What `Vary` list does every cached response carry under `next start` (16.4.5)?"
+  back: "`Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch`. A CDN in front must respect it, along with `Cache-Control`, to cache those groups."
+  question: nextjs/deployment/next-build-output
+- id: nb-route-cache-seed
+  front: "What is the route-cache folder in `.next/server` (new in 16.4), per the 16.4.5 source?"
+  back: "The build's files are an immutable seed. On the first request for a path the file-system cache copies them into `.next/server/route-cache/<kind>/<sha256 of the source route>/$<path>`, serves from there, and writes regenerations there too."
+  question: nextjs/deployment/next-build-output
+- id: nb-edit-server-files-ignored
+  front: "Why was an edited `.next/server/app/.../index.html` never served by `next start`?"
+  back: "It keeps entries in memory (50 MB by default) and, on the first request, copies each build file into its runtime cache folder. Editing the build file afterwards changes nothing."
+  question: nextjs/deployment/next-build-output
+- id: nb-rebuild-wipes-route-cache
+  front: "What happened to `.next/server/route-cache/` after a second `next build`?"
+  back: "Measured on 16.4.5: it was gone, so pages generated at runtime are re-rendered on demand."
+  question: nextjs/deployment/next-build-output
+- id: nb-standalone-contents
+  front: "What does `output: 'standalone'` add, and what does it leave out?"
+  back: "`.next/standalone/` with a `server.js` and only the traced `node_modules` (41 MB here against 328 MB installed). It doesn't copy `public/` or `.next/static/`."
+  question: nextjs/deployment/next-build-output
+- id: nb-standalone-alone-404
+  front: "What happened deploying `.next/standalone` alone, and what fixed it?"
+  back: "Pages rendered, but every chunk and `public/` file was `404`. Copying `public/` and `.next/static/` into the standalone folder (or serving them from a CDN) fixed it."
+  question: nextjs/deployment/next-build-output
+- id: nb-next-start-standalone-error
+  front: "What happens running `next start` with `output: 'standalone'`?"
+  back: "It prints `\"next start\" does not work with \"output: standalone\" configuration. Use \"node .next/standalone/server.js\" instead.`"
+  question: nextjs/deployment/next-build-output
+- id: nb-webpack-differences
+  front: "What differed in the build output with `next build --webpack` on 16.4.5?"
+  back: "The route table and prerendered files were the same. Chunks had webpack names, `server/` gained `webpack-runtime.js`, and `.next/cache` was 70 MB against Turbopack's 24 MB."
+  question: nextjs/deployment/next-build-output
+- id: er-edge-sandbox
+  front: "What is the Edge Runtime, and how did you opt in?"
+  back: "A sandbox with web APIs only (`fetch`, `Request`/`Response`, streams, `crypto.subtle`, `TextEncoder`, an `AsyncLocalStorage` polyfill), designed to start fast close to users. You opted in with `export const runtime = 'edge'`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-deprecated-since
+  front: "Since which Next.js version is `runtime = 'edge'` deprecated, and is a removal version named?"
+  back: "Since v16.3.0 (PR #93369; v16.2.0 doesn't contain it). Neither the PR nor the message page names a removal version."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-deprecation-rationale
+  front: "What reason does the deprecation PR give, and what does the message page tell you to do?"
+  back: "The PR says Edge \"is being deprecated in favor of the Node.js runtime (the default)\" and gives no fuller reason. The message page says to delete the export, since \"no replacement is needed\"."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-new-work-targets-node
+  front: "What do the docs show about new features and the Edge Runtime?"
+  back: "New work targets Node.js: Proxy runs only on Node.js since 16, and Cache Components rejects any `runtime` export."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-node-apis-fail
+  front: "What failed on Edge when using Node APIs (measured on 16.4.5)?"
+  back: "Importing `node:fs` or `node:crypto` failed the build (`Native module not found: node:fs`). `process.version` was `undefined`, and `new Function()` threw `EvalError: Code generation from strings disallowed for this context`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-no-static-generation
+  front: "What does an Edge page lose for caching (measured on 16.4.5)?"
+  back: "The build warned `Using edge runtime on a page currently disables static generation for that page`. A page with `revalidate = 60` was listed `ƒ`, rendered on every request, with no `Cache-Control` header at all."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-still-runs
+  front: "Do edge routes still build and run on 16.4.5, and where does `next start` run them?"
+  back: "Yes, with a deprecation warning. `next start` runs them in a `vm` sandbox inside its own Node process, so `NEXT_RUNTIME` was `edge`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-migrate-delete-line
+  front: "How do you migrate an edge route handler to Node.js?"
+  back: "Delete the `runtime = 'edge'` line. Web APIs such as `crypto.subtle` work the same on Node.js, which adds `node:*` modules and caching."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-proxy-runtime-config
+  front: "What happens moving a `runtime` export into `proxy.js`?"
+  back: "The build fails: `Route segment config is not allowed in Proxy file`. Proxy always runs on Node.js (`NEXT_RUNTIME=nodejs`); a `middleware.js` with the same code logged `edge`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-cache-components-rejects-runtime
+  front: "What happens with an edge route when Cache Components is on?"
+  back: "Each failed the build: `Route segment config \"runtime\" is not compatible with nextConfig.cacheComponents. Please remove it.`"
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-local-not-real-edge
+  front: "Why isn't local `next start` proof that code runs on a real edge platform?"
+  back: "With Turbopack, `require('fs')` in an edge handler built silently and worked in the local sandbox. With `--webpack` the build warned `Can't resolve 'fs'` and the call threw `Cannot find module 'fs'`."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-middleware-warning
+  front: "Does `middleware.js` trigger the Edge deprecation warning on 16.4.5?"
+  back: "Not on its own. A build with only `middleware.js` printed `The \"middleware\" file convention is deprecated. Please use \"proxy\" instead.` The 16.0 release post says middleware stays for Edge use cases but will be removed in a future version."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-preferred-region
+  front: "Is `preferredRegion` affected by the Edge deprecation?"
+  back: "Yes. PR #93369 deprecated it in the same change, because it only applied to Edge routes. It has its own message page and build warning."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: er-why-edge-existed
+  front: "Why did Edge routes exist, and was there a gain self-hosted?"
+  back: "The Next.js 14 docs pitched it for \"dynamic, personalized content at low latency with small, simple functions\", starting faster than Node.js functions on platforms deploying each route separately. Self-hosted there was no gain: the handler ran in a sandbox inside the same Node process."
+  question: nextjs/deployment/edge-runtime-deprecation
+- id: mi-per-instance-state
+  front: "Which state does `next start` keep per instance?"
+  back: "ISR pages and revalidation, `use cache` entries (an in-memory LRU per process) and optimized images (`.next/cache/images`). `revalidatePath`/`revalidateTag` mark entries stale only in the process that ran them."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-use-cache-remote
+  front: "What does `use cache: remote` do with several instances before `cacheHandlers.remote` is set?"
+  back: "It is the same in-memory LRU per process, so it isn't shared."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-image-optimizer-per-instance
+  front: "What happened to the same `/_next/image` URL across two instances (16.4.5)?"
+  back: "`MISS` then `HIT` on instance A, then `MISS` again on B. Each wrote its own file in `.next/cache/images`."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-action-ids-differ
+  front: "Why do separately built instances of the same commit fail Server Actions?"
+  back: "Each build generates an AES key and salts action IDs with it. Different keys give different IDs, so an action posted to the other instance got `409` and `Failed to find Server Action ... This request might be from an older or newer deployment.`"
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-rscinfo-14-days
+  front: "Where is the generated encryption key reused from, and for how long?"
+  back: "`.next/cache/.rscinfo`, for 14 days. A rebuild in the same folder reused it so IDs matched; a CI runner without that cache generates a new key."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-build-id-skew
+  front: "What did a client navigation answered by a different build do?"
+  back: "The build ID differs per build, so the navigation turned into a full page reload."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-fix-build-once-or-key
+  front: "How does the self-hosting guide say to make action IDs match across instances?"
+  back: "Build once and run that output everywhere, or set the same `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (base64, 16, 24 or 32 bytes) at every build."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-deployment-id
+  front: "What does setting `deploymentId` per deployment do?"
+  back: "Assets carry `?dpl=` and mismatches reload instead of mixing versions. With it set, the build ID is constant and skew detection moves to the `x-nextjs-deployment-id` response header."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-shared-deployment-id-pitfall
+  front: "What goes wrong sharing one `deploymentId` across different builds?"
+  back: "It silences skew detection. In the test, the navigation rendered B's page inside A's document."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-rolling-deploy-404
+  front: "What broke changing client code during a rolling deploy without routing by deployment?"
+  back: "A's HTML asked B for a chunk with `?dpl=v1` and got `404`; the page never hydrated, so forms fell back to native `POST`s. Next.js doesn't route on `?dpl=`; that's the proxy's or CDN's job."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-shared-cache-handlers
+  front: "What does the guide say to configure for shared caching across instances?"
+  back: "`cacheHandler` (ISR, route handlers, and images with `images.customCacheHandler: true`) and `cacheHandlers` (`use cache`), backed by a shared store with a tag index, plus `cacheMaxMemorySize: 0`. These handlers weren't built here."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-inprocess-handler-pitfall
+  front: "Why is an in-process cache handler (a `Map`) a pitfall?"
+  back: "The guide warns it gives each instance its own cache again."
+  question: nextjs/deployment/multi-instance-hosting
+- id: mi-revalidate-tag-shared
+  front: "What does a shared handler need for `revalidateTag` to work across instances, per the docs?"
+  back: "A tag index in the shared store for `cacheHandler`. For `cacheHandlers`, a `refreshTags()` that syncs tag state before each request."
+  question: nextjs/deployment/multi-instance-hosting
+- id: oe-export-output
+  front: "What does `output: 'export'` write, and what happens on `next start` (16.4.5)?"
+  back: "A static site in `out/`: one `.html` per path, RSC payloads as `.txt` files, `_next/static/`, `public/` and `404.html`. `next start` refuses: `\"next start\" does not work with \"output: export\" configuration. Use \"npx serve@latest out\" instead.`"
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-what-you-keep
+  front: "What do you keep with `output: 'export'`?"
+  back: "Server Components rendered at build, Client Components, `<Link>` navigation and prefetching, `generateStaticParams` paths, and `GET` route handlers marked `force-static` (they become files such as `data.json`)."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-build-fails
+  front: "Which features failed the build under `output: 'export'` on 16.4.5?"
+  back: "`cookies()` or `headers()`, a route handler without `force-static`, a dynamic segment without `generateStaticParams`, an explicit `dynamicParams = true`, and Server Actions."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-warn-and-drop
+  front: "What happened to config `rewrites`, `redirects`, `headers` and a Proxy file under `output: 'export'` (16.4.5)?"
+  back: "The build warned and dropped them (`Specified \"rewrites\" will not automatically work with \"output: export\".`). The Proxy warning still names `next export` and middleware, and Proxy never runs."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-revalidate-silent
+  front: "What does `revalidate = 60` do under `output: 'export'`?"
+  back: "Measured on 16.4.5: it built as `○ /isr 1m 1y`, but nothing will ever regenerate the file."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-image-default-loader
+  front: "What happens with `next/image` and the default loader under `output: 'export'` (16.4.5)?"
+  back: "It built cleanly and wrote `srcset` URLs to `/_next/image`, which doesn't exist in `out/` (404, `naturalWidth` 0). Set `images.unoptimized: true` or a custom loader."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-image-check-source
+  front: "Why doesn't the default-loader image error fire for an App Router `<Image>` in 16.4.5?"
+  back: "`export/index.ts` throws only if `.next/export-marker.json` says `isNextImageImported: true`. In 16.4.5's `build/index.ts` that flag is collected only for Pages Router pages, so it stayed `false` under Turbopack and `--webpack`."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-dynamic-params-omitted
+  front: "What does `dynamicParams` do under `output: 'export'` when omitted versus `true`?"
+  back: "Omitted builds, and an unlisted path like `/blog/c` is just the host's 404. Only an explicit `true` fails the build (16.4.5)."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-route-handler-force-static
+  front: "Does a `GET` route handler that ignores the request count as static under `output: 'export'`?"
+  back: "No. Without `export const dynamic = 'force-static'` the build failed on 16.4.5."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-client-nav-works
+  front: "Does client navigation work from a plain static file server for an export?"
+  back: "Yes. Served from `out/` by a plain Node file server, Chrome 156 and Firefox 159 navigated from `/` to `/blog/a` without a reload, fetching `__next._tree.txt` and the page's segment `.txt`."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-good-fit
+  front: "What is a static export a fit for?"
+  back: "Docs, marketing sites and SPAs whose dynamic data comes from client-side fetches to some other API. Redirects, headers and auth move to the host or CDN."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-host-file-names
+  front: "What hosting pitfall comes with `out/`, and what does the docs' nginx example use?"
+  back: "A host serving only exact file names: `/blog/a` exists as `blog/a.html`. The docs' nginx example uses `try_files $uri $uri.html $uri/ =404`."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-vs-next-start-static
+  front: "How does an export differ from a fully `○` app under `next start`?"
+  back: "The files are the same kind, but `next start` still serves RSC variants by header, runs actions and the image optimizer, applies config rules and can revalidate. A static host only maps URLs to files."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: oe-cookies-client-only
+  front: "Can a static export read cookies?"
+  back: "Only in the browser, in a Client Component after hydration. Nothing reads the request before the HTML is sent."
+  question: nextjs/deployment/output-export-tradeoffs
+- id: np-compiler-instruction
+  front: "What does `NEXT_PUBLIC_` mean at build time?"
+  back: "An instruction to the compiler: during `next build`, every `process.env.NEXT_PUBLIC_X` is replaced with the build environment's value as a literal. Browsers have no `process.env`, so a literal is the only way the value reaches them."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-client-chunk-literal
+  front: "After building with `NEXT_PUBLIC_X=a` and starting with `NEXT_PUBLIC_X=b`, what does the client chunk contain (16.4.5)?"
+  back: "`dotted:\"a\"` in `.next/static/chunks/*.js`. No rebuild, no change."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-server-bundle-inlined
+  front: "Is a `NEXT_PUBLIC_` reference inlined in server bundles too?"
+  back: "Yes. A dynamic Server Component printed `x: \"a\"` and the built code read `{x:\"a\",secret:process.env.SECRET`."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-nonprefixed-runtime
+  front: "How are non-prefixed variables read on the server under `next start`?"
+  back: "As real lookups: the dynamic page printed `SECRET` as the start-time `s2`, and a `.env` value edited between build and start was read fresh."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-static-pages-freeze
+  front: "What do statically prerendered pages show for env values?"
+  back: "Build values for everything: the prerendered `/` showed `a`, `s1` and the old `.env` value, because it ran once, at build."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-destructuring-not-inlined
+  front: "Which `process.env` forms are not replaced by the `NEXT_PUBLIC_` inlining (16.4.5)?"
+  back: "Only the literal `process.env.NAME` form is replaced. Destructuring and a key held in a prop stayed runtime lookups: `b` in the server render, `undefined` in Chrome 156 and Firefox 159."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-turbopack-const-key
+  front: "Do the docs match Turbopack for `process.env[name]` with a constant key (16.4.5)?"
+  back: "No. The docs say dynamic lookups aren't inlined, but Turbopack turned `process.env[name]` with `const name = 'NEXT_PUBLIC_X'` into `\"a\"`. `--webpack` left it a lookup."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-staging-to-prod-image
+  front: "What happens promoting one image from staging to production with `NEXT_PUBLIC_` values?"
+  back: "It carries staging's public values, since the literals are in the shipped files. A restart or new container env changes nothing; only a rebuild does."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-docs-fix
+  front: "What fix do the docs give for per-environment runtime values?"
+  back: "Read them on the server in a dynamically rendered Server Component (`await connection()` or any request API makes it per request) and pass them to Client Components as props, or serve them from your own endpoint. Otherwise build once per environment."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-server-var-in-client
+  front: "What happens reading a server variable in a Client Component?"
+  back: "The server render printed `\"secret\":\"s2\"` into the HTML, then the browser rendered `undefined`. The value leaked and the markup disagreed."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-static-page-runtime-config
+  front: "What happens reading runtime config in a static page without a request API or `connection()`?"
+  back: "It ran at build and kept build values."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-env-files-at-start
+  front: "Does `next start` read `.env` files, and which source wins?"
+  back: "Yes. A dynamic page saw a `.env` value edited after the build, while the prerendered page kept the old one. Real environment variables win over `.env.production.local`, `.env.local`, `.env.production` and `.env`, in that order."
+  question: nextjs/deployment/next-public-env-inlining
+- id: np-not-secret
+  front: "Is a `NEXT_PUBLIC_` value a secret?"
+  back: "Never. It is a plain string in every client chunk that references it; anyone can read it."
+  question: nextjs/deployment/next-public-env-inlining
+# 10 Pages Router
+- id: df-no-one-to-one-mapping
+  front: "Do `getStaticProps`, `getServerSideProps` and `getStaticPaths` map one to one onto App Router code?"
+  back: "No. Data moves into async Server Components, and the route's rendering mode follows what they read. Props go away: each component fetches its own data."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-gsp-becomes-server-fetch
+  front: "What does `getStaticProps` become in `app/`, and is the page still prerendered?"
+  back: "Data access in a Server Component. On Next.js 16.4.5 (Cache Components off) the page was still prerendered at build."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-revalidate-equivalents
+  front: "What does `revalidate: 60` from `getStaticProps` become in `app/`?"
+  back: "`export const revalidate = 60` or `fetch(url, { next: { revalidate: 60 } })`. On 16.4.5 both versions sent `s-maxage=60, stale-while-revalidate=31535940`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-gssp-becomes-request-read
+  front: "What replaces `getServerSideProps` in `app/`, and what makes the route `ƒ`?"
+  back: "A component that reads the request: `await headers()`, `cookies()` or `searchParams` instead of `req`. That read makes the route `ƒ`, not the fetch."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-plain-fetch-built-static
+  front: "On 16.4.5 (Cache Components off), what happened to a route using `fetch` with no options?"
+  back: "The `fetch` wasn't stored in the Data Cache, yet the route built as `○` with the value frozen at build. It turns dynamic only on a request read or `cache: 'no-store'`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-migration-guide-fetch-disagrees
+  front: "What does the migration guide say about the `fetch` default, and what did 16.4.5 show?"
+  back: "The guide's own comments disagree: one says `force-cache`, one says uncached. The 16.4.5 build is the tiebreaker (measured): uncached data in a prerendered route."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-gsp-paths-becomes-generate-static-params
+  front: "What does `getStaticPaths` become, and what does it return instead of `{ paths, fallback }`?"
+  back: "`generateStaticParams`, returning an array like `[{ id: '1' }]`. `dynamicParams` replaces `fallback`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-dynamic-params-false
+  front: "Which `fallback` value does `dynamicParams = false` match, and what did an unlisted id return on 16.4.5?"
+  back: "`fallback: false`. An unlisted id returned 404 (about 2 ms) both ways."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-dynamic-params-true-is-blocking
+  front: "Which `fallback` value does the default `dynamicParams = true` behave like?"
+  back: "`fallback: 'blocking'`: the first request renders the whole page, then it is cached. Measured on 16.4.5: 200 after about 310-330 ms with full HTML, then a `HIT`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-fallback-true-no-equivalent
+  front: "Is there a direct App Router equivalent of `fallback: true`?"
+  back: "No. Pages serves a skeleton at once (`router.isFallback`), then fetches the props as JSON. Without Cache Components nothing replaces that instant skeleton; with Cache Components on, the App Shell fills the role."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-loading-js-not-shown-measured
+  front: "Did `loading.js` show on the first document request for an unlisted id with `dynamicParams` true? (measured on 16.4.5, not what the docs imply)"
+  back: "No. The response arrived after about 330-362 ms with the finished page and no loading UI (Chrome 156)."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-fallback-true-first-response
+  front: "What did the first document request for an unlisted id return with `fallback: true` on 16.4.5?"
+  back: "A 200 after about 8 ms with the loading fallback, then a `/_next/data/<buildId>/…json` request. Chrome 156 and Firefox 159 both showed the fallback and then the item."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-fallback-true-hides-404
+  front: "With `fallback: true`, what happened for an id whose `getStaticProps` returned `notFound`?"
+  back: "The document was a 200 fallback; the JSON request got 404 and the 404 page rendered client-side."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-notfound-redirect-calls
+  front: "What replace `{ notFound: true }` and `{ redirect }` from the data functions, and what did they return?"
+  back: "The `notFound()` and `redirect()` calls, which throw rather than return. Both gave 404 and 307 as before."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-notfound-caching-differs
+  front: "How did a 404 from `notFound()` in a static page differ from `{ notFound: true }` in `getServerSideProps`? (16.4.5)"
+  back: "The static page's 404 was prerendered and sent with `s-maxage=31536000`. The `getServerSideProps` one rendered per request with `no-store`."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-next-data-json-vs-rsc
+  front: "What replaces the `/_next/data/<buildId>/…json` requests in `app/`?"
+  back: "The RSC payload: a `<Link>` to an App route fetched `/a/gsp-loading/13?_rsc=…`. Per the docs, `getStaticProps` writes that JSON at build alongside the HTML."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-link-nav-skips-fallback
+  front: "Does a client-side navigation show the `fallback: true` skeleton?"
+  back: "No. The docs say a `next/link` navigation behaves as `'blocking'`. Measured, the page went straight from the old content to the item after the JSON arrived."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: df-googlebot-gets-blocking
+  front: "What does a crawler such as Googlebot get for a `fallback: true` page?"
+  back: "The docs say crawlers are served `'blocking'`. Measured with `User-Agent: Googlebot/2.1`: the first request waited 317 ms and returned the full page (`MISS`)."
+  question: nextjs/pages-router/data-functions-to-app-router
+- id: mp-pages-are-client-components
+  front: "What does the migration guide say about pages in `pages/` and client JavaScript?"
+  back: "Pages in `pages/` are Client Components. Every module a page imports ships to the browser and runs again during hydration, even one that only formats markup."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-server-component-stays-on-server
+  front: "In `app/`, what reaches the browser from a Server Component, and what ships and hydrates?"
+  back: "Its code stays on the server; the browser gets its rendered output in the RSC payload. Only `'use client'` modules ship and hydrate."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-bundle-measured
+  front: "How did the same product page with a 117 KB lookup table compare in `pages/` and `app/`? (16.4.5, Turbopack)"
+  back: "`pages/`: 8 scripts, 154,824 bytes gzipped, 41,136 of them the table chunk. `app/`: 7 scripts, 138,639 bytes, no table."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-app-runtime-bigger
+  front: "Without the table chunk, which version would have been smaller, and why? (16.4.5, Turbopack)"
+  back: "The Pages version. The App Router runtime costs more than the Pages runtime; the saving comes from what you keep on the server."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-html-grows-with-rsc
+  front: "How much did the product page's HTML grow in `app/`, and why? (16.4.5)"
+  back: "From 718 to 1,970 bytes gzipped, because it carries the RSC payload. The list appears as markup and again as payload, so React can hydrate Client Components without re-running server code."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-no-route-size-column
+  front: "Does `next build` on 16.4.5 print per-route JS size, and how do you measure instead?"
+  back: "No per-route size column was printed. Measure the HTML's script tags."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-use-client-page-ships-more
+  front: "What did wrapping the old page in `'use client'` (the guide's first step) do to its bundle? (16.4.5)"
+  back: "It kept the page's behaviour and its bundle: `/a/product-client` shipped 179,626 bytes gzipped with a 40,987-byte table chunk, more than the Pages page's 154,824."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-browsers-same-totals
+  front: "Did Chrome 156 and Firefox 159 differ in transferred totals for `/p/product` and `/a/product`?"
+  back: "No. Both browsers transferred identical totals for the two pages."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-app-layout-keeps-state
+  front: "Which Pages Router wrapper keeps state across client navigations, and which does not? Measured result?"
+  back: "`_app` keeps it; a layout component rendered inside each page remounts. A nested `layout.js` stays mounted for every route under it: a counter at 2 stayed at 2 in `app/a/layout.js` and dropped to 0 in a per-page layout."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-per-page-layout-remounts
+  front: "Does a per-page layout keep state across `<Link>` navigations? (measured, 16.4.5)"
+  back: "No. Rendered inside each page component, it remounted on every `<Link>` navigation even though the document never reloaded."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-next-router-hooks
+  front: "Which hooks replace `next/router`'s `useRouter` in `app/`?"
+  back: "`next/navigation` has `useRouter`, `usePathname`, `useSearchParams` and `useParams`. `next/router` doesn't work in `app/`."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-next-router-not-mounted
+  front: "What happened importing `useRouter` from `next/router` in a Client Component under `app/`? (16.4.5)"
+  back: "The build failed while prerendering it: `Error: NextRouter was not mounted.`"
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-compat-router
+  front: "How can one component serve both routers during the migration?"
+  back: "Per the docs, `next/compat/router` gives the Pages `useRouter` without the \"not mounted\" error, until `pages/` is gone."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-next-head-silent
+  front: "What happened using `next/head` in `app/`? (16.4.5)"
+  back: "A `<Head><title>` in a page built without a warning and rendered no `<title>`. `next/head` is replaced by the Metadata API."
+  question: nextjs/pages-router/moving-page-to-app
+- id: mp-app-has-no-underscore-app
+  front: "Does `_app` apply to `app/` routes, and where does its job move?"
+  back: "No. `_app` doesn't apply there; its job moves to the root layout."
+  question: nextjs/pages-router/moving-page-to-app
+- id: co-two-apps-one-server
+  front: "Can `pages/` and `app/` coexist, and how did one build look on 16.4.5?"
+  back: "Yes, page by page, as two apps behind one server. One `next build` produced two tables, `Route (app)` and `Route (pages)`, served by one `next start`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-shared-things
+  front: "What is shared between `pages/` and `app/` routes? (measured on 16.4.5)"
+  back: "`public/` files, `.env` values (both rendered `NEXT_PUBLIC_GREETING`), `next.config` `redirects` and `headers`, and Proxy on routes its `matcher` listed."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-shell-not-shared
+  front: "Which shell wraps `pages/` and which wraps `app/`?"
+  back: "`_app` and `_document` wrap only `pages/`; the root layout wraps only `app/`. Styles in `app/layout` don't reach `pages/`. The guide says keep `_app`/`_document` until the last page moves."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-cross-router-hard-nav
+  front: "What does a `<Link>` between `pages/` and `app/` do? (Chrome 156, Firefox 159)"
+  back: "A full document load: a `window` marker was lost and `performance.getEntriesByType('navigation')` named the new URL. A `<Link>` within `pages/` kept the marker."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-hard-nav-faster-not-soft
+  front: "Can the cross-router hard navigation be avoided?"
+  back: "It can be made faster, not soft: the guide links a Vercel guide on optimizing hard navigations. Migrating tightly linked routes together removes the crossing."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-i18n-pages-only
+  front: "Does `i18n` routing work for `app/` routes? (16.4.5)"
+  back: "No, it is a Pages Router option. With `locales: ['en', 'fr']`, `/fr/p` rendered and `/fr/a` returned 404. `next start` warned: `i18n configuration in next.config.mjs is unsupported in App Router.`"
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-app-locales-segment
+  front: "How does the App Router do locales instead of `i18n`?"
+  back: "With an `app/[lang]` segment. Localized routes migrate together once it exists."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-default-locale-works
+  front: "Did `/en/a` work with `defaultLocale: 'en'`? (16.4.5)"
+  back: "Yes, 200 with the App page. Only the non-default locale broke."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-routing-hooks-split
+  front: "Which routing hooks work in which router?"
+  back: "`next/router` works only in `pages/`, `next/navigation` only in `app/`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-duplicate-route-turbopack
+  front: "What happened with `pages/dup.js` and `app/dup/page.js` on the Turbopack build? (16.4.5)"
+  back: "The build failed: `App Router and Pages Router both match path: /dup`. A URL must belong to one router."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-duplicate-route-webpack
+  front: "How did `next build --webpack` report the same duplicate route? (16.4.5)"
+  back: "`Conflicting app and page file was found, please remove the conflicting files to continue`, naming `pages/dup.js` and `app/dup/page.js`. The text differs from Turbopack's."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-unmatched-url-app-404
+  front: "Which router's 404 page did an unmatched URL get? (16.4.5)"
+  back: "The App Router's."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-api-routes-unchanged
+  front: "Are API routes affected by coexistence?"
+  back: "The guide says `pages/api` keeps working unchanged. The same rule applies: `pages/api/x.js` plus `app/api/x/route.js` failed with `App Router and Pages Router both match path: /api/x`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-prefetch-across-routers
+  front: "Did prefetch warm the cache across routers? (measured, Chrome 156; the docs imply otherwise)"
+  back: "No. It still requested `/_next/data/<buildId>/a.json` from the Pages page and `/p?_rsc=…` from the App page. Both came back as `text/html`: wasted bytes, no warm cache."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: co-providers-need-root-layout
+  front: "What must be duplicated in the root layout for new `app/` routes during the migration?"
+  back: "Context providers, global CSS and analytics that `_app` supplies to `pages/`."
+  question: nextjs/pages-router/pages-and-app-coexistence
+- id: ad-app-role
+  front: "What did `pages/_app.js` do on 16.4.5?"
+  back: "It rendered each page (`<Component {...pageProps} />`): global CSS, context providers and a shared layout whose state survives client navigations. It ran on the server per document and in the browser on hydration and every `<Link>` navigation."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-app-on-gssp-nav
+  front: "On a navigation to a `getServerSideProps` page, what ran where? (16.4.5)"
+  back: "Only that function ran on the server; `_app` re-rendered in the browser."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-document-role
+  front: "What does `pages/_document.js` render, and where?"
+  back: "The HTML shell: `<Html>`, `<Head>`, `<Main>` and `<NextScript>`, all four required. Per the docs it renders only on the server, so no event handlers or data fetching."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-document-outside-main
+  front: "What do the docs say about components outside `<Main>` in `_document`, and about its `<Head>`?"
+  back: "They are never initialized in the browser. Its `<Head>` is for tags common to every page, not `next/head`."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-root-layout-replaces-both
+  front: "What replaces `_app` and `_document` in the App Router?"
+  back: "One root `app/layout.js`, a Server Component that must render `<html>` and `<body>` itself. Global CSS is imported there and `<head>` content comes from the Metadata API."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-providers-client-component
+  front: "Where do providers needing state or context go with a root layout?"
+  back: "Into a `'use client'` component that the layout renders. Don't make the root layout itself `'use client'`; wrap only the provider."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-layout-server-only
+  front: "Did the root layout run again on a navigation to a dynamic page? (16.4.5)"
+  back: "No. The layout ran only on the server; that page re-rendered on the server and the root layout didn't run again."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-report-web-vitals
+  front: "What replaces `export function reportWebVitals` in `_app`?"
+  back: "`useReportWebVitals` from `next/web-vitals`, called in a Client Component."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-vitals-metrics-differ
+  front: "Which metrics did the `_app` callback and the hook receive? (16.4.5)"
+  back: "The `_app` callback got Next.js's own metrics (`Next.js-hydration`, `Next.js-render`, `Next.js-route-change-to-render`); the hook got web vitals such as `FCP` and `TTFB`."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-vitals-inline-callback
+  front: "What happens passing an inline callback to `useReportWebVitals`?"
+  back: "The docs say each new function receives the metrics so far. With an inline arrow, Chrome 156 reported `FCP` again after each navigation."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-app-get-initial-props
+  front: "What did `App.getInitialProps` do to static optimization, and what replaces `_app` data loading?"
+  back: "It ran for every page and switched off static optimization (`○` became `ƒ`). The build warned `You have opted-out of Automatic Static Optimization`. In `app/`, each layout fetches its own data."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-missing-html-dev-only
+  front: "Does the build catch a root layout missing `<html>` and `<body>`? (16.4.5, not what the docs imply)"
+  back: "No. A layout returning `<main>{children}</main>` built cleanly and `next start` sent a document with no `<html>` or `<body>`. Only `next dev` showed `Missing <html> and <body> tags in the root layout.`"
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-keep-until-last-page
+  front: "When can `_app` and `_document` be deleted during a migration?"
+  back: "Per the guide, only when every page has left `pages/`, because the root layout doesn't apply there."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-get-layout-nested
+  front: "Where does a per-page layout (`getLayout`) go in the App Router?"
+  back: "Into nested `layout.js` files, which stay mounted for every route below them."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-error-and-404
+  front: "What do `_error.js` and `404.js` map to?"
+  back: "Per the migration guide, `error.js` files per segment and `not-found.js`."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-root-layout-request-reads
+  front: "Can the root layout read the request like `_document`'s `getInitialProps`?"
+  back: "It can call `cookies()` or `headers()`, but without Cache Components that makes every route under it dynamic. Read request data as low in the tree as possible."
+  question: nextjs/pages-router/app-and-document-replacements
+- id: ad-browsers-logging
+  front: "Which of `_app`, `_document` and the root layout logged in the browser? (Chrome 156, Firefox 159)"
+  back: "Only `_app`, on load and on each navigation. Neither `_document` nor the root layout ever did."
+  question: nextjs/pages-router/app-and-document-replacements
