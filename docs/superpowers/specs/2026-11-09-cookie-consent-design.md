@@ -33,3 +33,6 @@ Approved 2026-11-09. Mockup: `mockups/cookie-consent.html`. Reference for the ba
 
 ## Answered
 - `on_reject` alone drops events while the choice is pending; with `opt_out_capturing_by_default: true` a pending visit is counted cookieless and stores nothing (browser-checked 2026-11-09).
+
+## Update
+- PostHog traffic goes through the same-origin `/soundings` path (see `2026-11-09-analytics-accuracy-design.md`), so the CSP names no PostHog host.
