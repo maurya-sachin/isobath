@@ -1,9 +1,8 @@
 // Browser store for the analytics consent prompt. PostHog keeps the visitor's choice itself; this only tells React
-// when the prompt is open. Browser-only: it imports posthog-js, so Node tests never load it.
+// when the prompt is open. Browser-only: it reads the analytics client, so Node tests never load it.
 
-import posthog from 'posthog-js'
 import { useSyncExternalStore } from 'react'
-import { analyticsEnabled } from './analytics.ts'
+import { getAnalytics, onAnalyticsReady } from './analytics.ts'
 
 const listeners = new Set<() => void>()
 let reopened = false
@@ -22,7 +21,9 @@ function notify(): void {
 function subscribe(listener: () => void): () => void {
   if (listeners.size === 0) window.addEventListener('storage', onStorage)
   listeners.add(listener)
+  const stopWaiting = onAnalyticsReady(listener)
   return () => {
+    stopWaiting()
     listeners.delete(listener)
     if (listeners.size === 0) window.removeEventListener('storage', onStorage)
   }
@@ -34,8 +35,9 @@ function setReopened(next: boolean): void {
 }
 
 function isPromptOpen(): boolean {
-  if (!analyticsEnabled) return false
-  return reopened || posthog.get_explicit_consent_status() === 'pending'
+  const analytics = getAnalytics()
+  if (!analytics) return false
+  return reopened || analytics.get_explicit_consent_status() === 'pending'
 }
 
 /** True while the visitor has not chosen yet, or has asked to change their choice. False on the server. */
@@ -44,8 +46,10 @@ export function useConsentPromptOpen(): boolean {
 }
 
 export function chooseConsent(granted: boolean): void {
-  if (granted) posthog.opt_in_capturing()
-  else posthog.opt_out_capturing()
+  const analytics = getAnalytics()
+  if (!analytics) return
+  if (granted) analytics.opt_in_capturing()
+  else analytics.opt_out_capturing()
   setReopened(false)
 }
 
