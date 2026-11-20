@@ -6,6 +6,18 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    {
+      "source": "/soundings/static/:path(.*)",
+      "destination": "https://eu-assets.i.posthog.com/static/:path"
+    },
+    {
+      "source": "/soundings/array/:path(.*)",
+      "destination": "https://eu-assets.i.posthog.com/array/:path"
+    },
+    {
+      "source": "/soundings/:path(.*)",
+      "destination": "https://eu.i.posthog.com/:path"
+    },
     { "source": "/flashcards/:topic", "destination": "/app-shell" },
     { "source": "/cheatsheet/:topic/:chapter", "destination": "/app-shell" },
     { "source": "/practice/:topic", "destination": "/app-shell" },
