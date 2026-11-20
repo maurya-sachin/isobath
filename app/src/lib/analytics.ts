@@ -1,4 +1,5 @@
 import type { PostHog } from 'posthog-js'
+import { deviceOptedOut } from './analyticsOptOut.ts'
 import { getAppearance } from './appearanceStore.ts'
 import { superProperties, type AnalyticsEvent } from './analyticsEvents.ts'
 import { getTheme } from './theme.ts'
@@ -34,7 +35,7 @@ export function registerDisplaySettings(): void {
 
 /** Records a named event for every visitor, anonymously. Null (an event with nothing to say) is ignored. */
 export function track(event: AnalyticsEvent | null): void {
-  if (!event || !analyticsEnabled) return
+  if (!event || !analyticsEnabled || deviceOptedOut()) return
   if (instance) instance.capture(event.name, event.properties)
   else pending.push(event)
 }
@@ -51,6 +52,8 @@ async function start(projectKey: string): Promise<void> {
     posthog.init(projectKey, {
       api_host: POSTHOG_PROXY_PATH,
       ui_host: POSTHOG_UI_HOST,
+      // Stops sending at once when the switch is turned on mid-visit.
+      before_send: (event) => (deviceOptedOut() ? null : event),
       cookieless_mode: 'on_reject',
       // Counts the visit cookieless while the choice is pending; without it nothing is captured until the visitor chooses.
       opt_out_capturing_by_default: true,
@@ -79,6 +82,6 @@ async function start(projectKey: string): Promise<void> {
  * without a project key, which keeps dev servers, CI builds and forks out of the analytics.
  */
 export function loadAnalytics(): void {
-  if (!key) return
+  if (!key || deviceOptedOut()) return
   whenIdle(() => void start(key))
 }
