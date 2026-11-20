@@ -12,9 +12,9 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { track } from '@/lib/analytics'
-import { searchComplete } from '@/lib/analyticsEvents'
-import { loadSearchEngine, type SearchEngine } from '@/content/search'
+import { track } from '@/analytics/analytics'
+import { searchComplete } from '@/analytics/analyticsEvents'
+import { loadSearchEngine, type SearchEngine } from '@/questions/search'
 
 type Results = ReturnType<SearchEngine['search']>
 

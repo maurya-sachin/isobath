@@ -1,5 +1,5 @@
-import { formatMonth } from '@/content/freshness'
-import type { Difficulty, Status } from '@/content/types'
+import { formatMonth } from '@/questions/freshness'
+import type { Difficulty, Status } from '@/questions/types'
 import { cn } from '@/lib/utils'
 
 const DIFFICULTY_STYLE: Record<Difficulty, string> = {

@@ -2,7 +2,7 @@ import { useLoaderData } from 'react-router'
 import { PageShell } from '@/components/PageShell'
 import { StationLegend } from '@/components/RouteLine'
 import { RoleList } from '@/components/RoleList'
-import type { ContentManifest } from '@/content/types'
+import type { ContentManifest } from '@/questions/types'
 import { SITE_NAME } from '@/lib/site'
 
 const LEGEND_STATES = ['done', 'written', 'in-progress', 'planned'] as const

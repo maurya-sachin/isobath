@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { fenced, MAX_QUOTE, toQuote } from '../../src/lib/quote.ts'
-import { suggestFixUrl } from '../../src/lib/repo.ts'
+import { fenced, MAX_QUOTE, toQuote } from './quote.ts'
+import { suggestFixUrl } from './repo.ts'
 
 test('trims the ends only and keeps inner newlines and indentation', () => {
   assert.deepEqual(toQuote('  a\n    b  \n'), { text: 'a\n    b', length: 7, truncated: false })

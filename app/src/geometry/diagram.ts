@@ -1,6 +1,6 @@
 // What a route diagram draws off each topic: its chapters with the reader's progress, then its planned areas.
 
-import type { ChapterOverview, TopicOverview } from '../content/types.ts'
+import type { ChapterOverview, TopicOverview } from '../questions/types.ts'
 
 export type BranchState = 'done' | 'started' | 'unread' | 'planned'
 

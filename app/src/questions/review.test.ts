@@ -10,7 +10,7 @@ import {
   parseReviews,
   previewIntervals,
   type Reviews,
-} from '../../src/content/review.ts'
+} from './review.ts'
 
 const now = new Date('2026-10-14T12:00:00Z')
 const card = (due: string) => ({

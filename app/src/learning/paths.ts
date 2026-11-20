@@ -1,6 +1,6 @@
 // Helpers for showing role paths: summaries, links and progress along them.
 
-import type { PathStep, RolePath } from '../content/types.ts'
+import type { PathStep, RolePath } from '../questions/types.ts'
 
 function joinNames(names: string[]): string {
   return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`

@@ -1,9 +1,9 @@
 import { Link } from 'react-router'
 import { RouteSummary } from '@/components/RouteLine'
-import type { RolePath } from '@/content/types'
-import { readingHours } from '@/lib/effort'
-import { describePath, readyQuestionCount, stepKey, stepLabel, stepPath, stepState } from '@/lib/paths'
-import { useProgress } from '@/lib/progress'
+import type { RolePath } from '@/questions/types'
+import { readingHours } from '@/learning/effort'
+import { describePath, readyQuestionCount, stepKey, stepLabel, stepPath, stepState } from '@/learning/paths'
+import { useProgress } from '@/learning/progress'
 
 /** The role chooser: one row per path, with its steps drawn as a route. */
 export function RoleList({ paths }: { paths: RolePath[] }) {

@@ -1,8 +1,8 @@
 // The element tree of a question's social card (1200×630), for satori. Plain `{ type, props }` objects:
 // scripts run on Node's native TypeScript, which has no JSX. Colours come from the light palette (R23).
 
-import { coverRings, ringPath } from '../../src/lib/contours.ts'
-import { depthStop } from '../../src/lib/depth.ts'
+import { coverRings, ringPath } from '../../src/geometry/contours.ts'
+import { depthStop } from '../../src/geometry/depth.ts'
 import { AUTHOR, SITE_NAME } from '../../src/lib/site.ts'
 import { hex } from '../../src/theme/palette.ts'
 

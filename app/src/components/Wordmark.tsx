@@ -1,4 +1,4 @@
-import { RING_PATH } from '@/lib/ring'
+import { RING_PATH } from '@/geometry/ring'
 import { SITE_NAME } from '@/lib/site'
 import { cn } from '@/lib/utils'
 

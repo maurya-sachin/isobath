@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { loadReviews, saveReviews } from '@/content/reviewStore'
-import { createBackup, mergeBackup, parseBackup } from '@/lib/backup'
-import { replaceProgress, useProgress } from '@/lib/progress'
+import { loadReviews, saveReviews } from '@/questions/reviewStore'
+import { createBackup, mergeBackup, parseBackup } from '@/learning/backup'
+import { replaceProgress, useProgress } from '@/learning/progress'
 
 /** Download and restore the learner's progress; this browser is the only place it is kept. */
 const MAX_BACKUP_BYTES = 5 * 1024 * 1024

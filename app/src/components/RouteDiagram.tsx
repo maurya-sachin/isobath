@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { InlineHtml } from '@/components/question/InlineHtml'
 import { StationMark } from '@/components/RouteLine'
-import type { BranchState, DiagramBranch } from '@/lib/diagram'
+import type { BranchState, DiagramBranch } from '@/geometry/diagram'
 import { cn } from '@/lib/utils'
 
 export interface DiagramNode {

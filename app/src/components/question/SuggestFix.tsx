@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { useConsentPromptOpen } from '@/lib/consentStore'
+import { useConsentPromptOpen } from '@/analytics/consentStore'
 import { MAX_QUOTE, toQuote, type Quote } from '@/lib/quote'
 import { suggestFixUrl } from '@/lib/repo'
 

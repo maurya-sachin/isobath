@@ -1,7 +1,7 @@
 // The changelog lists the published questions that changed, taken from `git log` over content/ at build time.
 
 import { execFileSync } from 'node:child_process'
-import type { Changelog, ChangelogDay } from '../../src/content/types.ts'
+import type { Changelog, ChangelogDay } from '../../src/questions/types.ts'
 import { repoRoot } from './paths.ts'
 
 /** The newest days kept; the page links to the repository history for the rest. */

@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --test 'scripts/**/*.test.ts'",
+    "test": "node --test 'scripts/**/*.test.ts' 'src/**/*.test.ts'",
     "preview": "vite preview",
     "content:check": "node scripts/check.ts",
     "content:sync": "node scripts/sync.ts",

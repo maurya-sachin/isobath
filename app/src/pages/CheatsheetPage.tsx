@@ -4,9 +4,9 @@ import { DifficultyBadge } from '@/components/question/MetaRow'
 import { NotFound, PageShell } from '@/components/PageShell'
 import { QuestionTitle } from '@/components/QuestionTitle'
 import { Button } from '@/components/ui/button'
-import { questionPath, type loadCheatsheet } from '@/content/index-data'
+import { questionPath, type loadCheatsheet } from '@/questions/index-data'
 import { SITE_NAME } from '@/lib/site'
-import { usePrintInLight } from '@/lib/usePrintInLight'
+import { usePrintInLight } from '@/hooks/usePrintInLight'
 
 const CODE_STYLE = '[&_code]:font-mono [&_code]:text-[0.9em]'
 

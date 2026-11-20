@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { Flashcard } from '../../src/content/types.ts'
+import type { Flashcard } from '../../src/questions/types.ts'
 import { ankiDeck } from './anki.ts'
 
 const card = (overrides: Partial<Flashcard> = {}): Flashcard => ({

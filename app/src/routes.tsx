@@ -14,7 +14,7 @@ import {
   loadTopic,
   SITE_ROUTE_ID,
   TOPIC_ROUTE_ID,
-} from '@/content/index-data'
+} from '@/questions/index-data'
 
 // Each page is its own chunk, fetched in parallel with its loader.
 // Pages under `:topic` read the topic with `useTopic()`. Practice and Flashcards sit under their own
