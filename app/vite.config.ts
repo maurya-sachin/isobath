@@ -9,7 +9,7 @@ const proxyTo = (target: string) => ({ target, changeOrigin: true, rewrite: stri
 const posthogProxy = {
   [`^${POSTHOG_PROXY_PATH}/static/`]: proxyTo('https://eu-assets.i.posthog.com'),
   [`^${POSTHOG_PROXY_PATH}/array/`]: proxyTo('https://eu-assets.i.posthog.com'),
-  [POSTHOG_PROXY_PATH]: proxyTo('https://eu.i.posthog.com'),
+  [`^${POSTHOG_PROXY_PATH}/`]: proxyTo('https://eu.i.posthog.com'),
 }
 
 // https://vite.dev/config/
