@@ -1,4 +1,7 @@
 import type { PostHog } from 'posthog-js'
+import { getAppearance } from './appearanceStore.ts'
+import { superProperties, type AnalyticsEvent } from './analyticsEvents.ts'
+import { getTheme } from './theme.ts'
 import { POSTHOG_PROXY_PATH, POSTHOG_UI_HOST } from './posthogHost.ts'
 
 const key = import.meta.env.VITE_POSTHOG_KEY
@@ -7,6 +10,8 @@ const key = import.meta.env.VITE_POSTHOG_KEY
 export const analyticsEnabled = Boolean(key)
 
 let instance: PostHog | null = null
+/** Events recorded before PostHog finished loading; sent once it has. */
+const pending: AnalyticsEvent[] = []
 const readyListeners = new Set<() => void>()
 
 /** The PostHog client once `loadAnalytics` has finished, otherwise null. */
@@ -20,6 +25,18 @@ export function onAnalyticsReady(listener: () => void): () => void {
   return () => {
     readyListeners.delete(listener)
   }
+}
+
+/** Registers the reader's theme and appearance settings as properties of every later event. */
+export function registerDisplaySettings(): void {
+  instance?.register(superProperties(getAppearance(), getTheme()))
+}
+
+/** Records a named event for every visitor, anonymously. Null (an event with nothing to say) is ignored. */
+export function track(event: AnalyticsEvent | null): void {
+  if (!event || !analyticsEnabled) return
+  if (instance) instance.capture(event.name, event.properties)
+  else pending.push(event)
 }
 
 /** Safari has no `requestIdleCallback`. */
@@ -47,6 +64,8 @@ async function start(projectKey: string): Promise<void> {
       capture_heatmaps: true,
     })
     instance = posthog
+    registerDisplaySettings()
+    for (const event of pending.splice(0)) track(event)
     for (const listener of readyListeners) listener()
   } catch (error) {
     console.error('Analytics failed to load', error)
