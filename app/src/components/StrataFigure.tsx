@@ -1,5 +1,5 @@
-import { contourRings, furthestPoint, ringAtLevel, ringPath } from '@/lib/contours'
-import { depthStrokeClass } from '@/lib/depth'
+import { contourRings, furthestPoint, ringAtLevel, ringPath } from '@/geometry/contours'
+import { depthStrokeClass } from '@/geometry/depth'
 import { cn } from '@/lib/utils'
 
 /** Picked by eye from the generator's output: a clear trench, a steep wall and a second pool. */

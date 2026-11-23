@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { depthStrokeClass } from '../../src/lib/depth.ts'
+import { depthStrokeClass } from './depth.ts'
 
 test('the first level is the shallowest stop and the last level the deepest, for any level count', () => {
   for (const levels of [1, 2, 3, 4, 6, 9]) {

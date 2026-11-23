@@ -1,9 +1,9 @@
 import { Link, useLoaderData } from 'react-router'
 import { NotFound, PageShell } from '@/components/PageShell'
 import { InlineHtml } from '@/components/question/InlineHtml'
-import type { loadTopic } from '@/content/index-data'
+import type { loadTopic } from '@/questions/index-data'
 import { TopicCover } from '@/components/TopicCover'
-import { chapterStats } from '@/content/stats'
+import { chapterStats } from '@/questions/stats'
 import { SITE_NAME } from '@/lib/site'
 
 /** Pick a chapter of one topic to practice. */

@@ -4,7 +4,7 @@ import { StatusPage } from '@/components/StatusPage'
 import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/Wordmark'
 import { describeRouteError } from '@/lib/routeError'
-import { useOnline } from '@/lib/useOnline'
+import { useOnline } from '@/hooks/useOnline'
 
 /**
  * Shown in place of a page whose data failed to load. Offline, it retries by itself once the connection returns.

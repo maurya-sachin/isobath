@@ -10,8 +10,8 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { useSiteIndex } from '@/content/index-data'
-import { groupByTrack } from '@/lib/tracks'
+import { useSiteIndex } from '@/questions/index-data'
+import { groupByTrack } from '@/learning/tracks'
 
 /** A header menu to jump to any topic, grouped by track; planned topics are listed and marked. */
 export function TopicSwitcher() {

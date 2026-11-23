@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { formatInterval, formatUntil } from '../../src/lib/time.ts'
+import { formatInterval, formatUntil } from './time.ts'
 
 const now = new Date('2026-10-14T12:00:00Z')
 const later = (ms: number) => new Date(now.getTime() + ms)

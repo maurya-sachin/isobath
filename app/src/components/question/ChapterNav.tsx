@@ -3,8 +3,8 @@ import { ComingSoon } from '@/components/PageShell'
 import { InlineHtml } from '@/components/question/InlineHtml'
 import { Button } from '@/components/ui/button'
 import { QuestionTitle } from '@/components/QuestionTitle'
-import type { ChapterSummary } from '@/content/types'
-import { questionPath } from '@/content/index-data'
+import type { ChapterSummary } from '@/questions/types'
+import { questionPath } from '@/questions/index-data'
 import { cn } from '@/lib/utils'
 
 export function ChapterNav({

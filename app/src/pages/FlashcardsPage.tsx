@@ -6,14 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/Kbd'
 import { SegmentBar, SessionCard, SessionHeader } from '@/components/SessionLayout'
 import { SessionProgress } from '@/components/SessionProgress'
+import { track } from '@/analytics/analytics'
+import { flashcardRate, flashcardSessionFinish } from '@/analytics/analyticsEvents'
 import { SITE_NAME } from '@/lib/site'
 import { formatInterval, formatUntil } from '@/lib/time'
-import { useSessionFocus } from '@/lib/useSessionFocus'
-import { useShortcuts } from '@/lib/useShortcuts'
-import type { loadFlashcards } from '@/content/index-data'
-import { deckStatus, dueQueue, NEW_CARDS_PER_SESSION, nextDue, previewIntervals } from '@/content/review'
-import { loadReviews, recordRating } from '@/content/reviewStore'
-import type { Flashcard } from '@/content/types'
+import { useSessionFocus } from '@/hooks/useSessionFocus'
+import { useShortcuts } from '@/hooks/useShortcuts'
+import type { loadFlashcards } from '@/questions/index-data'
+import { deckStatus, dueQueue, NEW_CARDS_PER_SESSION, nextDue, previewIntervals } from '@/questions/review'
+import { loadReviews, recordRating } from '@/questions/reviewStore'
+import type { Flashcard } from '@/questions/types'
 import { Rating, type Grade } from 'ts-fsrs'
 
 const CODE_STYLE = '[&_code]:font-mono [&_code]:text-[0.9em]'
@@ -39,12 +41,13 @@ function shortcutsFor(hasCard: boolean, revealed: boolean, rate: RateCard, revea
 function Session({
   topic,
   cards,
-  isLaterRound,
+  round,
   onNextRound,
 }: {
   topic: string
   cards: Flashcard[]
-  isLaterRound: boolean
+  /** Zero-based; each "Study more" starts the next one. */
+  round: number
   onNextRound: () => void
 }) {
   const [reviews, setReviews] = useState(loadReviews)
@@ -57,13 +60,16 @@ function Session({
     rated,
     revealed,
     !card,
-    isLaterRound,
+    round > 0,
   )
 
   const rate: RateCard = (grade, count) => {
     setReviews(recordRating(reviews, card.id, grade, new Date()))
     // A card you missed comes round again in this sitting.
-    setQueue(grade === Rating.Again ? [...queue.slice(1), card] : queue.slice(1))
+    const nextQueue = grade === Rating.Again ? [...queue.slice(1), card] : queue.slice(1)
+    setQueue(nextQueue)
+    track(flashcardRate(topic, count, !reviews[card.id]))
+    if (nextQueue.length === 0) track(flashcardSessionFinish(topic, rated + 1, round + 1))
     setCounts({ ...counts, [count]: counts[count] + 1 })
     setRevealed(false)
   }
@@ -248,7 +254,7 @@ export function FlashcardsPage() {
             key={`${topic.slug}-${round}`}
             topic={topic.slug}
             cards={cards}
-            isLaterRound={round > 0}
+            round={round}
             onNextRound={() => setRound(round + 1)}
           />
         </div>

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { DEFAULT_APPEARANCE, parseAppearance, rootSettings, serializeAppearance } from '../../src/lib/appearance.ts'
+import { DEFAULT_APPEARANCE, parseAppearance, rootSettings, serializeAppearance } from './appearance.ts'
 
 test('missing or corrupt saved settings give the defaults', () => {
   assert.deepEqual(parseAppearance(null), DEFAULT_APPEARANCE)

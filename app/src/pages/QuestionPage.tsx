@@ -11,12 +11,12 @@ import { SuggestFix } from '@/components/question/SuggestFix'
 import { Breadcrumbs, ComingSoon, NotFound } from '@/components/PageShell'
 import { QuestionComments } from '@/components/QuestionComments'
 import { QuestionTitle } from '@/components/QuestionTitle'
-import { findChapter, neighbours, questionId, questionPath, useTopic } from '@/content/index-data'
-import type { QuestionPage as QuestionData } from '@/content/types'
-import { markRead } from '@/lib/progress'
+import { findChapter, neighbours, questionId, questionPath, useTopic } from '@/questions/index-data'
+import type { QuestionPage as QuestionData } from '@/questions/types'
+import { markRead } from '@/learning/progress'
 import { editUrl } from '@/lib/repo'
 import { SITE_NAME, SITE_URL } from '@/lib/site'
-import { useMediaQuery } from '@/lib/useMediaQuery'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 const CODE_STYLE = '[&_code]:font-mono [&_code]:text-[0.9em]'
 
@@ -172,7 +172,7 @@ function QuestionBody({ content }: { content: QuestionData }) {
           <div className="mt-14 border-t pt-2">
             <Section id="exercises" title="Exercises">
               {/* Keyed so revealed answers reset when navigating to another question. */}
-              <Exercises key={content.id} exercises={content.exercises} />
+              <Exercises key={content.id} questionId={content.id} exercises={content.exercises} />
             </Section>
           </div>
         )}

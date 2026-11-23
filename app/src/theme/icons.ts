@@ -1,6 +1,6 @@
 // The favicon and the touch icon, drawn from the palette (R23): the contour ring in the accent colour.
 
-import { RING_PATH } from '../lib/ring.ts'
+import { RING_PATH } from '../geometry/ring.ts'
 import { hex } from './palette.ts'
 
 const ring = (colour: string) =>

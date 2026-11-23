@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { ChapterSummary, QuestionSummary, TopicSummary } from '../../src/content/types.ts'
+import type { ChapterSummary, QuestionSummary, TopicSummary } from '../../src/questions/types.ts'
 import { resolveRolePaths, validateRolePaths, type RolePathSource } from './rolepaths.ts'
 
 function questions(readable: number, unreadable = 0): QuestionSummary[] {

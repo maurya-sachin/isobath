@@ -10,6 +10,7 @@ import {
   serializeAppearance,
   type Appearance,
 } from './appearance'
+import { registerDisplaySettings } from '../analytics/analytics.ts'
 
 const listeners = new Set<() => void>()
 let current: Appearance | undefined
@@ -25,6 +26,8 @@ function snapshot(): Appearance {
   current = parseAppearance(raw)
   return current
 }
+
+export const getAppearance = snapshot
 
 function applyToRoot(appearance: Appearance): void {
   const root = document.documentElement
@@ -50,6 +53,7 @@ export function setAppearance(next: Appearance): void {
     // The choice still applies for this visit.
   }
   applyToRoot(next)
+  registerDisplaySettings()
   listeners.forEach((listener) => listener())
 }
 
