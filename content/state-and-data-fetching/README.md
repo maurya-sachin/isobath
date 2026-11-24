@@ -1,7 +1,8 @@
 # State and data fetching
 
+> **Covers:** React 19.3, Redux Toolkit 2.14, TanStack Query 5.107, Zustand 5.1, Jotai 3.0
 > **Track:** Frontend
-> **Status:** 🔴 planned · **Published:** 0/0 · **Last verified:** —
+> **Status:** 🔴 planned · **Published:** 0/51 · **Last verified:** —
 
 Where client state lives once it outgrows a component, and how server data is fetched, cached, and kept fresh on the client.
 Frontend interviews use it to separate people who reach for a library from people who can say what problem it solves.
@@ -20,22 +21,17 @@ Frontend interviews use it to separate people who reach for a library from peopl
 <!-- generated:chapters:start -->
 | # | Chapter | Status |
 |---|---|---|
+| 01 | [Classifying state](01-classifying-state/) | 🔴 |
+| 02 | [External stores and tearing](02-external-stores/) | 🔴 |
+| 03 | [Redux and Redux Toolkit](03-redux/) | 🔴 |
+| 04 | [Lightweight stores and signals](04-lightweight-stores/) | 🔴 |
+| 05 | [Server state and the query cache](05-server-state/) | 🔴 |
+| 06 | [Invalidation and refetching](06-invalidation/) | 🔴 |
+| 07 | [Mutations and optimistic updates](07-mutations/) | 🔴 |
+| 08 | [Fetching correctness](08-fetching-correctness/) | 🔴 |
+| 09 | [Pagination and infinite queries](09-pagination/) | 🔴 |
+| 10 | [Prefetching and hydration](10-prefetching-and-hydration/) | 🔴 |
 <!-- generated:chapters:end -->
-
-## Not yet mapped
-
-Areas this topic owns that have no chapter yet. Move an item into a chapter's sub-topics when the chapter exists.
-
-- Classifying state: local, shared, server, URL, form — and where each belongs
-- External stores: subscriptions, `useSyncExternalStore`, tearing
-- Redux: single store, reducers, actions, middleware; what Redux Toolkit changes
-- Lightweight stores: Zustand, Jotai, signals — selectors and re-render cost
-- Server state: TanStack Query's cache, query keys, stale time vs garbage collection
-- Invalidation and refetching: on focus, on mutation, polling
-- Mutations: optimistic updates, rollback, retries
-- Fetching correctness: race conditions, cancellation, request waterfalls, deduplication
-- Pagination and infinite queries
-- Prefetching and hydrating client caches from the server
 
 ## Sources
 
