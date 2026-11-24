@@ -3,11 +3,11 @@
 Open work and settled rules only. Keep it lean: see `CLAUDE.md` → Plan hygiene.
 
 ## Now
-- Branch `dev`, ahead of `main` by the Next.js chapters 08-10, the table focus fix, and the analytics accuracy work (spec `docs/superpowers/specs/2026-11-09-analytics-accuracy-design.md`: lazy PostHog, `/soundings` proxy, six events, device opt-out) plus the `src/` regrouping. Pushed as `preview/analytics-proxy`; release needs the maintainer's OK.
-- Preview checked in Chrome with a blocker: events pass, `$autocapture`/`$pageleave`/`$web_vitals` arrive, country reaches PostHog. Open: `dead-clicks-autocapture.js` is still blocked by filename; `/soundings/i/v0/e/` with a trailing slash answers a 308; event properties and Firefox, 375-1440 px unchecked.
-- Next: release; then after ~3 days of data the dashboard (spec T6) and memory `posthog-analytics`. Optional: remove `VITE_POSTHOG_KEY` from Vercel Preview.
-- Done, all `draft`: Next.js 50 q, JS 183, TS 63, HTML and CSS 61, browser 51, React 54. Open content fixes: 03/040 `connection()` in `use cache: private`; `previous-caching/default-cache-locations` route-cache path (see 09/030).
-- Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5; wordmark redraw.
+- Branch `dev`, 11 commits ahead of `main` (the `state-and-data-fetching` spec and scaffold). Tags `v1-archive`, `v1-site-archive`, `archive/improvements`.
+- Done, all `draft`: Next.js 50 q / 731 cards, JS 183, TS 63, HTML and CSS 61, browser 51, React 54. `state-and-data-fetching` is scaffolded: 10 chapters, 51 `planned` stubs, spec approved (`2026-11-12-state-and-data-fetching-topic-design.md`).
+- Doing: nothing open. Maintainer paused Opus content agents, so no question writing yet. Analytics T6 done: dashboard "isobath — weekly" (PostHog id 1111663); bounce 62.8% and 121 s (were 89% / 26 s). Handoff from a non-Claude session (privacy checks, scaffold tool): `docs/superpowers/handoffs/2026-11-17-agent-session.md`.
+- Open: unchecked: event properties in PostHog; `dead-clicks-autocapture.js` is blocked by filename; `practice_*` and `flashcard_session_finish` fire locally (handoff doc) — confirm in PostHog after real use.
+- Awaiting maintainer: chapter passes; Search Console and Rich Results checks; card-validator check; one Anki import; 6A T5; wordmark redraw; PostHog: weekly email subscription, past-post annotations, replacing the starter dashboard.
 
 ## Goal
 Interview Q&A for any software engineer — language → spec/engine → runtimes → frontend, backend, infrastructure, practice. Not introductory.
@@ -53,12 +53,11 @@ In this order when picked up; model for the build in brackets:
 - [ ] 6.9 Offline reading/flashcards (`vite-plugin-pwa`) [Opus spec, Sonnet build: cache bugs ship easily]
 - [ ] 6.13 "Run" for JS examples in a sandboxed Web Worker (replaces parked Sandpack) [Opus: runs code in the browser]
 - [ ] 6.14 Build-time SVG diagrams (Mermaid) for event loop, rendering pipeline, Fiber [Sonnet]
-- [ ] 6.12 Privacy-friendly page counts (GoatCounter) to order reviews [Sonnet]
 - [ ] 6.15 DSA problems with tests on the 6.13 runner [Sonnet]
 Skip: AI features, accounts/sync, company tags, i18n (until traffic).
 
 ### 7 — Next topics
-- [ ] Per topic: chapters + stubs from its **Not yet mapped** list, then content. Next: `nextjs`.
+- [ ] Per topic: chapters + stubs from its **Not yet mapped** list, then content. Next: `state-and-data-fetching`.
   - Order: nextjs → state-and-data-fetching → accessibility → react-native → web-performance → web-security → testing → tooling → nodejs → http-and-apis → authentication → databases → caching → backend-patterns → messaging-and-jobs → git → ci-cd → networking → containers-and-kubernetes → cloud-and-iac → observability → data-structures-and-algorithms (after 6.15) → system-design.
   - Main session on Sonnet coordinates (briefs, checks hand-backs, commits); the topic spec and the questions go to an Opus agent (`question-writer`, R21); flashcards to the Sonnet `flashcards` agent.
   - Browser-run examples (HTML, CSS, DOM and Web APIs) run in the installed Chrome and Firefox via puppeteer-core in the scratchpad, never in the repo; browser-specific behaviour names the browser and version.
