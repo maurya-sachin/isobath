@@ -208,6 +208,7 @@ Commands (Node 24, run in `app/`):
 | `npm run content:status [topic]` | Published counts per chapter and every `→ —` gap |
 | `npm run content:status -- --stale [topic]` | Written questions to re-check, oldest first: stale ones and any with `perishable` notes |
 | `npm run content:new -- <topic>/<chapter> <slug> "<title>" --difficulty <d> --frequency <1-5> [--core] [--number NNN]` | Creates a `planned` stub, then syncs READMEs |
+| `npm run content:scaffold -- <outline.yml> [--dry-run]` | Creates a topic's chapters, READMEs and `planned` stubs from an approved outline; never overwrites |
 | `npm run examples:check` | Runs the JavaScript and TypeScript examples and fails when a `// →` comment or a `// Error TSnnnn` comment differs from the result |
 | `npm run content:build` | Compiles content into `app/public/data/` (draft and published questions; drafts are labelled Draft) |
 | `npm run dev` | Builds content and starts the app |

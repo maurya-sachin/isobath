@@ -15,6 +15,7 @@
     "content:sync": "node scripts/sync.ts",
     "content:status": "node scripts/status.ts",
     "content:new": "node scripts/new.ts",
+    "content:scaffold": "node scripts/scaffold.ts",
     "content:build": "node scripts/build.ts",
     "theme:build": "node scripts/theme.ts",
     "smoke": "node scripts/smoke.ts",
