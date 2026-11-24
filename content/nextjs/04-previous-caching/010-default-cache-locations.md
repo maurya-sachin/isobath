@@ -14,12 +14,14 @@ related:
   - nextjs/navigation/client-router-cache-stale-times
   - nextjs/mutations/isr-and-on-demand-revalidation
   - nextjs/deployment/multi-instance-hosting
+  - nextjs/deployment/next-build-output
 verified: 2026-11
 perishable:
   - "cacheComponents off by default in Next.js 16.4.5"
   - "fetch default is 'auto no cache' in 16.4.5"
   - "staleTimes still experimental: dynamic 0 s, static 300 s"
   - "16.4.5 docs no longer name Data Cache or Full Route Cache"
+  - "Runtime route-cache folder under .next/server is new in 16.4"
   - "Chapter turns legacy when Cache Components becomes default (17)"
 sources:
   - https://nextjs.org/docs/app/guides/caching-without-cache-components#caching-fetch-requests
@@ -30,11 +32,13 @@ sources:
   - https://nextjs.org/docs/app/glossary#client-cache
   - https://nextjs.org/docs/14/app/building-your-application/caching
   - https://github.com/vercel/next.js/blob/v16.4.5/packages/next/src/server/lib/patch-fetch.ts
+  - https://github.com/vercel/next.js/blob/v16.4.5/packages/next/src/server/lib/incremental-cache/file-system-cache.ts
+  - https://github.com/vercel/next.js/blob/v16.4.5/packages/next/src/server/lib/route-cache-key.ts
 tldr: >
   Four places, named by the Next.js 14 docs. Per render, identical `GET` fetches are memoized in
   memory. The data cache keeps opted-in `fetch` responses and `unstable_cache` results in
-  `.next/cache/fetch-cache`. The full route cache keeps static routes' HTML and RSC payload in
-  `.next/server/app`. The browser's router cache keeps RSC payloads. In 16.4.5 data is cached only on request.
+  `.next/cache/fetch-cache`. The full route cache keeps static routes' HTML and RSC payload,
+  seeded from `.next/server/app`. The browser's router cache keeps RSC payloads. In 16.4.5 data is cached only on request.
 ---
 
 ## Answer
@@ -43,7 +47,7 @@ With `cacheComponents` off (the Next.js 16.4.5 framework default), the cache is 
 
 1. **Request memoization** (server, one render). Identical `GET` `fetch` calls during one render share one response. It is in memory and gone when the render ends.
 2. **Data cache** (server, across requests and deploys). Stores `fetch` responses that opt in with `cache: 'force-cache'` or `next.revalidate`, and `unstable_cache` results. Under `next start` it is one JSON file per entry in `.next/cache/fetch-cache`, with its `revalidate` and `tags`.
-3. **Full route cache** (server, across requests). A route prerendered at build time is stored as `.html`, `.rsc` and `.meta` files under `.next/server/app` and served without rendering. Responses carry `x-nextjs-cache: HIT` and `Cache-Control: s-maxage=…`. A static GET route handler is stored the same way (`.body` and `.meta`).
+3. **Full route cache** (server, across requests). Routes prerendered by `next build` are written as `.html`, `.rsc` and `.meta` files in `.next/server/app`, an immutable seed in 16.4.5: the first request copies them to `.next/server/route-cache/<kind>/<sha256 of the source route>/$<path>`, served without rendering and wiped by a rebuild. Responses carry `x-nextjs-cache: HIT` and `Cache-Control: s-maxage=…`. A static GET route handler is stored the same way (`.body` and `.meta`).
 4. **Router cache** (browser memory, the docs' "Client Cache"). RSC payloads of visited and prefetched routes. Since 15, dynamic pages are refetched on every `<Link>` navigation (`staleTimes.dynamic` is 0); static pages are reused for 5 minutes; back/forward always restores.
 
 The layers are independent. A dynamic route (no full route cache) can still read a `force-cache` fetch from the data cache, and a static route keeps whatever its build-time fetches returned until it is revalidated.

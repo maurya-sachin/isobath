@@ -18,6 +18,7 @@ perishable:
 sources:
   - https://nextjs.org/docs/app/api-reference/directives/use-cache-private
   - https://nextjs.org/docs/app/api-reference/directives/use-cache-private#request-apis-allowed-in-private-caches
+  - https://github.com/vercel/next.js/blob/v16.4.5/packages/next/src/server/request/connection.ts
   - https://nextjs.org/docs/app/api-reference/directives/use-cache-remote#how-use-cache-remote-differs-from-use-cache-and-use-cache-private
   - https://nextjs.org/docs/app/api-reference/directives/use-cache-remote#nesting-rules
   - https://nextjs.org/docs/app/api-reference/directives/use-cache-remote#persistence-across-deploys
@@ -34,7 +35,7 @@ tldr: >
 
 Plain `use cache` covers most needs: it fills the static shell at build time, and at request time it keeps results in a per-process, in-memory LRU. The two variants address two of its limits.
 
-**`use cache: private`** is for code that must read request data inside the cached scope: `cookies()`, `headers()` and `searchParams` are allowed (`connection()` is not). The price is that nothing is shared. In production the result is not stored in a server cache across requests; matching calls within one request reuse it, and the client router keeps the rendered output for its `stale` time. It runs only at request time, so it is never in the static shell, and custom handlers can't be configured for it. The docs reserve it for compliance cases or code you can't refactor to pass values as arguments.
+**`use cache: private`** is for code that must read request data inside the cached scope: `cookies()`, `headers()` and `searchParams` are allowed. `connection()` is not: it type-checks and builds, but throws at request time. The price is that nothing is shared. In production the result is not stored in a server cache across requests; matching calls within one request reuse it, and the client router keeps the rendered output for its `stale` time. It runs only at request time, so it is never in the static shell, and custom handlers can't be configured for it. The docs reserve it for compliance cases or code you can't refactor to pass values as arguments.
 
 **`use cache: remote`** keeps the same rules as `use cache` (no request APIs; pass values as arguments) but sends entries to the `remote` cache handler. Its value is at request time: content inside a `<Suspense>` hole runs on every request, and with per-instance memory, especially on serverless, hit rates are low. A shared store (Redis, a key-value service) gives every instance the same entries, protecting rate-limited or slow backends, at the cost of a network lookup per call and the storage bill. It pays off only when keys have few distinct values.
 
